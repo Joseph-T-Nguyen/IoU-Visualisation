@@ -1,6 +1,6 @@
 {
-  pkgs ? import <nixpkgs> {},
-, yarn
+  pkgs ? import <nixpkgs> {}
+, yarn ? pkgs.yarn
 }:
 
 let
