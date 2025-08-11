@@ -1,7 +1,7 @@
 import {useState} from "react";
 import viteLogo from "@/assets/vite.svg";
 import reactLogo from "@/assets/react.svg";
-import './ReactExampleView.css'
+// import './ReactExampleView.css'
 
 function ReactExampleView() {
   const [count, setCount] = useState(0)
