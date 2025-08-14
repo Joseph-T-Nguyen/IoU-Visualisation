@@ -1,8 +1,20 @@
 import AppShell from "@/components/shared/AppShell.tsx";
+import WorkspaceCard from "@/components/shared/WorkspaceCard.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Plus } from "lucide-react";
 
 export default function WorkspacesPage() {
+  const workspaces = [
+    { name: "Workspace 1", lastEdited: "Edited 8/5/2025", previewImage: <div className="w-8 h-8 bg-green-500 rounded"></div> },
+    { name: "Workspace 2", lastEdited: "Edited 8/5/2025", previewImage: <div className="w-8 h-8 bg-red-500 rounded"></div> },
+    { name: "Workspace 3", lastEdited: "Edited 8/5/2025" },
+    { name: "Workspace 4", lastEdited: "Edited 8/5/2025" },
+    { name: "Workspace 5", lastEdited: "Edited 8/5/2025" },
+    { name: "Workspace 6", lastEdited: "Edited 8/5/2025" },
+    { name: "Workspace 7", lastEdited: "Edited 8/5/2025" },
+    { name: "Workspace 8", lastEdited: "Edited 8/5/2025" },
+  ];
+
   return (
     <AppShell>
       {/* Page Header Section */}
@@ -24,6 +36,19 @@ export default function WorkspacesPage() {
             New Workspace
           </Button>
         </div>
+      </div>
+
+      {/* Workspace Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {workspaces.map((workspace, index) => (
+          <WorkspaceCard
+            key={index}
+            name={workspace.name}
+            lastEdited={workspace.lastEdited}
+            previewImage={workspace.previewImage}
+            onMenuClick={() => console.log(`Menu clicked for ${workspace.name}`)}
+          />
+        ))}
       </div>
     </AppShell>
   );
