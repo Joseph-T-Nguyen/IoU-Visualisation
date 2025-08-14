@@ -8,9 +8,10 @@ let
 in pkgs.mkShell {
   # nativeBuildInputs is usually what you want -- tools you need to run
   nativeBuildInputs = with pkgs.buildPackages; [ 
-    yarn 
+    yarn
+    pkgs.typescript-language-server
+    pkgs.nodejs
+#    pkgs.tailwindcss-language-server
+    pkgs.tailwindcss
   ];
 }
-
-
-
