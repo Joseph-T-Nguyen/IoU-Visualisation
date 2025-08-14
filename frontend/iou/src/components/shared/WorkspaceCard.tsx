@@ -1,5 +1,5 @@
 import { MoreVertical } from "lucide-react";
-import { Card, CardHeader, CardContent, CardTitle, CardAction } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 interface WorkspaceCardProps {
   name: string;
