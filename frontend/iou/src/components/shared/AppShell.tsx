@@ -21,7 +21,7 @@ export default function AppShell({ children }: AppShellProps) {
             
             {/* User Avatar */}
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-sm">U</span>
               </div>
             </div>
