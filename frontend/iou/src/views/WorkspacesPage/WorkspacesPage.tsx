@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 
 export default function WorkspacesPage() {
   // Use the hook to fetch workspaces data
-  const { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace } = useWorkspaces();
+  const { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, getWorkspaceVersions } = useWorkspaces();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("Untitled");
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
@@ -25,6 +25,9 @@ export default function WorkspacesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteWorkspaceId, setDeleteWorkspaceId] = useState<string | null>(null);
   const [deleteWorkspaceName, setDeleteWorkspaceName] = useState("");
+  const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
+  const [versionWorkspaceId, setVersionWorkspaceId] = useState<string | null>(null);
+  const [versionWorkspaceName, setVersionWorkspaceName] = useState("");
 
   const handleCreateWorkspace = () => {
     createWorkspace(workspaceName);
@@ -65,6 +68,12 @@ export default function WorkspacesPage() {
       setDeleteWorkspaceId(null);
       setDeleteWorkspaceName("");
     }
+  };
+
+  const handleOpenVersionDialog = (workspaceId: string, workspaceName: string) => {
+    setVersionWorkspaceId(workspaceId);
+    setVersionWorkspaceName(workspaceName);
+    setIsVersionDialogOpen(true);
   };
 
   // Show loading state while data is being fetched
@@ -144,6 +153,7 @@ export default function WorkspacesPage() {
           maxVisibleCards={8}
           onRenameWorkspace={handleOpenRenameDialog}
           onDeleteWorkspace={handleOpenDeleteDialog}
+          onVersionHistory={handleOpenVersionDialog}
         />
       )}
 
@@ -242,6 +252,63 @@ export default function WorkspacesPage() {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for version history */}
+      <Dialog open={isVersionDialogOpen} onOpenChange={setIsVersionDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Version History</DialogTitle>
+            <DialogDescription>
+              Recent versions of "{versionWorkspaceName}"
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[300px] overflow-y-auto">
+            {versionWorkspaceId && getWorkspaceVersions(versionWorkspaceId).length > 0 ? (
+              <div className="space-y-3">
+                {getWorkspaceVersions(versionWorkspaceId)
+                  .slice()
+                  .reverse()
+                  .map((version, index) => {
+                    const versions = getWorkspaceVersions(versionWorkspaceId);
+                    const versionNumber = versions.length - index;
+                    return (
+                      <div key={version.id} className="flex items-center justify-between p-3 rounded-lg border bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            Version {versionNumber}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {version.action} • {version.timestamp}
+                          </div>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            console.log(`Restore version ${version.id}`);
+                            // Future: Implement restore functionality
+                          }}
+                          className="ml-4"
+                        >
+                          View
+                        </Button>
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No version history available
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsVersionDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

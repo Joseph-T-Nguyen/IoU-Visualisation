@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
 
+interface Version {
+  id: string;
+  timestamp: string;
+  action: string;
+}
+
 interface Workspace {
   id: string;
   name: string;
   lastEdited: string;
   previewImage?: string;
+  versions?: Version[];
 }
 
 export function useWorkspaces() {
@@ -21,18 +28,18 @@ export function useWorkspaces() {
       
       // Mock data - you can change this number to test different scenarios
       const mockWorkspaces: Workspace[] = [
-        { id: '1', name: "Workspace 1", lastEdited: "Edited 8/5/2025", previewImage: "green" },
-        { id: '2', name: "Workspace 2", lastEdited: "Edited 8/5/2025", previewImage: "red" },
-        { id: '3', name: "Workspace 3", lastEdited: "Edited 8/5/2025" },
-        { id: '4', name: "Workspace 4", lastEdited: "Edited 8/5/2025" },
-        { id: '5', name: "Workspace 5", lastEdited: "Edited 8/5/2025" },
-        { id: '6', name: "Workspace 6", lastEdited: "Edited 8/5/2025" },
-        { id: '7', name: "Workspace 7", lastEdited: "Edited 8/5/2025" },
-        { id: '8', name: "Workspace 8", lastEdited: "Edited 8/5/2025" },
-        { id: '9', name: "Workspace 9", lastEdited: "Edited 8/5/2025" },
-        { id: '10', name: "Workspace 10", lastEdited: "Edited 8/5/2025" },
-        { id: '11', name: "Workspace 11", lastEdited: "Edited 8/5/2025" },
-        { id: '12', name: "Workspace 12", lastEdited: "Edited 8/5/2025" },
+        { id: '1', name: "Workspace 1", lastEdited: "Edited 8/5/2025", previewImage: "green", versions: [] },
+        { id: '2', name: "Workspace 2", lastEdited: "Edited 8/5/2025", previewImage: "red", versions: [] },
+        { id: '3', name: "Workspace 3", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '4', name: "Workspace 4", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '5', name: "Workspace 5", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '6', name: "Workspace 6", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '7', name: "Workspace 7", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '8', name: "Workspace 8", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '9', name: "Workspace 9", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '10', name: "Workspace 10", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '11', name: "Workspace 11", lastEdited: "Edited 8/5/2025", versions: [] },
+        { id: '12', name: "Workspace 12", lastEdited: "Edited 8/5/2025", versions: [] },
       ];
       
       setWorkspaces(mockWorkspaces);
@@ -45,11 +52,15 @@ export function useWorkspaces() {
   const createWorkspace = (name: string = "Untitled") => {
     const now = new Date();
     const formattedDate = `Edited ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+    const timestamp = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()} ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
     
     const newWorkspace: Workspace = {
       id: `new-${Date.now()}`,
       name: name || "Untitled",
-      lastEdited: formattedDate
+      lastEdited: formattedDate,
+      versions: [
+        { id: `v-${Date.now()}`, timestamp, action: "Created" }
+      ]
     };
     
     setWorkspaces(prevWorkspaces => [newWorkspace, ...prevWorkspaces]);
@@ -58,13 +69,22 @@ export function useWorkspaces() {
   const renameWorkspace = (id: string, newName: string) => {
     const now = new Date();
     const formattedDate = `Edited ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+    const timestamp = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()} ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
     
     setWorkspaces(prevWorkspaces => 
-      prevWorkspaces.map(workspace => 
-        workspace.id === id 
-          ? { ...workspace, name: newName || "Untitled", lastEdited: formattedDate }
-          : workspace
-      )
+      prevWorkspaces.map(workspace => {
+        if (workspace.id === id) {
+          const newVersion = { id: `v-${Date.now()}`, timestamp, action: "Renamed" };
+          const updatedVersions = [...(workspace.versions || []), newVersion].slice(-5); // Keep last 5 versions
+          return { 
+            ...workspace, 
+            name: newName || "Untitled", 
+            lastEdited: formattedDate,
+            versions: updatedVersions
+          };
+        }
+        return workspace;
+      })
     );
   };
 
@@ -74,5 +94,10 @@ export function useWorkspaces() {
     );
   };
 
-  return { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace };
+  const getWorkspaceVersions = (id: string) => {
+    const workspace = workspaces.find(w => w.id === id);
+    return workspace?.versions || [];
+  };
+
+  return { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, getWorkspaceVersions };
 }

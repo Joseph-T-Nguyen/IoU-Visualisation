@@ -22,6 +22,7 @@ interface WorkspaceCardProps {
   onMenuClick?: () => void;
   onRename?: () => void;
   onDelete?: () => void;
+  onVersionHistory?: () => void;
 }
 
 export default function WorkspaceCard({
@@ -31,6 +32,7 @@ export default function WorkspaceCard({
   onMenuClick,
   onRename,
   onDelete,
+  onVersionHistory,
 }: WorkspaceCardProps) {
   const handleMenuAction = (action: string) => {
     console.log(`${action} clicked for workspace: ${name}`);
@@ -39,6 +41,9 @@ export default function WorkspaceCard({
     }
     if (action === "delete" && onDelete) {
       onDelete();
+    }
+    if (action === "version-history" && onVersionHistory) {
+      onVersionHistory();
     }
   };
 
