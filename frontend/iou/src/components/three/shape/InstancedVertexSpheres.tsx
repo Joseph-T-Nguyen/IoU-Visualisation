@@ -8,17 +8,21 @@ export interface InstancedVertexSpheresProps {
   radius?: number,
   onClick?: () => void,
 
+  color?: string
+
   hoveredIds?: number[],
-  onVertexPointerEnter: (vertexId: number, e: ThreeEvent<PointerEvent>) => void,
-  onVertexPointerOut: (vertexId: number, e: ThreeEvent<PointerEvent>) => void,
+  onVertexPointerEnter?: (vertexId: number, e: ThreeEvent<PointerEvent>) => void,
+  onVertexPointerOut?: (vertexId: number, e: ThreeEvent<PointerEvent>) => void,
 }
 
 export default function InstancedVertexSpheres(props: InstancedVertexSpheresProps) {
   const meshRef = useRef<InstancedMesh>(null);
-  const hoveredMeshRef = useRef<InstancedMesh>(null);
+  const hoveredOuterMeshRef = useRef<InstancedMesh>(null);
+  const hoveredInnerMeshRef = useRef<InstancedMesh>(null);
 
   const positions = props.vertices;
   const radius = props.radius ?? 0.0625;
+  const color = props.color ?? "white";
 
   const [directHoveredId, setDirectHoveredId] = useState<number | null>(null);
   const hoveredIds = props.hoveredIds ?? (directHoveredId === null ? [] : [directHoveredId]);
@@ -33,7 +37,6 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
   }, [positions, meshRef]);
 
   const hoveredMatrices = useMemo(() => {
-    console.log("hoveredMatrices from ", hoveredIds);
     return hoveredIds.map((id: number) => matrices[id])
   }, [matrices, hoveredIds]);
 
@@ -41,18 +44,23 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
   useEffect(() => {
     if (!meshRef.current) return;
     matrices.forEach((matrix, i) => {
-      meshRef.current!.setMatrixAt(i, matrix);
+      if (!hoveredIds.includes(i))
+        meshRef.current!.setMatrixAt(i, matrix);
+      else
+        meshRef.current!.setMatrixAt(i, new Matrix4(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0));
     });
     meshRef.current.instanceMatrix.needsUpdate = true;
-  }, [matrices]);
+  }, [matrices, hoveredIds]);
 
   useEffect(() => {
-    if (!hoveredMeshRef.current)
+    if (!hoveredInnerMeshRef.current || !hoveredOuterMeshRef.current)
       return;
     hoveredMatrices.forEach((matrix, i) => {
-      hoveredMeshRef.current!.setMatrixAt(i, matrix);
+      hoveredInnerMeshRef.current!.setMatrixAt(i, matrix);
+      hoveredOuterMeshRef.current!.setMatrixAt(i, matrix);
     });
-    hoveredMeshRef.current.instanceMatrix.needsUpdate = true;
+    hoveredInnerMeshRef.current.instanceMatrix.needsUpdate = true;
+    hoveredOuterMeshRef.current.instanceMatrix.needsUpdate = true;
   }, [hoveredMatrices]);
 
   const onPointerMove = useCallback((event: ThreeEvent<PointerEvent>) => {
@@ -82,26 +90,38 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
   }, [props.onClick]);
 
   return (
-    <>
+    <group
+      onPointerOut={onPointerOut}
+    >
       <instancedMesh
         ref={meshRef}
         args={[undefined, undefined, positions.length]}
         onPointerMove={onPointerMove}
-        onPointerOut={onPointerOut}
         onClick={onClick}
       >
         {/* Base sphere geometry */}
         <sphereGeometry args={[radius, 8, 8]} />
-        <meshStandardMaterial color="white" />
+        <meshBasicMaterial color={color} />
       </instancedMesh>
       {/* Optional: inverted outer sphere for hovered instance */}
       <instancedMesh
-        ref={hoveredMeshRef}
+        ref={hoveredInnerMeshRef}
         args={[undefined, undefined, hoveredMatrices.length]}
+        onPointerMove={onPointerMove}
+        onClick={onClick}
       >
-        <sphereGeometry args={[radius * 1.2, 32, 32]} />
-        <meshBasicMaterial color="blue" side={BackSide} />
+        <sphereGeometry args={[radius, 8, 8]} />
+        <meshBasicMaterial color="white"/>
       </instancedMesh>
-    </>
+      <instancedMesh
+        ref={hoveredOuterMeshRef}
+        args={[undefined, undefined, hoveredMatrices.length]}
+        onPointerMove={onPointerMove}
+        onClick={onClick}
+      >
+        <sphereGeometry args={[radius * 1.5, 8, 8]} />
+        <meshBasicMaterial color="#00D3F2" side={BackSide} />
+      </instancedMesh>
+    </group>
   );
 }

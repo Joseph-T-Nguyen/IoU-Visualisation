@@ -1,13 +1,16 @@
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import InstancedVertexSpheres from "@/components/three/shape/InstancedVertexSpheres.tsx";
-import {useMemo, useState, useEffect} from "react";
+import {useMemo, useState} from "react";
 import {Vector3} from "three";
 // TODO: Figure out why this import statement isn't happy
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import type {ThreeEvent} from "@react-three/fiber";
+import {Edges} from "@react-three/drei";
 
 export interface ShapeRendererProps {
-  vertices: Vec3[]
+  vertices: Vec3[],
+  vertexColor: string,
+  baseColor: string,
 }
 
 function vec3ToVector3(vec3: Vec3): Vector3 {
@@ -36,18 +39,20 @@ function findClosestVertexId(point: Vector3, vertices: Vec3[]): number {
 
 
 export default function ShapeRenderer(props: ShapeRendererProps) {
+  const vertexColor = props.vertexColor ?? "blue";
+  const baseColor = props.baseColor ?? "white";
+
   const geometry = useMemo(() => new ConvexGeometry(
     props.vertices.map((vertex) =>
       new Vector3(vertex[0], vertex[1], vertex[2]),
     )
   ), [props.vertices]);
 
-  const [directHoveredVertexIds, setDirectHoveredVertexIds] = useState<number[]>([]);
+  const [directHoveredVertexIds, _] = useState<number[]>([]);
   const [closestVertexId, setClosestVertexId] = useState<number[] | null>(null);
   const hoveredIds = directHoveredVertexIds.length !== 0 ? directHoveredVertexIds : closestVertexId ?? [];
 
   const onPointerMove = (event: ThreeEvent<PointerEvent>) => {
-    console.log("intersection point", event.point)
     const closest = findClosestVertexId(event.point, props.vertices);
     setClosestVertexId([closest]);
   };
@@ -56,34 +61,32 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
     setClosestVertexId(null);
   }
 
-  const onVertexHover = (id: number) => {
-    if (!directHoveredVertexIds.includes(id))
-      setDirectHoveredVertexIds(v => [...v, id]);
-  }
-
-  const onVertexUnhover = (id: number) => {
-    setDirectHoveredVertexIds(v => v.filter(v => v !== id));
-  }
-
-  useEffect(() => {
-    console.log(hoveredIds)
-  }, [hoveredIds]);
+  // const onVertexHover = (id: number) => {
+  //   if (!directHoveredVertexIds.includes(id))
+  //     setDirectHoveredVertexIds(v => [...v, id]);
+  // }
+  //
+  // const onVertexUnhover = (id: number) => {
+  //   setDirectHoveredVertexIds(v => v.filter(v => v !== id));
+  // }
 
   return (
-    <>
+    <group
+      onPointerMove={onPointerMove}
+      onPointerOut={onPointerOut}
+    >
       <InstancedVertexSpheres
         vertices={props.vertices}
         hoveredIds={hoveredIds}
-        onVertexPointerEnter={onVertexHover}
-        onVertexPointerOut={onVertexUnhover}
+        color={vertexColor}
       />
       <mesh
         geometry={geometry}
-        onPointerMove={onPointerMove}
-        onPointerOut={onPointerOut}
       >
-        <meshStandardMaterial color="white"/>
+        <meshStandardMaterial color={baseColor} />
+        <Edges lineWidth={1} color={vertexColor} />
       </mesh>
-    </>
+
+    </group>
   );
 }
