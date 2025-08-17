@@ -3,7 +3,7 @@ import { InstancedMesh, Matrix4, BackSide } from 'three';
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 
 export interface InstancedVertexSpheresProps {
-  positions: Vec3[],
+  vertices: Vec3[],
   radius?: number,
   onClick?: () => void,
 }
@@ -13,7 +13,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
   const meshRef = useRef<InstancedMesh>(null);
   const hoveredMeshRef = useRef<InstancedMesh>(null);
 
-  const positions = props.positions;
+  const positions = props.vertices;
   const radius = props.radius ?? 0.0625;
 
   // Hover state per instance
@@ -26,7 +26,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
       m.setPosition(x, y, z);
       return m;
     });
-  }, [positions]);
+  }, [positions, meshRef]);
 
   const hoveredMatrices = useMemo(() => {
     if (hoveredId === null)
@@ -37,6 +37,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
 
   // Update instance matrices once
   useEffect(() => {
+    console.log("Matrices: ", matrices);
     if (!meshRef.current) return;
     matrices.forEach((matrix, i) => {
       meshRef.current!.setMatrixAt(i, matrix);
@@ -55,10 +56,12 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
 
   const onPointerMove = useCallback((event: any) => {
     setHoveredId(event.instanceId ?? null);
+    console.log("Pointer move", event);
   }, []);
 
   const onPointerOut = useCallback(() => {
     setHoveredId(null)
+    console.log("Pointer out");
   }, []);
 
   const onClick = useCallback((event: any) => {
@@ -66,7 +69,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
   }, []);
 
   return (
-    <group>
+    <>
       <instancedMesh
         ref={meshRef}
         args={[undefined, undefined, positions.length]}
@@ -79,15 +82,13 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
         <meshStandardMaterial color="white" />
       </instancedMesh>
       {/* Optional: inverted outer sphere for hovered instance */}
-      {hoveredId !== null && (
-        <instancedMesh
-          ref={hoveredMeshRef}
-          args={[undefined, undefined, hoveredMatrices.length]}
-        >
-          <sphereGeometry args={[radius * 1.2, 32, 32]} />
-          <meshBasicMaterial color="blue" side={BackSide} />
-        </instancedMesh>
-      )}
-    </group>
+      <instancedMesh
+        ref={hoveredMeshRef}
+        args={[undefined, undefined, hoveredMatrices.length]}
+      >
+        <sphereGeometry args={[radius * 1.2, 32, 32]} />
+        <meshBasicMaterial color="blue" side={BackSide} />
+      </instancedMesh>
+    </>
   );
 }

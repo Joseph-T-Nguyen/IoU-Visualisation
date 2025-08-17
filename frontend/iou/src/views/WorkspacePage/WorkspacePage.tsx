@@ -1,5 +1,5 @@
 import FlexyCanvas from "@/components/shared/FlexyCanvas.tsx";
-import InstancedVertexSpheres from "@/components/three/InstancedVertexSpheres.tsx";
+import ShapeRenderer from "@/components/three/shape/ShapeRenderer.tsx";
 
 export default function WorkspacePage() {
 
@@ -18,11 +18,11 @@ export default function WorkspacePage() {
       overlay={overlay}
     >
       {/* Add 3D content here: */}
-      <InstancedVertexSpheres positions={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0]]}/>
+      <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]}/>
 
       <ambientLight intensity={0.125} color="blue"/>
-      <directionalLight position={[0, 0, 5]} color="#CCC" />
-      <orthographicCamera position={[0, 0, 1]} ></orthographicCamera>
+      <directionalLight position={[0, 0, 5]} color="#EEE" />
+      {/*<orthographicCamera position={[0, 0, 5]} ></orthographicCamera>*/}
     </FlexyCanvas>
   );
 }
