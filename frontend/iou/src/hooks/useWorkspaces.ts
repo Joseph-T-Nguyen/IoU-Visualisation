@@ -55,5 +55,18 @@ export function useWorkspaces() {
     setWorkspaces(prevWorkspaces => [newWorkspace, ...prevWorkspaces]);
   };
 
-  return { workspaces, loading, createWorkspace };
+  const renameWorkspace = (id: string, newName: string) => {
+    const now = new Date();
+    const formattedDate = `Edited ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+    
+    setWorkspaces(prevWorkspaces => 
+      prevWorkspaces.map(workspace => 
+        workspace.id === id 
+          ? { ...workspace, name: newName || "Untitled", lastEdited: formattedDate }
+          : workspace
+      )
+    );
+  };
+
+  return { workspaces, loading, createWorkspace, renameWorkspace };
 }

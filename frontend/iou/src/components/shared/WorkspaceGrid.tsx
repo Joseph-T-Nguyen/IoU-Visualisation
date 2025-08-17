@@ -11,11 +11,13 @@ interface Workspace {
 interface WorkspaceGridProps {
   workspaces: Workspace[];
   maxVisibleCards?: number;
+  onRenameWorkspace?: (id: string, currentName: string) => void;
 }
 
 export default function WorkspaceGrid({ 
   workspaces, 
-  maxVisibleCards = 8 
+  maxVisibleCards = 8,
+  onRenameWorkspace
 }: WorkspaceGridProps) {
   const needsScroll = workspaces.length > maxVisibleCards;
   
@@ -37,6 +39,7 @@ export default function WorkspaceGrid({
                 lastEdited={workspace.lastEdited}
                 previewImage={workspace.previewImage}
                 onMenuClick={() => console.log(`Menu clicked for ${workspace.name}`)}
+                onRename={() => onRenameWorkspace?.(workspace.id, workspace.name)}
               />
             ))}
           </div>
@@ -51,6 +54,7 @@ export default function WorkspaceGrid({
               lastEdited={workspace.lastEdited}
               previewImage={workspace.previewImage}
               onMenuClick={() => console.log(`Menu clicked for ${workspace.name}`)}
+              onRename={() => onRenameWorkspace?.(workspace.id, workspace.name)}
             />
           ))}
         </div>

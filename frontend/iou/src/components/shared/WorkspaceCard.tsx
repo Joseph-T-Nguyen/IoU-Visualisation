@@ -20,6 +20,7 @@ interface WorkspaceCardProps {
   lastEdited: string;
   previewImage?: React.ReactNode;
   onMenuClick?: () => void;
+  onRename?: () => void;
 }
 
 export default function WorkspaceCard({
@@ -27,9 +28,13 @@ export default function WorkspaceCard({
   lastEdited,
   previewImage,
   onMenuClick,
+  onRename,
 }: WorkspaceCardProps) {
   const handleMenuAction = (action: string) => {
     console.log(`${action} clicked for workspace: ${name}`);
+    if (action === "rename" && onRename) {
+      onRename();
+    }
   };
 
   return (

@@ -16,9 +16,12 @@ import { Input } from "@/components/ui/input";
 
 export default function WorkspacesPage() {
   // Use the hook to fetch workspaces data
-  const { workspaces, loading, createWorkspace } = useWorkspaces();
+  const { workspaces, loading, createWorkspace, renameWorkspace } = useWorkspaces();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("Untitled");
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [renameWorkspaceId, setRenameWorkspaceId] = useState<string | null>(null);
+  const [renameWorkspaceName, setRenameWorkspaceName] = useState("");
 
   const handleCreateWorkspace = () => {
     createWorkspace(workspaceName);
@@ -29,6 +32,21 @@ export default function WorkspacesPage() {
   const handleOpenDialog = () => {
     setWorkspaceName("Untitled");
     setIsDialogOpen(true);
+  };
+
+  const handleOpenRenameDialog = (workspaceId: string, currentName: string) => {
+    setRenameWorkspaceId(workspaceId);
+    setRenameWorkspaceName(currentName);
+    setIsRenameDialogOpen(true);
+  };
+
+  const handleRenameWorkspace = () => {
+    if (renameWorkspaceId) {
+      renameWorkspace(renameWorkspaceId, renameWorkspaceName);
+      setIsRenameDialogOpen(false);
+      setRenameWorkspaceId(null);
+      setRenameWorkspaceName("");
+    }
   };
 
   // Show loading state while data is being fetched
@@ -103,7 +121,11 @@ export default function WorkspacesPage() {
         </div>
       ) : (
         /* Use WorkspaceGrid with data from the hook */
-        <WorkspaceGrid workspaces={workspaces} maxVisibleCards={8} />
+        <WorkspaceGrid 
+          workspaces={workspaces} 
+          maxVisibleCards={8}
+          onRenameWorkspace={handleOpenRenameDialog}
+        />
       )}
 
       {/* Dialog for creating new workspace */}
@@ -140,6 +162,44 @@ export default function WorkspacesPage() {
               Cancel
             </Button>
             <Button onClick={handleCreateWorkspace}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for renaming workspace */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Rename Workspace</DialogTitle>
+            <DialogDescription>
+              Enter a new name for your workspace.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="rename-name" className="text-right text-sm font-medium">
+                Name
+              </label>
+              <Input
+                id="rename-name"
+                value={renameWorkspaceName}
+                onChange={(e) => setRenameWorkspaceName(e.target.value)}
+                className="col-span-3"
+                placeholder="Enter workspace name"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleRenameWorkspace();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRenameWorkspace}>Rename</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
