@@ -15,11 +15,13 @@ export default function WorkspacesPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Workspaces</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                Workspaces
+              </h2>
               <p className="text-gray-600">Loading your workspaces...</p>
             </div>
-            
-            <Button 
+
+            <Button
               variant="outline"
               className="w-full sm:w-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
               disabled
@@ -29,7 +31,7 @@ export default function WorkspacesPage() {
             </Button>
           </div>
         </div>
-        
+
         {/* Loading skeleton or spinner */}
         <div className="flex items-center justify-center h-64">
           <div className="text-gray-500">Loading workspaces...</div>
@@ -45,12 +47,17 @@ export default function WorkspacesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           {/* Title and Caption */}
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Workspaces</h2>
-            <p className="text-gray-600"> These are workspaces you've recently worked on. </p>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              Workspaces
+            </h2>
+            <p className="text-gray-600">
+              {" "}
+              These are workspaces you've recently worked on.{" "}
+            </p>
           </div>
-          
+
           {/* New Workspace Button */}
-          <Button 
+          <Button
             variant="outline"
             className="w-full sm:w-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
             aria-label="Create new workspace"
