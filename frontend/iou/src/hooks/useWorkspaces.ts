@@ -42,13 +42,13 @@ export function useWorkspaces() {
     fetchWorkspaces();
   }, []);
 
-  const createWorkspace = () => {
+  const createWorkspace = (name: string = "Untitled") => {
     const now = new Date();
     const formattedDate = `Edited ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
     
     const newWorkspace: Workspace = {
       id: `new-${Date.now()}`,
-      name: "Untitled",
+      name: name || "Untitled",
       lastEdited: formattedDate
     };
     
