@@ -1,7 +1,10 @@
 
+export type Dimensions = "2d" | "3d";
+
 // The return type for useWorkspace
 export interface WorkspaceMetadata {
   name: string;
+  dimensions: Dimensions;
 }
 
 // The data type held for each shape in the workspace store
@@ -16,6 +19,10 @@ export interface Shape {
 
 // The return type for useWorkspaceStore
 export interface WorkspaceState extends WorkspaceMetadata {
+  setDimensions: (dimensions: Dimensions) => void;
+
   shapes: Map<string, Shape>;
   setVertices: (id: string, vertices: number[][]) => void;
 }
+
+

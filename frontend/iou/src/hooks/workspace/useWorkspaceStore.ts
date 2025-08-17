@@ -1,5 +1,5 @@
 import {create} from "zustand/react";
-import type {WorkspaceState} from "@/hooks/workspace/workspaceTypes.ts";
+import type {Dimensions, WorkspaceState} from "@/hooks/workspace/workspaceTypes.ts";
 
 /**
  * A zustand store to store the internal data of the workspace. Used to define other hooks. Do not use directly in your
@@ -36,24 +36,27 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => {
     // Metadata
     name: "Workspace",
 
+    dimensions: "3d",
+    setDimensions: (dimensions: Dimensions) => set(() => {
+      return { dimensions: dimensions };
+    }),
+
     // Shape data
     shapes: new Map(),
 
-    setVertices: (id, vertices) => {
-      set((state) => {
-        const next = new Map(state.shapes);
-        const oldShape = next.get(id) ?? { vertices: [], faces: [], isPending: false };
-        const jobId = ++jobCounter;
+    setVertices: (id, vertices) => set((state) => {
+      const next = new Map(state.shapes);
+      const oldShape = next.get(id) ?? { vertices: [], faces: [], isPending: false };
+      const jobId = ++jobCounter;
 
-        // mark as pending
-        next.set(id, { ...oldShape, vertices, isPending: true, currentJobId: jobId });
-        pendingJobs.set(jobId, id);
+      // mark as pending
+      next.set(id, { ...oldShape, vertices, isPending: true, currentJobId: jobId });
+      pendingJobs.set(jobId, id);
 
-        // send async job to worker
-        worker.postMessage({ id, vertices });
+      // send async job to worker
+      worker.postMessage({ id, vertices });
 
-        return { shapes: next };
-      });
-    },
+      return { shapes: next };
+    }),
   };
 });

@@ -8,6 +8,7 @@ import type {WorkspaceMetadata} from "@/hooks/workspace/workspaceTypes.ts";
 function useWorkspace() {
   const store: WorkspaceMetadata = useWorkspaceStore(useShallow((state) => ({
     name: state.name,
+    dimensions: state.dimensions,
   })));
 
   return store;
