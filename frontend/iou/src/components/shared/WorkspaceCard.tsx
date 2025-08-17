@@ -30,9 +30,6 @@ export default function WorkspaceCard({
 }: WorkspaceCardProps) {
   const handleMenuAction = (action: string) => {
     console.log(`${action} clicked for workspace: ${name}`);
-    if (onMenuClick) {
-      onMenuClick();
-    }
   };
 
   return (
@@ -46,7 +43,13 @@ export default function WorkspaceCard({
       <div className="px-4 pb-4 pt-0">
         <div className="flex justify-between items-start mb-1">
           <h3 className="font-medium text-gray-900">{name}</h3>
-          <DropdownMenu>
+          <DropdownMenu
+            onOpenChange={(open) => {
+              if (open && onMenuClick) {
+                onMenuClick();
+              }
+            }}
+          >
             <DropdownMenuTrigger asChild>
               <button
                 className="text-gray-400 hover:text-gray-600 p-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"

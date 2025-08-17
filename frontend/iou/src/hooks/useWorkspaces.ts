@@ -42,5 +42,18 @@ export function useWorkspaces() {
     fetchWorkspaces();
   }, []);
 
-  return { workspaces, loading };
+  const createWorkspace = () => {
+    const now = new Date();
+    const formattedDate = `Edited ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+    
+    const newWorkspace: Workspace = {
+      id: `new-${Date.now()}`,
+      name: "Untitled",
+      lastEdited: formattedDate
+    };
+    
+    setWorkspaces(prevWorkspaces => [newWorkspace, ...prevWorkspaces]);
+  };
+
+  return { workspaces, loading, createWorkspace };
 }

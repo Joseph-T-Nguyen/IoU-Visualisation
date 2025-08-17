@@ -6,7 +6,7 @@ import { useWorkspaces } from "@/hooks/useWorkspaces";
 
 export default function WorkspacesPage() {
   // Use the hook to fetch workspaces data
-  const { workspaces, loading } = useWorkspaces();
+  const { workspaces, loading, createWorkspace } = useWorkspaces();
 
   // Show loading state while data is being fetched
   if (loading) {
@@ -61,6 +61,7 @@ export default function WorkspacesPage() {
             variant="outline"
             className="w-full sm:w-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
             aria-label="Create new workspace"
+            onClick={createWorkspace}
           >
             <Plus className="w-4 h-4" />
             New Workspace
@@ -72,7 +73,7 @@ export default function WorkspacesPage() {
       {workspaces.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <div className="text-gray-500 mb-4">No workspaces found</div>
-          <Button variant="outline">
+          <Button variant="outline" onClick={createWorkspace}>
             <Plus className="w-4 h-4 mr-2" />
             Create your first workspace
           </Button>
