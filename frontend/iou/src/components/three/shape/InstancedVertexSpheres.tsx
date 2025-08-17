@@ -1,13 +1,17 @@
 import {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import { InstancedMesh, Matrix4, BackSide } from 'three';
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
+import type {ThreeEvent} from "@react-three/fiber";
 
 export interface InstancedVertexSpheresProps {
   vertices: Vec3[],
   radius?: number,
   onClick?: () => void,
-}
 
+  hoveredIds?: number[],
+  onVertexPointerEnter: (vertexId: number, e: ThreeEvent<PointerEvent>) => void,
+  onVertexPointerOut: (vertexId: number, e: ThreeEvent<PointerEvent>) => void,
+}
 
 export default function InstancedVertexSpheres(props: InstancedVertexSpheresProps) {
   const meshRef = useRef<InstancedMesh>(null);
@@ -16,8 +20,8 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
   const positions = props.vertices;
   const radius = props.radius ?? 0.0625;
 
-  // Hover state per instance
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [directHoveredId, setDirectHoveredId] = useState<number | null>(null);
+  const hoveredIds = props.hoveredIds ?? (directHoveredId === null ? [] : [directHoveredId]);
 
   // Precompute instance matrices
   const matrices = useMemo(() => {
@@ -29,15 +33,12 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
   }, [positions, meshRef]);
 
   const hoveredMatrices = useMemo(() => {
-    if (hoveredId === null)
-      return [];
-
-    return [matrices[hoveredId]];
-  }, [matrices, hoveredId]);
+    console.log("hoveredMatrices from ", hoveredIds);
+    return hoveredIds.map((id: number) => matrices[id])
+  }, [matrices, hoveredIds]);
 
   // Update instance matrices once
   useEffect(() => {
-    console.log("Matrices: ", matrices);
     if (!meshRef.current) return;
     matrices.forEach((matrix, i) => {
       meshRef.current!.setMatrixAt(i, matrix);
@@ -54,19 +55,31 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
     hoveredMeshRef.current.instanceMatrix.needsUpdate = true;
   }, [hoveredMatrices]);
 
-  const onPointerMove = useCallback((event: any) => {
-    setHoveredId(event.instanceId ?? null);
-    console.log("Pointer move", event);
-  }, []);
+  const onPointerMove = useCallback((event: ThreeEvent<PointerEvent>) => {
+    const newId = event.instanceId ?? null;
 
-  const onPointerOut = useCallback(() => {
-    setHoveredId(null)
-    console.log("Pointer out");
-  }, []);
+    if (newId === directHoveredId)
+      return;
 
-  const onClick = useCallback((event: any) => {
+    if (directHoveredId !== null)
+      props.onVertexPointerOut?.(directHoveredId, event);
+    if (newId !== null)
+      props.onVertexPointerEnter?.(newId, event);
+
+    setDirectHoveredId(newId);
+  }, [directHoveredId, props.onVertexPointerOut, props.onVertexPointerEnter]);
+
+  const onPointerOut = useCallback((event: ThreeEvent<PointerEvent>) => {
+    if (directHoveredId !== null)
+      props.onVertexPointerOut?.(directHoveredId, event);
+
+    setDirectHoveredId(null)
+  }, [directHoveredId, props.onVertexPointerOut, props.onVertexPointerEnter]);
+
+  const onClick = useCallback((event: ThreeEvent<PointerEvent>) => {
     console.log('Clicked vertex instance', event.instanceId);
-  }, []);
+    props.onClick?.()
+  }, [props.onClick]);
 
   return (
     <>
