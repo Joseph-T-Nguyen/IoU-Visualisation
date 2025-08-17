@@ -14,6 +14,7 @@ interface WorkspaceGridProps {
   onRenameWorkspace?: (id: string, currentName: string) => void;
   onDeleteWorkspace?: (id: string, name: string) => void;
   onVersionHistory?: (id: string, name: string) => void;
+  onShareWorkspace?: (id: string, name: string) => void;
 }
 
 export default function WorkspaceGrid({
@@ -22,6 +23,7 @@ export default function WorkspaceGrid({
   onRenameWorkspace,
   onDeleteWorkspace,
   onVersionHistory,
+  onShareWorkspace,
 }: WorkspaceGridProps) {
   const needsScroll = workspaces.length > maxVisibleCards;
 
@@ -54,6 +56,7 @@ export default function WorkspaceGrid({
                 onVersionHistory={() =>
                   onVersionHistory?.(workspace.id, workspace.name)
                 }
+                onShare={() => onShareWorkspace?.(workspace.id, workspace.name)}
               />
             ))}
           </div>
@@ -75,6 +78,7 @@ export default function WorkspaceGrid({
               onVersionHistory={() =>
                 onVersionHistory?.(workspace.id, workspace.name)
               }
+              onShare={() => onShareWorkspace?.(workspace.id, workspace.name)}
             />
           ))}
         </div>
