@@ -16,12 +16,15 @@ import { Input } from "@/components/ui/input";
 
 export default function WorkspacesPage() {
   // Use the hook to fetch workspaces data
-  const { workspaces, loading, createWorkspace, renameWorkspace } = useWorkspaces();
+  const { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace } = useWorkspaces();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("Untitled");
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [renameWorkspaceId, setRenameWorkspaceId] = useState<string | null>(null);
   const [renameWorkspaceName, setRenameWorkspaceName] = useState("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteWorkspaceId, setDeleteWorkspaceId] = useState<string | null>(null);
+  const [deleteWorkspaceName, setDeleteWorkspaceName] = useState("");
 
   const handleCreateWorkspace = () => {
     createWorkspace(workspaceName);
@@ -46,6 +49,21 @@ export default function WorkspacesPage() {
       setIsRenameDialogOpen(false);
       setRenameWorkspaceId(null);
       setRenameWorkspaceName("");
+    }
+  };
+
+  const handleOpenDeleteDialog = (workspaceId: string, workspaceName: string) => {
+    setDeleteWorkspaceId(workspaceId);
+    setDeleteWorkspaceName(workspaceName);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteWorkspace = () => {
+    if (deleteWorkspaceId) {
+      deleteWorkspace(deleteWorkspaceId);
+      setIsDeleteDialogOpen(false);
+      setDeleteWorkspaceId(null);
+      setDeleteWorkspaceName("");
     }
   };
 
@@ -125,6 +143,7 @@ export default function WorkspacesPage() {
           workspaces={workspaces} 
           maxVisibleCards={8}
           onRenameWorkspace={handleOpenRenameDialog}
+          onDeleteWorkspace={handleOpenDeleteDialog}
         />
       )}
 
@@ -200,6 +219,30 @@ export default function WorkspacesPage() {
               Cancel
             </Button>
             <Button onClick={handleRenameWorkspace}>Rename</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for deleting workspace */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Workspace</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{deleteWorkspaceName}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteWorkspace}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

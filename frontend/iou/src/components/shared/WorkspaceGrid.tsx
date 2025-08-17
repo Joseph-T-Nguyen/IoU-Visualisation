@@ -1,5 +1,5 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import WorkspaceCard from './WorkspaceCard';
+import WorkspaceCard from "./WorkspaceCard";
 
 interface Workspace {
   id: string;
@@ -12,23 +12,25 @@ interface WorkspaceGridProps {
   workspaces: Workspace[];
   maxVisibleCards?: number;
   onRenameWorkspace?: (id: string, currentName: string) => void;
+  onDeleteWorkspace?: (id: string, name: string) => void;
 }
 
-export default function WorkspaceGrid({ 
-  workspaces, 
+export default function WorkspaceGrid({
+  workspaces,
   maxVisibleCards = 8,
-  onRenameWorkspace
+  onRenameWorkspace,
+  onDeleteWorkspace,
 }: WorkspaceGridProps) {
   const needsScroll = workspaces.length > maxVisibleCards;
-  
+
   return (
     <div className="relative">
       {needsScroll ? (
         // Scrollable container when there are more than 8 cards
         // Height calculated for exactly 2 rows: 2 * card height + gap
-        <ScrollArea 
-          className="w-full" 
-          style={{ height: 'calc(2 * 280px + 1rem)' }}
+        <ScrollArea
+          className="w-full"
+          style={{ height: "calc(2 * 280px + 1rem)" }}
           type="always"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pr-4">
@@ -38,8 +40,15 @@ export default function WorkspaceGrid({
                 name={workspace.name}
                 lastEdited={workspace.lastEdited}
                 previewImage={workspace.previewImage}
-                onMenuClick={() => console.log(`Menu clicked for ${workspace.name}`)}
-                onRename={() => onRenameWorkspace?.(workspace.id, workspace.name)}
+                onMenuClick={() =>
+                  console.log(`Menu clicked for ${workspace.name}`)
+                }
+                onRename={() =>
+                  onRenameWorkspace?.(workspace.id, workspace.name)
+                }
+                onDelete={() =>
+                  onDeleteWorkspace?.(workspace.id, workspace.name)
+                }
               />
             ))}
           </div>
@@ -53,13 +62,16 @@ export default function WorkspaceGrid({
               name={workspace.name}
               lastEdited={workspace.lastEdited}
               previewImage={workspace.previewImage}
-              onMenuClick={() => console.log(`Menu clicked for ${workspace.name}`)}
+              onMenuClick={() =>
+                console.log(`Menu clicked for ${workspace.name}`)
+              }
               onRename={() => onRenameWorkspace?.(workspace.id, workspace.name)}
+              onDelete={() => onDeleteWorkspace?.(workspace.id, workspace.name)}
             />
           ))}
         </div>
       )}
-      
+
       {/* Optional: Show scroll indicator */}
       {needsScroll && (
         <div className="text-center text-sm text-gray-500 mt-2">

@@ -21,6 +21,7 @@ interface WorkspaceCardProps {
   previewImage?: React.ReactNode;
   onMenuClick?: () => void;
   onRename?: () => void;
+  onDelete?: () => void;
 }
 
 export default function WorkspaceCard({
@@ -29,11 +30,15 @@ export default function WorkspaceCard({
   previewImage,
   onMenuClick,
   onRename,
+  onDelete,
 }: WorkspaceCardProps) {
   const handleMenuAction = (action: string) => {
     console.log(`${action} clicked for workspace: ${name}`);
     if (action === "rename" && onRename) {
       onRename();
+    }
+    if (action === "delete" && onDelete) {
+      onDelete();
     }
   };
 

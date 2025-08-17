@@ -68,5 +68,11 @@ export function useWorkspaces() {
     );
   };
 
-  return { workspaces, loading, createWorkspace, renameWorkspace };
+  const deleteWorkspace = (id: string) => {
+    setWorkspaces(prevWorkspaces => 
+      prevWorkspaces.filter(workspace => workspace.id !== id)
+    );
+  };
+
+  return { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace };
 }
