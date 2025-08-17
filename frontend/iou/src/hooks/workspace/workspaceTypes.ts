@@ -1,6 +1,9 @@
 
 export type Dimensions = "2d" | "3d";
 
+export type Vec3 = [number, number, number];
+export type Vec2 = [number, number, 0];
+
 // The return type for useWorkspace
 export interface WorkspaceMetadata {
   name: string;

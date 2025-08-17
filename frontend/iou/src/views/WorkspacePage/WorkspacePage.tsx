@@ -1,5 +1,5 @@
 import FlexyCanvas from "@/components/shared/FlexyCanvas.tsx";
-import SpinningCube from "@/components/three/SpinningCube.tsx";
+import InstancedVertexSpheres from "@/components/three/InstancedVertexSpheres.tsx";
 
 export default function WorkspacePage() {
 
@@ -18,7 +18,7 @@ export default function WorkspacePage() {
       overlay={overlay}
     >
       {/* Add 3D content here: */}
-      <SpinningCube></SpinningCube>
+      <InstancedVertexSpheres positions={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0]]}/>
 
       <ambientLight intensity={0.125} color="blue"/>
       <directionalLight position={[0, 0, 5]} color="#CCC" />
