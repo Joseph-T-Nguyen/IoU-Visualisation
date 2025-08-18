@@ -9,8 +9,8 @@ import {Edges} from "@react-three/drei";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
-  vertexColor: string,
-  baseColor: string,
+  vertexColor?: string,
+  baseColor?: string,
 }
 
 function vec3ToVector3(vec3: Vec3): Vector3 {
