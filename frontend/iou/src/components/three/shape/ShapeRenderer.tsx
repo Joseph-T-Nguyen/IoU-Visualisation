@@ -40,7 +40,7 @@ function findClosestVertexId(point: Vector3, vertices: Vec3[]): number {
 
 export default function ShapeRenderer(props: ShapeRendererProps) {
   const vertexColor = props.vertexColor ?? "blue";
-  const baseColor = props.baseColor ?? "white";
+  const baseColor = props.baseColor ?? "#F1F5F9";
 
   const geometry = useMemo(() => new ConvexGeometry(
     props.vertices.map((vertex) =>

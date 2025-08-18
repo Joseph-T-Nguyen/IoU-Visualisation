@@ -38,10 +38,10 @@ export default function WorkspacePage() {
       )}
     >
       {/* Add 3D content here: */}
-      <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]}/>
+      <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]} baseColor="#fca5a5" vertexColor="#ef4444"/>
 
-      <ambientLight intensity={0.125} color="blue"/>
-      <directionalLight position={[0, 0, 5]} color="#EEE" />
+      <ambientLight intensity={0.25} color="#F1F5F9"/>
+      <directionalLight position={[0, 0, 5]} intensity={2} color="white" />
       {/*<orthographicCamera position={[0, 0, 5]} ></orthographicCamera>*/}
     </FlexyCanvas>
   );
