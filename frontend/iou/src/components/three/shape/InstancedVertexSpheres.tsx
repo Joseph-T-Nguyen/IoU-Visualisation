@@ -1,7 +1,6 @@
-import {useState, useEffect, useMemo, useCallback, useRef} from 'react';
+import {useEffect, useMemo, useRef} from 'react';
 import { InstancedMesh, Matrix4, BackSide } from 'three';
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
-import type {ThreeEvent} from "@react-three/fiber";
 
 export interface InstancedVertexSpheresProps {
   vertices: Vec3[],
