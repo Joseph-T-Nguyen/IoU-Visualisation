@@ -4,17 +4,15 @@ import {Button} from "@/components/ui/button.tsx";
 import { LogOut } from "lucide-react"
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
-import useWorkspace from "@/hooks/workspace/useWorkspace.ts";
-import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import {OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
+import useDimensions from "@/hooks/workspace/useDimensions.ts";
+import useWorkspaceStore from "@/hooks/workspace/useWorkspaceStore.ts";
 
 export default function WorkspacePage() {
-
-  // Add these props to the camera to make it orthographic:
-  // orthographic camera={{ zoom: 50, position: [0, 0, 100] }}
-  const { name: workspaceName } = useWorkspace();
+  const { displayName: workspaceName } = useWorkspaceStore();
   const [dimensions, setDimensions] = useDimensions();
 
+  // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
     <div className="flex flex-row justify-center w-full h-full py-3 p-3 gap-3">
       <div className="flex-grow">
@@ -47,10 +45,6 @@ export default function WorkspacePage() {
     </div>
   );
 
-  //
-  // orthographic={dimensions === "2d"}
-  // camera={dimensions === "2d" ? { zoom: 50, position: [0, 0, 100] } : undefined}
-
   return (
     <FlexyCanvas
       className="w-screen h-screen overflow-clip"
@@ -77,7 +71,6 @@ export default function WorkspacePage() {
 
       <ambientLight intensity={0.25} color="#F1F5F9"/>
       <directionalLight position={[0, 0, 5]} intensity={2} color="white" />
-      {/*<orthographicCamera position={[0, 0, 5]} ></orthographicCamera>*/}
     </FlexyCanvas>
   );
 }
