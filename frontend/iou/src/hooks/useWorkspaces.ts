@@ -51,8 +51,8 @@ export function useWorkspaces() {
 
   const createWorkspace = (name: string = "Untitled") => {
     const now = new Date();
-    const formattedDate = `Edited ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
-    const timestamp = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()} ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    const formattedDate = `Edited ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+    const timestamp = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()} ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
     
     const newWorkspace: Workspace = {
       id: `new-${Date.now()}`,
@@ -68,8 +68,8 @@ export function useWorkspaces() {
 
   const renameWorkspace = (id: string, newName: string) => {
     const now = new Date();
-    const formattedDate = `Edited ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
-    const timestamp = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()} ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    const formattedDate = `Edited ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+    const timestamp = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()} ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
     
     setWorkspaces(prevWorkspaces => 
       prevWorkspaces.map(workspace => {
