@@ -6,13 +6,10 @@ import type {ThreeEvent} from "@react-three/fiber";
 export interface InstancedVertexSpheresProps {
   vertices: Vec3[],
   radius?: number,
-  onClick?: () => void,
 
   color?: string
 
   hoveredIds?: number[],
-  onVertexPointerEnter?: (vertexId: number, e: ThreeEvent<PointerEvent>) => void,
-  onVertexPointerOut?: (vertexId: number, e: ThreeEvent<PointerEvent>) => void,
 }
 
 export default function InstancedVertexSpheres(props: InstancedVertexSpheresProps) {
