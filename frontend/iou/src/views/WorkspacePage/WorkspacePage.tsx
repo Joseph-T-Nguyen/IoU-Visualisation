@@ -5,17 +5,20 @@ import { LogOut } from "lucide-react"
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
 import useWorkspace from "@/hooks/workspace/useWorkspace.ts";
+import useDimensions from "@/hooks/workspace/useDimensions.ts";
+import {OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
 
 export default function WorkspacePage() {
 
   // Add these props to the camera to make it orthographic:
   // orthographic camera={{ zoom: 50, position: [0, 0, 100] }}
   const { name: workspaceName } = useWorkspace();
+  const [dimensions, setDimensions] = useDimensions();
 
   const overlay = (
     <div className="flex flex-row justify-center w-full h-full py-3 p-3 gap-3">
       <div className="flex-grow">
-        <div className="grid grid-cols-[auto_auto_auto] gap-3 w-fit">
+        <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
           {/* Main view overlay */}
           <div>
             <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg">
@@ -24,6 +27,14 @@ export default function WorkspacePage() {
           </div>
           <div>
             <WorkspaceMenubar />
+          </div>
+          <div className="flex flex-col justify-center pointer-events-auto">
+            <Button
+              size="icon" variant="outline" className="shadow-lg font-light text-md cursor-pointer"
+              onClick={() => setDimensions(dimensions === "3d" ? "2d" : "3d")}
+            >
+              {dimensions?.toUpperCase() ?? "ERR"}
+            </Button>
           </div>
           <div className="flex flex-col justify-center ">
             <span className="font-semibold text-lg">
@@ -36,6 +47,10 @@ export default function WorkspacePage() {
     </div>
   );
 
+  //
+  // orthographic={dimensions === "2d"}
+  // camera={dimensions === "2d" ? { zoom: 50, position: [0, 0, 100] } : undefined}
+
   return (
     <FlexyCanvas
       className="w-screen h-screen overflow-clip"
@@ -44,6 +59,19 @@ export default function WorkspacePage() {
         <div className="bg-secondary w-full h-full"/>
       )}
     >
+      {dimensions === "2d" ? (
+        <OrthographicCamera
+          makeDefault
+          zoom={200}
+          position={[0, 1.5, 100]}
+        />
+      ) : (
+        <PerspectiveCamera
+          makeDefault
+          position={[0, 1.5, 5]}
+        />
+      )}
+
       {/* Add 3D content here: */}
       <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]} baseColor="#fca5a5" vertexColor="#ef4444"/>
 
