@@ -13,14 +13,14 @@ export interface ShapeRendererProps {
   baseColor?: string,
 }
 
-function vec3ToVector3(vec3: Vec3): Vector3 {
+export function vec3ToVector3(vec3: Vec3): Vector3 {
   return new Vector3(vec3[0], vec3[1], vec3[2]);
 }
 
 /**
  * Given a point and a set of vertices, gets the index of the closest vertex in vertices to the given point
  */
-function findClosestVertexId(point: Vector3, vertices: Vec3[]): number {
+export function findClosestVertexId(point: Vector3, vertices: Vec3[]): number {
   let closest: number = 0;
   let minDist = Infinity;
 
@@ -43,32 +43,20 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   const baseColor = props.baseColor ?? "#F1F5F9";
 
   const geometry = useMemo(() => new ConvexGeometry(
-    props.vertices.map((vertex) =>
-      new Vector3(vertex[0], vertex[1], vertex[2]),
-    )
+    props.vertices.map(vec3ToVector3)
   ), [props.vertices]);
 
-  const [directHoveredVertexIds, _] = useState<number[]>([]);
-  const [closestVertexId, setClosestVertexId] = useState<number[] | null>(null);
-  const hoveredIds = directHoveredVertexIds.length !== 0 ? directHoveredVertexIds : closestVertexId ?? [];
+  const [closestVertexIds, setClosestVertexIds] = useState<number[] | null>(null);
+  const hoveredIds = closestVertexIds ?? [];
 
   const onPointerMove = (event: ThreeEvent<PointerEvent>) => {
     const closest = findClosestVertexId(event.point, props.vertices);
-    setClosestVertexId([closest]);
+    setClosestVertexIds([closest]);
   };
 
   const onPointerOut = () => {
-    setClosestVertexId(null);
+    setClosestVertexIds(null);
   }
-
-  // const onVertexHover = (id: number) => {
-  //   if (!directHoveredVertexIds.includes(id))
-  //     setDirectHoveredVertexIds(v => [...v, id]);
-  // }
-  //
-  // const onVertexUnhover = (id: number) => {
-  //   setDirectHoveredVertexIds(v => v.filter(v => v !== id));
-  // }
 
   return (
     <group
