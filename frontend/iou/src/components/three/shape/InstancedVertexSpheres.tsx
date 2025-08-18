@@ -101,7 +101,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
       >
         {/* Base sphere geometry */}
         <sphereGeometry args={[radius, 8, 8]} />
-        <meshBasicMaterial color={color} />
+        <meshBasicMaterial color={color} toneMapped={false}/>
       </instancedMesh>
       {/* Optional: inverted outer sphere for hovered instance */}
       <instancedMesh
@@ -111,7 +111,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
         onClick={onClick}
       >
         <sphereGeometry args={[radius, 8, 8]} />
-        <meshBasicMaterial color="white"/>
+        <meshBasicMaterial color="white" toneMapped={false}/>
       </instancedMesh>
       <instancedMesh
         ref={hoveredOuterMeshRef}
@@ -120,7 +120,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
         onClick={onClick}
       >
         <sphereGeometry args={[radius * 1.5, 8, 8]} />
-        <meshBasicMaterial color="#00D3F2" side={BackSide} />
+        <meshBasicMaterial color="#00D3F2" side={BackSide} toneMapped={false}/>
       </instancedMesh>
     </group>
   );
