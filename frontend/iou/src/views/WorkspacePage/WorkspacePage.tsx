@@ -31,8 +31,11 @@ export default function WorkspacePage() {
 
   return (
     <FlexyCanvas
-      className="flex-grow w-screen h-screen overflow-clip"
+      className="w-screen h-screen overflow-clip"
       overlay={overlay}
+      underlay={(
+        <div className="bg-secondary w-full h-full"/>
+      )}
     >
       {/* Add 3D content here: */}
       <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]}/>
