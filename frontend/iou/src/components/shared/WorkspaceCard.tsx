@@ -5,6 +5,7 @@ import {
   History,
   Share2,
   Trash2,
+  Copy,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
@@ -24,6 +25,7 @@ interface WorkspaceCardProps {
   onDelete?: () => void;
   onVersionHistory?: () => void;
   onShare?: () => void;
+  onDuplicate?: () => void;
 }
 
 export default function WorkspaceCard({
@@ -35,6 +37,7 @@ export default function WorkspaceCard({
   onDelete,
   onVersionHistory,
   onShare,
+  onDuplicate,
 }: WorkspaceCardProps) {
   const handleMenuAction = (action: string) => {
     console.log(`${action} clicked for workspace: ${name}`);
@@ -49,6 +52,9 @@ export default function WorkspaceCard({
     }
     if (action === "share" && onShare) {
       onShare();
+    }
+    if (action === "duplicate" && onDuplicate) {
+      onDuplicate();
     }
   };
 
@@ -92,6 +98,13 @@ export default function WorkspaceCard({
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleMenuAction("duplicate")}
+                className="cursor-pointer"
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Duplicate
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleMenuAction("version-history")}

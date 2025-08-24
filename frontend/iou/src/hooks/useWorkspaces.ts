@@ -99,5 +99,55 @@ export function useWorkspaces() {
     return workspace?.versions || [];
   };
 
-  return { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, getWorkspaceVersions };
+  const duplicateWorkspace = (id: string) => {
+    const workspaceToDuplicate = workspaces.find(w => w.id === id);
+    if (!workspaceToDuplicate) return;
+
+    const now = new Date();
+    const formattedDate = `Edited ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+    const timestamp = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()} ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    
+    // Find all workspaces with names matching the pattern "name (copy)" or "name (copy N)"
+    const baseName = workspaceToDuplicate.name.replace(/ \(copy( \d+)?\)$/, '');
+    const copyPattern = new RegExp(`^${baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\(copy( \\d+)?\\)$`);
+    const existingCopies = workspaces.filter(w => 
+      w.name === baseName || copyPattern.test(w.name)
+    );
+    
+    // Determine the new copy number
+    let copyNumber = 1;
+    if (existingCopies.length > 1) {
+      const copyNumbers = existingCopies
+        .map(w => {
+          const match = w.name.match(/\(copy( (\d+))?\)$/);
+          if (match) {
+            return match[2] ? parseInt(match[2]) : 1;
+          }
+          return 0;
+        })
+        .filter(n => n > 0);
+      
+      if (copyNumbers.length > 0) {
+        copyNumber = Math.max(...copyNumbers) + 1;
+      }
+    }
+    
+    const newName = copyNumber === 1 
+      ? `${baseName} (copy)` 
+      : `${baseName} (copy ${copyNumber})`;
+    
+    const duplicatedWorkspace: Workspace = {
+      id: `dup-${Date.now()}`,
+      name: newName,
+      lastEdited: formattedDate,
+      previewImage: workspaceToDuplicate.previewImage,
+      versions: [
+        { id: `v-${Date.now()}`, timestamp, action: `Duplicated from "${workspaceToDuplicate.name}"` }
+      ]
+    };
+    
+    setWorkspaces(prevWorkspaces => [duplicatedWorkspace, ...prevWorkspaces]);
+  };
+
+  return { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, getWorkspaceVersions, duplicateWorkspace };
 }

@@ -22,7 +22,7 @@ import {
 
 export default function WorkspacesPage() {
   // Use the hook to fetch workspaces data
-  const { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, getWorkspaceVersions } = useWorkspaces();
+  const { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, getWorkspaceVersions, duplicateWorkspace } = useWorkspaces();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("Untitled");
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
@@ -187,6 +187,7 @@ export default function WorkspacesPage() {
           onDeleteWorkspace={handleOpenDeleteDialog}
           onVersionHistory={handleOpenVersionDialog}
           onShareWorkspace={handleOpenShareDialog}
+          onDuplicateWorkspace={duplicateWorkspace}
         />
       )}
 
