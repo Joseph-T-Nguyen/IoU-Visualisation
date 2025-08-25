@@ -2,12 +2,12 @@
   "name": "backend",
   "version": "0.0.0",
   "scripts": {
-    "build": "ts-node ./scripts/build.ts",
+    "build": "tsc -p tsconfig.json",
     "clean-install": "rm -rf ./node_modules && rm -r package-lock.json && npm i",
-    "dev": "NODE_ENV=development ts-node ./src",
+    "dev": "cross-env NODE_ENV=development ts-node ./src",
     "dev:hot": "nodemon --exec \"npm run dev\" --watch ./src --ext .ts",
     "lint": "eslint .",
-    "start": "NODE_ENV=production node -r ./config.js ./dist",
+    "start": "node build/index.js",
     "test": "NODE_ENV=test vitest",
     "type-check": "tsc --noEmit"
   },
@@ -43,6 +43,7 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.3.0",
     "@types/supertest": "^6.0.3",
+    "cross-env": "^10.0.0",
     "eslint": "^9.34.0",
     "eslint-plugin-n": "^17.21.3",
     "find": "^0.3.0",
