@@ -15,8 +15,8 @@ export interface ShapeData {
   faces: [number, number, number][];
 
   // Extra data for managing workers calculating faces using the convex hull algorithm
-  isPending: boolean;
-  currentJobId?: number;
+  // isPending: boolean;
+  // currentJobId?: number;
 }
 
 

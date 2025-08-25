@@ -1,5 +1,5 @@
 import ShapeRenderer from "@/components/three/shape/ShapeRenderer.tsx";
-import useShape from "@/hooks/workspace/useShape";
+import useShape from "@/hooks/workspace/useShape.ts";
 
 
 export interface ShapeWidgetProps {

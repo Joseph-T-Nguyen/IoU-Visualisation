@@ -6,11 +6,17 @@ import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.ts
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
 import {OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
-import useWorkspaceStore from "@/hooks/workspace/useWorkspaceStore.ts";
+import useWorkspaceStore from "@/hooks/workspace/stores/useWorkspaceStore.ts";
+import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
+import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
 
 export default function WorkspacePage() {
   const { displayName: workspaceName } = useWorkspaceStore();
   const [dimensions, setDimensions] = useDimensions();
+
+  const shapeUUIDs = useShapeUUIDs();
+  console.log(shapeUUIDs);
+
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
@@ -41,7 +47,7 @@ export default function WorkspacePage() {
           </div>
         </div>
       </div>
-      <ContextSidebar className="min-w-64"/>
+      <ContextSidebar className="min-w-64 overflow-y-scroll"/>
     </div>
   );
 
@@ -68,6 +74,10 @@ export default function WorkspacePage() {
 
       {/* Add 3D content here: */}
       <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]} baseColor="#fca5a5" vertexColor="#ef4444"/>
+
+      {shapeUUIDs.map((uuid: string) => (
+        <ShapeWidget uuid={uuid} key={uuid}/>
+      ))}
 
       <ambientLight intensity={0.25} color="#F1F5F9"/>
       <directionalLight position={[0, 0, 5]} intensity={2} color="white" />
