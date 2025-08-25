@@ -6,7 +6,6 @@ import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import type {ThreeEvent} from "@react-three/fiber";
 import {Edges} from "@react-three/drei";
 import {findClosestVertexId, vec3ToVector3} from "@/components/three/shape/vertex_helpers.ts";
-import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
@@ -33,7 +32,6 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   const onPointerOut = () => {
     setClosestVertexIds(null);
   }
-
 
   return (
     <group

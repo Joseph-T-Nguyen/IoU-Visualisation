@@ -8,15 +8,15 @@ export interface ShapesMenuItemProps {
 }
 
 export default function ShapesMenuItem(props: ShapesMenuItemProps) {
-  useShape(props.uuid);
-
+  const { name, setName, color } = useShape(props.uuid);
 
   return (
     <div className="flex flex-row gap-1.5 justify-center items-center">
-      <Button className="bg-red-500 w-6 h-6" size="icon"></Button>
+      <Button className="w-6 h-6" size="icon" style={{background: color}}></Button>
       <Input
         className="h-6 px-1.5 flex-grow text-sm text-left align-middle border-none shadow-none"
-        value="Shape 1"
+        value={name}
+        onChange={(event) => setName(event.target.value)}
       />
       <Button size="icon" variant="ghost" className="h-6 cursor-pointer data-[disabled]:cursor-default">
         <Ellipsis />
