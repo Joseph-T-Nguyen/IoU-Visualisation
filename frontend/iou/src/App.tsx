@@ -1,6 +1,6 @@
 import {BrowserRouter, Routes, Route} from "react-router";
 import LandingPage from "@/views/LandingPage/LandingPage.tsx"
-import SignUpPage from "./views/SignUpPage/SignUpPage";
+import SignUpPage from "@/views/SignUpPage/SignUpPage";
 
 function App() {
   return (
