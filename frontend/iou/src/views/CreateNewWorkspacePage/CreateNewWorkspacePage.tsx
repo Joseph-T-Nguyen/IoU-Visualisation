@@ -1,7 +1,5 @@
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,11 +10,8 @@ export default function CreateNewWorkspacePage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-4">
       <Card className="w-[400px] p-4 rounded-md">
-        <CardHeader>
-          <CardTitle className="text-center text-xl">New Workspace</CardTitle>
-        </CardHeader>
-
         <CardContent className="space-y-2 p-0">
+          <h1 className="text-center -mt-2 mb-6">New Workspace</h1>
           <div className="flex items-center gap-2">
             <label className="w-22 text-sm font-medium">Name</label>
             <Input
