@@ -3,7 +3,6 @@ import SpinningCube from "@/components/three/SpinningCube.tsx";
 
 export default function LandingPage() {
 
-
   // Add these props to the camera to make it orthographic:
   // orthographic camera={{ zoom: 50, position: [0, 0, 100] }}
 
