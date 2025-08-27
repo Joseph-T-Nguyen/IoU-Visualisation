@@ -16,4 +16,4 @@ assignees: ''
 - item
 
 ## Acceptance Criteria
-- item
+- [ ] item
