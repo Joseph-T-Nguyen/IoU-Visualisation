@@ -1,7 +1,7 @@
 import {BrowserRouter, Routes, Route} from "react-router";
 import LandingPage from "@/views/LandingPage/LandingPage.tsx"
 
-import CreateNewWorkspacePage from "./views/CreateNewWorkspacePage/CreateNewWorkspacePage";
+import CreateNewWorkspacePage from "@/views/CreateNewWorkspacePage/CreateNewWorkspacePage";
 import WorkspacePage from "@/views/WorkspacePage/WorkspacePage.tsx";
 
 function App() {
