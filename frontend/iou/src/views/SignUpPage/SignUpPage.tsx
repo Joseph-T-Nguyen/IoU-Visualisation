@@ -1,5 +1,7 @@
 import {
   Card,
+  CardHeader,
+  CardTitle,
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,8 +11,10 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-4">
       <Card className="w-[400px] p-4">
-        <CardContent className="space-y-4 p-0">
-          <h1 className="text-center">Sign Up</h1>
+        <CardHeader>
+          <CardTitle className="text-center -mt-1">Sign Up</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 -mt-2 p-0">
           <div className="flex flex-col space-y-2">
             <div className="flex items-center space-x-3">
               <label className="w-30 text-sm font-medium">Email</label>
