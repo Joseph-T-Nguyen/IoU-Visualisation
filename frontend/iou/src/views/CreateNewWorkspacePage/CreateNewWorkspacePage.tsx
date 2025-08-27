@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function CreateNewWorkspacePage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-4">
-      <Card className="w-[400px] p-4 rounded-md">
+      <Card className="w-[400px] p-4 rounded-sm">
         <CardHeader>
           <CardTitle className="text-center -mt-1">New Workspace</CardTitle>
         </CardHeader>
