@@ -36,7 +36,7 @@ export default function SignUpPage() {
           </div>
         </CardContent>
       </Card>
-      <span className="text-muted-foreground">Log in</span>
+      <span className="text-muted-foreground cursor-pointer">Log in</span>
     </div>
   );
 }
