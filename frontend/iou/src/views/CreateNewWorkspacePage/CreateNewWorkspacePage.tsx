@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -7,57 +6,41 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function CreateNewWorkspacePage() {
-  const [dimension, setDimension] = useState("2D");
-    
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-4">
-      <Card className="w-[400px] p-6"> {/* widened from 400px to 500px */}
+      <Card className="w-[400px] p-4 rounded-md">
         <CardHeader>
           <CardTitle className="text-center text-xl">New Workspace</CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
-            <label className="w-32 text-sm font-medium">Name</label>
+        <CardContent className="space-y-2 p-0">
+          <div className="flex items-center gap-2">
+            <label className="w-22 text-sm font-medium">Name</label>
             <Input
-              className="w-full" // takes all remaining space inside the row
+              className="flex-1"
               type="text"
               placeholder="Workspace Name"
             />
           </div>
 
-          <div className="flex items-center gap-3">
-            <label className="w-32 text-sm font-medium">Dimensions</label>
-            <div className="flex w-full gap-2">
-              <Button
-                className="flex-1"
-                variant={dimension === "2D" ? "default" : "outline"}
-                onClick={() => setDimension("2D")}
-              >
-                2D
-              </Button>
-              <Button
-                className="flex-1"
-                variant={dimension === "3D" ? "default" : "outline"}
-                onClick={() => setDimension("3D")}
-              >
-                3D
-              </Button>
-            </div>
+          <div className="flex items-center gap-2">
+            <label className="w-22 text-sm font-medium">Dimensions</label>
+            <Tabs defaultValue="3d" className="flex-1">
+              <TabsList className="grid grid-cols-2 w-full rounded-sm">
+                <TabsTrigger value="2d" className="rounded-sm">2D</TabsTrigger>
+                <TabsTrigger value="3d" className="rounded-sm">3D</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
-
-          {/* Action Buttons */}
-          <div className="flex space-x-2 pt-2">
-            <Button variant="outline" className="flex-1">
-              Cancel
-            </Button>
-            <Button className="flex-1">
-              Create Workspace
-            </Button>
+          <div className="flex justify-end pt-4 space-x-2 w-1/2 ml-auto">
+            <Button variant="outline">Cancel</Button>
+            <Button>Create Workspace</Button>
           </div>
+
         </CardContent>
       </Card>
     </div>
