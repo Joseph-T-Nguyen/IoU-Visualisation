@@ -1,6 +1,7 @@
 import {BrowserRouter, Routes, Route} from "react-router";
 import LandingPage from "@/views/LandingPage/LandingPage.tsx"
 import SignUpPage from "@/views/SignUpPage/SignUpPage";
+import LoginPage from "@/views/LoginPage/LoginPage";
 import WorkspacePage from "@/views/WorkspacePage/WorkspacePage.tsx";
 
 
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/workspace" element={<WorkspacePage />} />
       </Routes>
     </BrowserRouter>
