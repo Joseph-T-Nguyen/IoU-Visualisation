@@ -23,8 +23,10 @@ export default function WorkspacePage() {
         <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
           {/* Main view overlay */}
           <div>
-            <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg">
-              <LogOut className="transform scale-x-[-1] " />
+            <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg" asChild>
+              <a href="../">
+                <LogOut className="transform scale-x-[-1] " />
+              </a>
             </Button>
           </div>
           <div>
