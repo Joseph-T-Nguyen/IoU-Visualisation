@@ -6,12 +6,11 @@ import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.ts
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
 import {OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
-import useWorkspaceStore from "@/hooks/workspace/stores/useWorkspaceStore.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
 import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
+import WorkspaceTitle from "@/components/widgets/workspace/WorkspaceTitle.tsx";
 
 export default function WorkspacePage() {
-  const { displayName: workspaceName } = useWorkspaceStore();
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
@@ -40,10 +39,8 @@ export default function WorkspacePage() {
               {dimensions?.toUpperCase() ?? "ERR"}
             </Button>
           </div>
-          <div className="flex flex-col justify-center ">
-            <span className="font-semibold text-lg">
-              {workspaceName}
-            </span>
+          <div className="flex flex-col justify-center items-center">
+            <WorkspaceTitle/>
           </div>
         </div>
       </div>
@@ -53,11 +50,8 @@ export default function WorkspacePage() {
 
   return (
     <FlexyCanvas
-      className="w-screen h-screen overflow-clip"
+      className="w-screen h-screen overflow-clip bg-secondary"
       overlay={overlay}
-      underlay={(
-        <div className="bg-secondary w-full h-full"/>
-      )}
     >
       {dimensions === "2d" ? (
         <OrthographicCamera
