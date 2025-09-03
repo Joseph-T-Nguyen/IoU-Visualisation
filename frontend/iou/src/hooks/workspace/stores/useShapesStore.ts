@@ -2,16 +2,22 @@ import {create} from "zustand/react";
 import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/stores/createSelectionSlice.ts";
 import type {StateCreator} from "zustand/vanilla";
+import * as THREE from 'three';
+import monkey from "@/hooks/workspace/mokey.ts";
 
+export type Shapes = {[key: string]: ShapeData}
 export interface ShapesSlice {
-  shapes: {[key: string]: ShapeData};
+  shapes: Shapes;
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
   setShapeName: (id: string, name: string) => void;
   setShapeColor: (id: string, name: string) => void;
 
   deleteSelections: () => void;
+  setManyVertices: (mods: [string, Vec3[]][]) => void;
+  matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
 }
+
 
 // We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
 export type ShapesStore = SelectionSlice & ShapesSlice;
@@ -32,6 +38,40 @@ const defaultColors = [
   "#22c55e",
 ];
 
+const setVerticesAux = (id: string, vertices: Vec3[]) => (state: ShapesSlice) => ({
+  shapes: {
+    // Replace data with the vertices
+    [id]: {
+      ...state.shapes[id],
+      vertices: vertices
+    }
+  }
+});
+
+const setManyVerticesAux = (mods: [string, Vec3[]][]) => (state: ShapesSlice) => ({
+  shapes: mods
+    .map(([...args]) => setVerticesAux(...args))
+    .reduce((previousValue, currentValue) => ({...previousValue, ...currentValue(state).shapes} as Shapes), state.shapes as Shapes)
+});
+
+function fixPartialShapesReducer<T extends unknown[]>(f: (...args: T) => ((state: ShapesStore) => Partial<ShapesStore> & {shapes: {[key: string]: ShapeData}})) {
+  return (...args: T) => (state: ShapesStore) => {
+    const partial=  f(...args)(state);
+
+    return {
+      ...partial,
+      shapes: {
+        ...state.shapes,
+        ...partial.shapes
+      }
+    };
+  }
+}
+
+function applyReducerAux<T extends unknown[], Store>(set: (partial: Partial<Store> | ((state: Store) => Partial<Store>)) => void, reducer: (...args: T) => ((state: Store) => Partial<Store>) | Partial<Store>) {
+  return (...args: T) => set(reducer(...args))
+}
+
 /**
  * A zustand store to store the internal data of the workspace. Used to define other hooks. Do not use directly in your
  * react components!
@@ -39,7 +79,7 @@ const defaultColors = [
 export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = ((set, get) => ({
   shapes: {
     default_shape_uuid: {
-      vertices: [[2, 0, -1], [0, 2, -1], [-2, 0, -1], [2, 2, -1], [0, 1, 1]],
+      vertices: monkey as Vec3[], // [[2, 0, -1], [0, 2, -1], [-2, 0, -1], [2, 2, -1], [0, 1, 1]],
       faces: [],
       name: "Default Shape",
       color: "#ef4444",
@@ -47,16 +87,7 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
   },
 
   // TODO: Calculate shape face data using the convex hull algorithm
-  setVertices: (id: string, vertices: Vec3[]) => set((state: ShapesSlice) => ({
-    shapes: {
-      ...state.shapes,
-      // Replace data with the vertices
-      [id]: {
-        ...state.shapes[id],
-        vertices: vertices
-      }
-    }
-  })),
+  setVertices: applyReducerAux(set, fixPartialShapesReducer(setVerticesAux)),
 
   addShape: () => set((state: ShapesSlice) => {
     const count = Object.keys(state.shapes).length;
@@ -128,6 +159,34 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       selections: {},
       shapes: newShapes,
     }
+  }),
+
+  setManyVertices: applyReducerAux(set, fixPartialShapesReducer(setManyVerticesAux)),
+
+  matrixMultiplySelection: (matrix: THREE.Matrix4) => set((state) => {
+
+
+    // Gets the current selections from the selection slice
+    const selection = get().selections;
+    const selectedKeys = Object.keys(selection);
+
+    const multiplyVec3 = (v: Vec3) => {
+      const vector3 = new THREE.Vector3(...v);
+      vector3.applyMatrix4(matrix);
+      return [vector3.x, vector3.y, vector3.z];
+    }
+
+    const mods = selectedKeys
+      .filter(key => key in state.shapes)
+      .map((key) => (
+        [key, (
+          state.shapes[key].vertices.map((v, i) => (
+            (selection[key]!.children?.has(i) ?? true) ? multiplyVec3(v) : v )
+          ) as Vec3[]
+        )]
+      ) as [string, Vec3[]]);
+
+    return fixPartialShapesReducer(setManyVerticesAux)(mods)(state)
   }),
 }))
 

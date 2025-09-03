@@ -1,11 +1,15 @@
-import {DragControls, PivotControls} from "@react-three/drei";
+import {PivotControls} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import * as THREE from "three";
+import {useRef} from "react";
 
 export default function VertexControls() {
 
   const selections = useShapesStore(s => s.selections);
   const shapes = useShapesStore(s => s.shapes);
+  const matrixMultiplySelection = useShapesStore(s => s.matrixMultiplySelection);
+
+  const previousMatrix = useRef<THREE.Matrix4>(new THREE.Matrix4());
 
   const selectionKeys = Object.keys(selections);
 
@@ -24,7 +28,18 @@ export default function VertexControls() {
     matrix.makeTranslation(new THREE.Vector3(...selectedVertices[0]));
 
   return selectedVertexSets.length > 0 && (
-    <PivotControls autoTransform={false} matrix={matrix} disableRotations disableScaling>
+    <PivotControls
+      autoTransform={false} matrix={matrix} disableRotations disableScaling
+      onDragStart={() => previousMatrix.current.copy(matrix)}
+      onDrag={(_, _2, w) => {
+        previousMatrix.current.invert();
+        const delta = new THREE.Matrix4();
+        delta.copy(w);
+        delta.multiply(previousMatrix.current)
+        matrixMultiplySelection(delta);
+        previousMatrix.current.copy(w);
+      }}
+    >
       <mesh />
     </PivotControls>
   );
