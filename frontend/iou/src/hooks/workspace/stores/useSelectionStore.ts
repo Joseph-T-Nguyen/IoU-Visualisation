@@ -40,6 +40,7 @@ export interface SelectionStore {
    * @param id The identifier for the selectee
    */
   removeSelection: (id: string) => void,
+  toggleSelection: (id: string) => void,
 
   /**
    * Adds a set of children to being selected on an object
@@ -53,6 +54,7 @@ export interface SelectionStore {
    * @param children The ids of children to deselect
    */
   removeChildSelection: (id: string, children: number[]) => void,
+  toggleChildSelection: (id: string, children: number[]) => void,
 
 
 }
@@ -99,6 +101,13 @@ const createSelectionStore = () => create<SelectionStore>((set) => ({
       selections: selections
     };
   }),
+  toggleSelection: (id: string) => set(state => {
+    // Select all elements in state.selections, extracting [id] separately
+    const {[id]: current, ...selections} = state.selections;
+    return {
+      selections: current === undefined ? { ...selections, [id]: {} } : selections
+    };
+  }),
 
   addChildSelection: (id: string, children: number[]) => set(state => {
     const maybePreviousChildren: Set<number> | [] = state.selections[id]?.children ?? [];
@@ -115,6 +124,25 @@ const createSelectionStore = () => create<SelectionStore>((set) => ({
 
     return {
       selections: {...state.selections, [id]: {children: newChildren}}
+    };
+  }),
+  toggleChildSelection: (id: string, children: number[]) => set(state => {
+    // Select all elements in state.selections, extracting [id] separately
+    const {[id]: current, ...selections} = state.selections;
+
+    const previousChildren: Set<number> = current?.children ?? new Set<number>();
+    const childrenSet = new Set<number>(children);
+
+    const symmetricDiff = new Set<number>([
+      ...[...previousChildren].filter(x => !childrenSet.has(x)),
+      ...[...childrenSet].filter(x => !previousChildren.has(x))
+    ]);
+
+    if (symmetricDiff.size === 0)
+      return {selections: selections};
+
+    return {
+      selections: {...selections, [id]: {children: symmetricDiff}}
     };
   }),
 }));
