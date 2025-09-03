@@ -1,6 +1,6 @@
 import {create} from "zustand/react";
 
-export interface Selection {
+export interface WorkspaceSelection {
   /**
    * The set of selected child Ids. undefined if no selected children (and the whole object should be selected instead)
    * or a set of AT LEAST 1 child id. Will never be an empty set.
@@ -12,7 +12,7 @@ export interface SelectionStore {
   /**
    * The set of all current selections in the workspace
    */
-  selections: {[key: string]: Selection},
+  selections: {[key: string]: WorkspaceSelection},
 
   /**
    * Replaces all other selections with the given selection
