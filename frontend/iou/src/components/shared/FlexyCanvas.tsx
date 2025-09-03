@@ -31,7 +31,7 @@ export default function FlexyCanvas(props: FlexyCanvasProps) {
     <div className={cn("relative pointer-events-none", className)}>
       {underlayDiv}
       <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
-        <Canvas {...canvasProps}>
+        <Canvas {...canvasProps} className="select-none">
         </Canvas>
       </div>
       {overlayDiv}

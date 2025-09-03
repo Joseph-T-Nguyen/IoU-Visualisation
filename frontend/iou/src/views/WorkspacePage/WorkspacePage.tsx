@@ -3,7 +3,7 @@ import {Button} from "@/components/ui/button.tsx";
 import { LogOut } from "lucide-react"
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
-import {OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
+import {Grid, OrbitControls, OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
 import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
@@ -61,11 +61,27 @@ export default function WorkspacePage() {
           position={[0, 1.5, 100]}
         />
       ) : (
-        <PerspectiveCamera
-          makeDefault
-          position={[0, 1.5, 5]}
-        />
+        <>
+          <PerspectiveCamera
+            makeDefault
+            position={[0, 1.5, 5]}
+          />
+        </>
       )}
+
+      <OrbitControls></OrbitControls>
+      <Grid
+        infiniteGrid       // <- key flag
+        cellSize={1}
+        cellThickness={0.6}
+        sectionSize={10}
+        sectionThickness={1.0}
+        fadeDistance={50}
+        fadeStrength={1}
+        followCamera={false}
+        sectionColor={"#94a3b8"}
+        cellColor={"#94a3b8"}
+      ></Grid>
 
       {/* Add 3D content here: */}
 
@@ -75,7 +91,8 @@ export default function WorkspacePage() {
       ))}
 
       <ambientLight intensity={0.25} color="#F1F5F9"/>
-      <directionalLight position={[0, 0, 5]} intensity={2} color="white" />
+      <directionalLight position={[1, 5, 2]} intensity={2} rotation={[45, 10, 0]} color="white" />
+
     </FlexyCanvas>
   </>);
 }

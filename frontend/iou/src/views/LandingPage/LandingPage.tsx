@@ -1,6 +1,7 @@
 import FlexyCanvas from "@/components/shared/FlexyCanvas.tsx";
 import SpinningCube from "@/components/three/SpinningCube.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import {TrackballControls} from "@react-three/drei";
 
 export default function LandingPage() {
 
@@ -23,6 +24,7 @@ export default function LandingPage() {
         </div>}
       >
         <SpinningCube></SpinningCube>
+        <TrackballControls />
         <ambientLight intensity={0.1} color="blue"/>
         <directionalLight position={[0, 0, 5]} color="#CCC" />
         <orthographicCamera position={[0, 0, 1]} ></orthographicCamera>
