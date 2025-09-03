@@ -24,7 +24,7 @@ const defaultColors = [
   "#84cc16",
   "#a855f7",
   "#22c55e",
-]
+];
 
 /**
  * A zustand store to store the internal data of the workspace. Used to define other hooks. Do not use directly in your

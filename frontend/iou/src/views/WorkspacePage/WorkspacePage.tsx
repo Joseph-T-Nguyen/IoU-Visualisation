@@ -15,8 +15,6 @@ export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
-  console.log(shapeUUIDs);
-
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
