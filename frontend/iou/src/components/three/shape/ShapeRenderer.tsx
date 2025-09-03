@@ -11,6 +11,8 @@ export interface ShapeRendererProps {
   vertices: Vec3[],
   vertexColor?: string,
   baseColor?: string,
+  onPress?: (id: number) => void,
+  selectedIds?: Set<number>,
 }
 
 export default function ShapeRenderer(props: ShapeRendererProps) {
@@ -25,6 +27,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   const hoveredIds = closestVertexIds ?? [];
 
   const onPointerMove = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
     const closest = findClosestVertexId(event.point, props.vertices);
     setClosestVertexIds([closest]);
   };
@@ -33,15 +36,22 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
     setClosestVertexIds(null);
   }
 
+  const onPointerDown = (event: ThreeEvent<PointerEvent>) => {
+    const closest = findClosestVertexId(event.point, props.vertices);
+    props.onPress?.(closest);
+  }
+
   return (
     <group
       onPointerMove={onPointerMove}
       onPointerOut={onPointerOut}
+      onClick={onPointerDown}
     >
       <InstancedVertexSpheres
         vertices={props.vertices}
         hoveredIds={hoveredIds}
         color={vertexColor}
+        selectedIds={props.selectedIds ?? new Set<number>()}
       />
       <mesh
         geometry={geometry}

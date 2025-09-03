@@ -31,7 +31,14 @@ const defaultColors = [
  * react components!
  */
 export const useShapesStore = create<ShapesStore>((set) => ({
-  shapes: {},
+  shapes: {
+    default_shape_uuid: {
+      vertices: [[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]],
+      faces: [],
+      name: "Default Shape",
+      color: "#ef4444",
+    }
+  },
 
   // TODO: Calculate shape face data using the convex hull algorithm
   setVertices: (id: string, vertices: Vec3[]) => set((state: ShapesStore) => ({

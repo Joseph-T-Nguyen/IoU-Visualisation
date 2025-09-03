@@ -67,7 +67,6 @@ export default function WorkspacePage() {
       )}
 
       {/* Add 3D content here: */}
-      <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]} baseColor="#fca5a5" vertexColor="#ef4444"/>
 
       {shapeUUIDs.map((uuid: string) => (
         <ShapeWidget uuid={uuid} key={uuid}/>

@@ -129,6 +129,7 @@ const createSelectionStore = () => create<SelectionStore>((set) => ({
   toggleChildSelection: (id: string, children: number[]) => set(state => {
     // Select all elements in state.selections, extracting [id] separately
     const {[id]: current, ...selections} = state.selections;
+    console.log("current: ", current);
 
     const previousChildren: Set<number> = current?.children ?? new Set<number>();
     const childrenSet = new Set<number>(children);
@@ -137,6 +138,8 @@ const createSelectionStore = () => create<SelectionStore>((set) => ({
       ...[...previousChildren].filter(x => !childrenSet.has(x)),
       ...[...childrenSet].filter(x => !previousChildren.has(x))
     ]);
+
+    console.log("symmetricDiff: ", symmetricDiff, "\npreviousChildren: ", previousChildren, "\nchildrenSet: ", childrenSet);
 
     if (symmetricDiff.size === 0)
       return {selections: selections};
