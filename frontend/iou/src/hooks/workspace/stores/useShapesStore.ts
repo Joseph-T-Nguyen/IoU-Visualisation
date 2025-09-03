@@ -1,14 +1,20 @@
 import {create} from "zustand/react";
 import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
+import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/stores/createSelectionSlice.ts";
+import type {StateCreator} from "zustand/vanilla";
 
-export interface ShapesStore {
+export interface ShapesSlice {
   shapes: {[key: string]: ShapeData};
-
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
   setShapeName: (id: string, name: string) => void;
   setShapeColor: (id: string, name: string) => void;
+
+  deleteSelections: () => void;
 }
+
+// We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
+export type ShapesStore = SelectionSlice & ShapesSlice;
 
 const defaultColors = [
   "#ef4444",
@@ -30,7 +36,7 @@ const defaultColors = [
  * A zustand store to store the internal data of the workspace. Used to define other hooks. Do not use directly in your
  * react components!
  */
-export const useShapesStore = create<ShapesStore>((set) => ({
+export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = ((set, get) => ({
   shapes: {
     default_shape_uuid: {
       vertices: [[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]],
@@ -41,7 +47,7 @@ export const useShapesStore = create<ShapesStore>((set) => ({
   },
 
   // TODO: Calculate shape face data using the convex hull algorithm
-  setVertices: (id: string, vertices: Vec3[]) => set((state: ShapesStore) => ({
+  setVertices: (id: string, vertices: Vec3[]) => set((state: ShapesSlice) => ({
     shapes: {
       ...state.shapes,
       // Replace data with the vertices
@@ -52,7 +58,7 @@ export const useShapesStore = create<ShapesStore>((set) => ({
     }
   })),
 
-  addShape: () => set((state: ShapesStore) => {
+  addShape: () => set((state: ShapesSlice) => {
     const count = Object.keys(state.shapes).length;
 
     return ({
@@ -72,7 +78,7 @@ export const useShapesStore = create<ShapesStore>((set) => ({
     });
   }),
 
-  setShapeName: (id: string, name: string) => set((state: ShapesStore) => ({
+  setShapeName: (id: string, name: string) => set((state: ShapesSlice) => ({
     shapes: {
       ...state.shapes,
       [id]: {
@@ -82,61 +88,52 @@ export const useShapesStore = create<ShapesStore>((set) => ({
     }
   })),
 
-  setShapeColor: (id: string, color: string) => set((state: ShapesStore) => ({
+  setShapeColor: (id: string, color: string) => set((state: ShapesSlice) => ({
     shapes: {
       ...state.shapes,
       [id]: {
         ...state.shapes[id],
-         color: color
+        color: color
       }
     }
   })),
+
+  deleteSelections: () => set((state: ShapesSlice) => {
+    const newShapes = {...state.shapes};
+
+    // Gets the current selections from the selection slice
+    const selection = get().selections;
+
+    // Filter out shapes based on elements in selection
+    for (const key in selection) {
+      // If no specific children (vertices) are defined in the selection, delete the whole shape
+      if (selection[key].children === undefined)
+        delete newShapes[key]
+      else if (state.shapes[key] !== undefined) {
+        // Otherwise filter out specified children (vertices)
+        const newVertices = state.shapes[key].vertices.filter((_, i) => !selection[key]?.children?.has(i));
+
+        if (newVertices.length === 0)
+          delete newShapes[key];
+        else {
+          newShapes[key] = {
+            ...state.shapes[key],
+            vertices: newVertices
+          }
+        }
+      }
+    }
+
+    return {
+      selections: {},
+      shapes: newShapes,
+    }
+  }),
 }))
 
-// export const useShapesStore = create<ShapesStore>((set) => {
-//   const worker = new Worker(new URL("./facesWorker.ts", import.meta.url));
-//
-//   let jobCounter = 0;
-//   const pendingJobs = new Map<number, string>(); // jobId -> shapeId
-//
-//   // Listen to worker messages
-//   worker.onmessage = (e: MessageEvent) => {
-//     const { id, faces } = e.data as { id: string; faces: number[][] };
-//
-//     // find jobId for this shape
-//     const jobId = Array.from(pendingJobs.entries()).find(([_, shapeId]) => shapeId === id)?.[0];
-//     if (jobId == null) return; // no pending job (probably stale)
-//
-//     // Remove job from pending
-//     pendingJobs.delete(jobId);
-//
-//     // Update shape if still exists
-//     set((state) => {
-//       const next = new Map(state.shapes);
-//       const shape = next.get(id);
-//       if (!shape || shape.currentJobId !== jobId) return state; // stale
-//       next.set(id, { ...shape, faces, isPending: false, currentJobId: undefined });
-//       return { shapes: next };
-//     });
-//   };
-//
-//   return {
-//     // Shape data
-//     shapes: new Map(),
-//
-//     setVertices: (id, vertices) => set((state) => {
-//       const next = new Map(state.shapes);
-//       const oldShape = next.get(id) ?? { vertices: [], faces: [], isPending: false };
-//       const jobId = ++jobCounter;
-//
-//       // mark as pending
-//       next.set(id, { ...oldShape, vertices, isPending: true, currentJobId: jobId });
-//       pendingJobs.set(jobId, id);
-//
-//       // send async job to worker
-//       worker.postMessage({ id, vertices });
-//
-//       return { shapes: next };
-//     }),
-//   };
-// });
+const useShapesStore = create<ShapesSlice & SelectionSlice>()((...a) => ({
+  ...createSelectionSlice(...a),
+  ...createShapeSlice(...a),
+}));
+
+export default useShapesStore;

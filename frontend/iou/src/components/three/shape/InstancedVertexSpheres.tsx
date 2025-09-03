@@ -54,6 +54,9 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
     if (!selectedInnerMeshRef.current || !selectedOuterMeshRef.current)
       return;
     selectedIdsArray.forEach((i, j) => {
+      if (i >= matrices.length)
+        return;
+
       if (j < selectedIds.size)
         selectedInnerMeshRef.current!.setMatrixAt(j, matrices[i]);
       selectedOuterMeshRef.current!.setMatrixAt(j, matrices[i]);

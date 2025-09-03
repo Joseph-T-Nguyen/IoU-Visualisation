@@ -37,8 +37,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   }
 
   const onPointerDown = (event: ThreeEvent<PointerEvent>) => {
-    const closest = findClosestVertexId(event.point, props.vertices);
-    props.onPress?.(closest);
+    props.onPress?.(hoveredIds.length > 0 ? hoveredIds[0] : findClosestVertexId(event.point, props.vertices));
   }
 
   return (

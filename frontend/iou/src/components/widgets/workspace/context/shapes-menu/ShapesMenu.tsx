@@ -3,7 +3,7 @@ import {Separator} from "@/components/ui/separator.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Plus} from "lucide-react";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
-import {useShapesStore} from "@/hooks/workspace/stores/useShapesStore.ts";
+import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import ShapesMenuItem from "@/components/widgets/workspace/context/shapes-menu/ShapesMenuItem.tsx";
 
 export default function ShapesMenu() {
@@ -19,7 +19,7 @@ export default function ShapesMenu() {
       <CardContent className="px-3 mt-1.5 flex flex-col gap-3">
 
         {shapeUUIDs.map((uuid: string) => (
-          <ShapesMenuItem uuid={uuid} />
+          <ShapesMenuItem uuid={uuid} key={uuid} />
         ))}
 
         {/* New shape button */}

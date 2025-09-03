@@ -1,5 +1,4 @@
 import FlexyCanvas from "@/components/shared/FlexyCanvas.tsx";
-import ShapeRenderer from "@/components/three/shape/ShapeRenderer.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import { LogOut } from "lucide-react"
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
@@ -9,6 +8,7 @@ import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
 import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
 import WorkspaceTitle from "@/components/widgets/workspace/WorkspaceTitle.tsx";
+import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceActionListener.tsx";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -48,7 +48,8 @@ export default function WorkspacePage() {
     </div>
   );
 
-  return (
+  return (<>
+    <WorkspaceActionListener />
     <FlexyCanvas
       className="w-screen h-screen overflow-clip bg-secondary"
       overlay={overlay}
@@ -68,6 +69,7 @@ export default function WorkspacePage() {
 
       {/* Add 3D content here: */}
 
+      {/* Add every shape to the scene: */}
       {shapeUUIDs.map((uuid: string) => (
         <ShapeWidget uuid={uuid} key={uuid}/>
       ))}
@@ -75,7 +77,7 @@ export default function WorkspacePage() {
       <ambientLight intensity={0.25} color="#F1F5F9"/>
       <directionalLight position={[0, 0, 5]} intensity={2} color="white" />
     </FlexyCanvas>
-  );
+  </>);
 }
 
 

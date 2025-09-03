@@ -1,4 +1,4 @@
-import {useShapesStore} from "@/hooks/workspace/stores/useShapesStore.ts";
+import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 
 export default function useShape(uuid: string) {

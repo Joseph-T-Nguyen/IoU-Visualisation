@@ -5,11 +5,9 @@ import {useEffect, useMemo} from "react";
 import useSelect from "@/hooks/workspace/useSelect.ts";
 import useSelection from "@/hooks/workspace/useSelection.ts";
 
-
 export interface ShapeWidgetProps {
   uuid: string
 }
-
 
 export default function ShapeWidget(props: ShapeWidgetProps) {
   const { vertices, color } = useShape(props.uuid);

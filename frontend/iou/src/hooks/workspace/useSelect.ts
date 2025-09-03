@@ -1,18 +1,17 @@
 import {useCallback} from "react";
-import useSelectionStore from "@/hooks/workspace/stores/useSelectionStore.ts";
 import useKeyPressed from "@/hooks/input/useKeyPressed.ts";
-
+import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 
 /**
  * A hook that provides a method to select and deselect an object. The first function arg is the id of the object to change selection for, and the second (optional) arg is for any child ids to set selection for
  * @param id The id of the object to track the selection of
  */
 export default function useSelect() {
-  const select = useSelectionStore(s => s.select);
-  const deselect = useSelectionStore(s => s.deselect);
-  const selectChild = useSelectionStore(s => s.selectChild);
-  const toggleSelection = useSelectionStore(s => s.toggleSelection);
-  const toggleChildSelection = useSelectionStore(s => s.toggleChildSelection);
+  const select = useShapesStore(s => s.select);
+  const deselect = useShapesStore(s => s.deselect);
+  const selectChild = useShapesStore(s => s.selectChild);
+  const toggleSelection = useShapesStore(s => s.toggleSelection);
+  const toggleChildSelection = useShapesStore(s => s.toggleChildSelection);
 
   const toggleMode = useKeyPressed("Shift");
 

@@ -1,6 +1,8 @@
-import {create} from "zustand/react";
+import type {StateCreator} from "zustand/vanilla";
 
-export interface WorkspaceSelection {
+export type WorkspaceMultiSelection = {[key: string]: WorkspaceObjectSelection};
+
+export interface WorkspaceObjectSelection {
   /**
    * The set of selected child Ids. undefined if no selected children (and the whole object should be selected instead)
    * or a set of AT LEAST 1 child id. Will never be an empty set.
@@ -8,11 +10,11 @@ export interface WorkspaceSelection {
   children?: Set<number>
 }
 
-export interface SelectionStore {
+export interface SelectionSlice {
   /**
    * The set of all current selections in the workspace
    */
-  selections: {[key: string]: WorkspaceSelection},
+  selections: WorkspaceMultiSelection,
 
   /**
    * Replaces all other selections with the given selection
@@ -55,15 +57,12 @@ export interface SelectionStore {
    */
   removeChildSelection: (id: string, children: number[]) => void,
   toggleChildSelection: (id: string, children: number[]) => void,
-
-
 }
-
 
 /**
  * A zustand store to store selection states.
  */
-const createSelectionStore = () => create<SelectionStore>((set) => ({
+const createSelectionSlice: StateCreator<SelectionSlice, [], [], SelectionSlice> = ((set) => ({
   // Metadata
   selections: {},
 
@@ -150,15 +149,4 @@ const createSelectionStore = () => create<SelectionStore>((set) => ({
   }),
 }));
 
-const useSelectionStore = createSelectionStore();
-
-export default useSelectionStore;
-
-
-
-
-
-
-
-
-
+export default createSelectionSlice;

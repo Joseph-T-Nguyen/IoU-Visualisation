@@ -1,4 +1,4 @@
-import {useShapesStore} from "@/hooks/workspace/stores/useShapesStore.ts";
+import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import { useMemo } from "react";
 
 /**
