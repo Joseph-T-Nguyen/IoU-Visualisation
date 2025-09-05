@@ -3,18 +3,35 @@ import {Button} from "@/components/ui/button.tsx";
 import { LogOut } from "lucide-react"
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
-import {Grid, OrbitControls, OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
+import {CameraControls, Grid, OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
 import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
 import WorkspaceTitle from "@/components/widgets/workspace/WorkspaceTitle.tsx";
 import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceActionListener.tsx";
 import VertexControls from "@/components/three/VertexControls.tsx";
+import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
+  const cameraInteraction = useCameraInteraction();
+
+  const camera =dimensions === "2d" ? (
+    <OrthographicCamera
+      makeDefault
+      zoom={200}
+      position={[0, 1.5, 100]}
+    />
+  ) : (
+    <>
+      <PerspectiveCamera
+        makeDefault
+        position={[0, 1.5, 5]}
+      />
+    </>
+  );
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
@@ -55,22 +72,9 @@ export default function WorkspacePage() {
       className="w-screen h-screen overflow-clip bg-secondary"
       overlay={overlay}
     >
-      {dimensions === "2d" ? (
-        <OrthographicCamera
-          makeDefault
-          zoom={200}
-          position={[0, 1.5, 100]}
-        />
-      ) : (
-        <>
-          <PerspectiveCamera
-            makeDefault
-            position={[0, 1.5, 5]}
-          />
-        </>
-      )}
+      {camera}
+      <CameraControls enabled={cameraInteraction === undefined}></CameraControls>
 
-      <OrbitControls></OrbitControls>
       <Grid
         infiniteGrid       // <- key flag
         cellSize={1}

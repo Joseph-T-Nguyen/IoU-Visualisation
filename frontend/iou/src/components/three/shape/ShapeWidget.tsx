@@ -4,6 +4,7 @@ import Color from "color";
 import {useEffect, useMemo} from "react";
 import useSelect from "@/hooks/workspace/useSelect.ts";
 import useSelection from "@/hooks/workspace/useSelection.ts";
+import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
 
 export interface ShapeWidgetProps {
   uuid: string
@@ -15,6 +16,7 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
     Color(color).lighten(0.4).hex()
   ), [color])
 
+  const { beginInteraction, endInteraction } = useSetCameraInteraction(props.uuid);
   const select = useSelect();
   const selection = useSelection(props.uuid);
 
@@ -29,6 +31,8 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
       vertexColor={color}
       onPress={(vertexId: number) => select(props.uuid, [vertexId])}
       selectedIds={selection?.children ?? new Set<number>()}
+      onPointerDown={beginInteraction}
+      onPointerUp={endInteraction}
     />
   )
 }

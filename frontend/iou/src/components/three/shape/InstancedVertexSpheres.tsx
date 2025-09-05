@@ -10,6 +10,7 @@ export interface InstancedVertexSpheresProps {
 
   hoveredIds?: number[],
   selectedIds?: Set<number>,
+  renderOrder?: number
 }
 
 export default function InstancedVertexSpheres(props: InstancedVertexSpheresProps) {
@@ -70,6 +71,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
       <instancedMesh
         ref={meshRef}
         args={[undefined, undefined, positions.length]}
+        renderOrder={props.renderOrder}
       >
         {/* Base sphere geometry */}
         <sphereGeometry args={[radius, 8, 8]} />
@@ -79,6 +81,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
       <instancedMesh
         ref={selectedInnerMeshRef}
         args={[undefined, undefined, selectedIds.size]}
+        renderOrder={props.renderOrder}
       >
         <sphereGeometry args={[radius, 8, 8]} />
         <meshBasicMaterial color="white" toneMapped={false}/>
@@ -86,6 +89,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
       <instancedMesh
         ref={selectedOuterMeshRef}
         args={[undefined, undefined, hoveredMatrices.length]}
+        renderOrder={props.renderOrder}
       >
         <sphereGeometry args={[radius * 1.5, 8, 8]} />
         <meshBasicMaterial color="#00D3F2" side={BackSide} toneMapped={false}/>

@@ -12,12 +12,15 @@ export interface ShapeRendererProps {
   vertexColor?: string,
   baseColor?: string,
   onPress?: (id: number) => void,
+  onPointerDown?: () => void,
+  onPointerUp?: () => void,
   selectedIds?: Set<number>,
 }
 
 export default function ShapeRenderer(props: ShapeRendererProps) {
   const vertexColor = props.vertexColor ?? "blue";
   const baseColor = props.baseColor ?? "#F1F5F9";
+
 
   const geometry = useMemo(() => new ConvexGeometry(
     props.vertices.map(vec3ToVector3)
@@ -34,29 +37,42 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
 
   const onPointerOut = () => {
     setClosestVertexIds(null);
+    props.onPointerUp?.();
   }
 
-  const onPointerDown = (event: ThreeEvent<PointerEvent>) => {
+  const onClick = (event: ThreeEvent<PointerEvent>) => {
     props.onPress?.(hoveredIds.length > 0 ? hoveredIds[0] : findClosestVertexId(event.point, props.vertices));
+  }
+
+  const onPointerUp = () => {
+    props.onPointerUp?.();
+  }
+
+  const onPointerDown = () => {
+    props.onPointerDown?.();
   }
 
   return (
     <group
       onPointerMove={onPointerMove}
       onPointerOut={onPointerOut}
-      onClick={onPointerDown}
+      onClick={onClick}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
     >
       <InstancedVertexSpheres
         vertices={props.vertices}
         hoveredIds={hoveredIds}
         color={vertexColor}
         selectedIds={props.selectedIds ?? new Set<number>()}
+        renderOrder={2}
       />
       <mesh
+        renderOrder={-1}
         geometry={geometry}
       >
         <meshStandardMaterial color={baseColor} />
-        <Edges lineWidth={1} color={vertexColor} />
+        <Edges lineWidth={1} color={vertexColor} renderOrder={1} />
       </mesh>
 
     </group>
