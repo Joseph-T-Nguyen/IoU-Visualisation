@@ -2,8 +2,10 @@ import {PivotControls} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import * as THREE from "three";
 import {useRef} from "react";
+import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
 
 export default function VertexControls() {
+  const { beginInteraction, endInteraction } = useSetCameraInteraction("vertex-controls");
 
   const selections = useShapesStore(s => s.selections);
   const shapes = useShapesStore(s => s.shapes);
@@ -30,7 +32,13 @@ export default function VertexControls() {
   return selectedVertexSets.length > 0 && (
     <PivotControls
       autoTransform={false} matrix={matrix} disableRotations disableScaling
-      onDragStart={() => previousMatrix.current.copy(matrix)}
+      onDragStart={() => {
+        previousMatrix.current.copy(matrix);
+        beginInteraction();
+      }}
+      onDragEnd={() => {
+        endInteraction();
+      }}
       onDrag={(_, _2, w) => {
         previousMatrix.current.invert();
         const delta = new THREE.Matrix4();

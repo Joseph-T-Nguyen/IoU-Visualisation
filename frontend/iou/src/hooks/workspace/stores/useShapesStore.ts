@@ -78,12 +78,12 @@ function applyReducerAux<T extends unknown[], Store>(set: (partial: Partial<Stor
  */
 export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = ((set, get) => ({
   shapes: {
-    default_shape_uuid: {
-      vertices: monkey as Vec3[], // [[2, 0, -1], [0, 2, -1], [-2, 0, -1], [2, 2, -1], [0, 1, 1]],
-      faces: [],
-      name: "Default Shape",
-      color: "#ef4444",
-    }
+    // default_shape_uuid: {
+    //   vertices: monkey as Vec3[], //[[2, 0, -1], [0, 2, -1], [-2, 0, -1], [2, 2, -1], [0, 1, 1]],
+    //   faces: [],
+    //   name: "Default Shape",
+    //   color: "#ef4444",
+    // }
   },
 
   // TODO: Calculate shape face data using the convex hull algorithm
@@ -164,8 +164,6 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
   setManyVertices: applyReducerAux(set, fixPartialShapesReducer(setManyVerticesAux)),
 
   matrixMultiplySelection: (matrix: THREE.Matrix4) => set((state) => {
-
-
     // Gets the current selections from the selection slice
     const selection = get().selections;
     const selectedKeys = Object.keys(selection);

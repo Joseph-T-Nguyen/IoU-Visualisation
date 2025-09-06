@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef} from 'react';
+import {memo, useEffect, useMemo, useRef} from 'react';
 import { InstancedMesh, Matrix4, BackSide } from 'three';
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 
@@ -13,7 +13,8 @@ export interface InstancedVertexSpheresProps {
   renderOrder?: number
 }
 
-export default function InstancedVertexSpheres(props: InstancedVertexSpheresProps) {
+
+function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
   const meshRef = useRef<InstancedMesh>(null);
   const selectedOuterMeshRef = useRef<InstancedMesh>(null);
   const selectedInnerMeshRef = useRef<InstancedMesh>(null);
@@ -74,7 +75,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
         renderOrder={props.renderOrder}
       >
         {/* Base sphere geometry */}
-        <sphereGeometry args={[radius, 8, 8]} />
+        <sphereGeometry args={[radius, 16, 8]} />
         <meshBasicMaterial color={color} toneMapped={false}/>
       </instancedMesh>
 
@@ -83,7 +84,7 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
         args={[undefined, undefined, selectedIds.size]}
         renderOrder={props.renderOrder}
       >
-        <sphereGeometry args={[radius, 8, 8]} />
+        <sphereGeometry args={[radius, 16, 8]} />
         <meshBasicMaterial color="white" toneMapped={false}/>
       </instancedMesh>
       <instancedMesh
@@ -91,9 +92,12 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
         args={[undefined, undefined, hoveredMatrices.length]}
         renderOrder={props.renderOrder}
       >
-        <sphereGeometry args={[radius * 1.5, 8, 8]} />
+        <sphereGeometry args={[radius * 1.5, 16, 8]} />
         <meshBasicMaterial color="#00D3F2" side={BackSide} toneMapped={false}/>
       </instancedMesh>
     </>
   );
 }
+
+const InstancedVertexShperes = memo(InstancedVertexSpheresUnmemoed);
+export default InstancedVertexShperes;

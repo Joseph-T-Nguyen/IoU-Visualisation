@@ -1850,6 +1850,11 @@ color@^5.0.0:
     color-convert "^3.0.1"
     color-string "^2.0.0"
 
+comlink@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/comlink/-/comlink-4.4.2.tgz#cbbcd82742fbebc06489c28a183eedc5c60a2bca"
+  integrity sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==
+
 commander@^10.0.0:
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-10.0.1.tgz#881ee46b4f77d1c1dccc5823433aa39b022cbe06"
@@ -4094,6 +4099,11 @@ word-wrap@^1.2.5:
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.5.tgz#d2c45c6dd4fbce621a66f136cbe328afd0410b34"
   integrity sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==
+
+workerize@^0.1.8:
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/workerize/-/workerize-0.1.8.tgz#da4b8090ed31e13bac16fb3e1c5483625e8874fc"
+  integrity sha512-X2y/MZ4UHXY00CKPbhb7g5Pm7aagKmXqTETvG/gi9I0tlrONqAN8jRuyLvlyvhrXTugJUk9Dzz7UBpSwFIP8pQ==
 
 wrap-ansi@^6.2.0:
   version "6.2.0"

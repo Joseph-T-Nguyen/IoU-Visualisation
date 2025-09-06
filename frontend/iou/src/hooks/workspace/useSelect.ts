@@ -19,7 +19,6 @@ export default function useSelect() {
    * Toggles or replaces selection for a given id and children when called.
    */
   return useCallback((id?: string, children?: number[]) => {
-    console.log("select(", id, children, "), toggleMode: ", toggleMode,)
     if (id === undefined) {
       deselect();
       return;

@@ -1,11 +1,14 @@
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import InstancedVertexSpheres from "@/components/three/shape/InstancedVertexSpheres.tsx";
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 // TODO: Figure out why this import statement isn't happy
 import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import type {ThreeEvent} from "@react-three/fiber";
 import {Edges} from "@react-three/drei";
-import {findClosestVertexId, vec3ToVector3} from "@/components/three/shape/vertex_helpers.ts";
+import {findClosestVertexId} from "@/components/three/shape/vertexHelpers.ts";
+import useConvexHull from "@/hooks/useConvexHull.ts";
+import {type Mesh} from "three";
+import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
@@ -21,13 +24,13 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   const vertexColor = props.vertexColor ?? "blue";
   const baseColor = props.baseColor ?? "#F1F5F9";
 
+  const geometry = useConvexHull(props.vertices);
+  const meshRef = useRef<Mesh>(null);
 
-  const geometry = useMemo(() => new ConvexGeometry(
-    props.vertices.map(vec3ToVector3)
-  ), [props.vertices]);
+  const allowHovering = useCameraInteraction() === undefined;
 
   const [closestVertexIds, setClosestVertexIds] = useState<number[] | null>(null);
-  const hoveredIds = closestVertexIds ?? [];
+  const hoveredIds = !allowHovering ? [] : closestVertexIds ?? [];
 
   const onPointerMove = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
@@ -65,11 +68,10 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         hoveredIds={hoveredIds}
         color={vertexColor}
         selectedIds={props.selectedIds ?? new Set<number>()}
-        renderOrder={2}
       />
       <mesh
-        renderOrder={-1}
         geometry={geometry}
+        ref={meshRef}
       >
         <meshStandardMaterial color={baseColor} />
         <Edges lineWidth={1} color={vertexColor} renderOrder={1} />

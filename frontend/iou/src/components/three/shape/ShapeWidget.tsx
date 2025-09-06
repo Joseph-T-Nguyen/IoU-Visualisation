@@ -1,7 +1,7 @@
 import ShapeRenderer from "@/components/three/shape/ShapeRenderer.tsx";
 import useShape from "@/hooks/workspace/useShape.ts";
 import Color from "color";
-import {useEffect, useMemo} from "react";
+import {useMemo} from "react";
 import useSelect from "@/hooks/workspace/useSelect.ts";
 import useSelection from "@/hooks/workspace/useSelection.ts";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
@@ -19,10 +19,6 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
   const { beginInteraction, endInteraction } = useSetCameraInteraction(props.uuid);
   const select = useSelect();
   const selection = useSelection(props.uuid);
-
-  useEffect(() => {
-    console.log("selection: ", selection);
-  }, [selection]);
 
   return (
     <ShapeRenderer

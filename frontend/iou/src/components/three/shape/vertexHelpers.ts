@@ -1,5 +1,6 @@
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import {Vector3} from "three";
+import {ConvexHull} from "three/examples/jsm/math/ConvexHull";
 
 export function vec3ToVector3(vec3: Vec3): Vector3 {
   return new Vector3(vec3[0], vec3[1], vec3[2]);
