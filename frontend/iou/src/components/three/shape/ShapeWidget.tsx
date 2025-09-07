@@ -11,7 +11,7 @@ export interface ShapeWidgetProps {
 }
 
 export default function ShapeWidget(props: ShapeWidgetProps) {
-  const { vertices, color } = useShape(props.uuid);
+  const { vertices, color, name } = useShape(props.uuid);
   const baseColor = useMemo<string>(() => (
     Color(color).lighten(0.4).hex()
   ), [color])
@@ -25,9 +25,15 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
       vertices={vertices}
       baseColor={baseColor}
       vertexColor={color}
-      onPress={(vertexId: number) => select(props.uuid, [vertexId])}
+      onPress={(vertexId: number) => {
+        select(props.uuid, [vertexId])
+        console.log("selected ", name, vertexId);
+      }}
       selectedIds={selection?.children ?? new Set<number>()}
-      onPointerDown={beginInteraction}
+      onPointerDown={() => {
+        beginInteraction();
+        console.log("begin interaction ", name);
+      }}
       onPointerUp={endInteraction}
     />
   )

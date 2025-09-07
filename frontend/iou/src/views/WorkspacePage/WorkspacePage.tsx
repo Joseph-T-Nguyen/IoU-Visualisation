@@ -12,11 +12,15 @@ import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import {useEffect} from "react";
+import {Bvh} from "@react-three/drei";
+import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
+
+  const deselect = useShapesStore(s => s.deselect);
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
@@ -70,18 +74,25 @@ export default function WorkspacePage() {
       /* min-h-[100dv] works better on mobile devices that h-screen */
       className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
       overlay={overlay}
+      onPointerMissed={() => {
+        deselect();
+      }}
     >
       <WorkspaceGrid/>
 
       <WorkspaceCamera/>
-      <VertexControls/>
 
-      {/* Add 3D content here: */}
+      <Bvh firstHitOnly>
 
-      {/* Add every shape to the scene: */}
-      {shapeUUIDs.map((uuid: string) => (
-        <ShapeWidget uuid={uuid} key={uuid}/>
-      ))}
+        <VertexControls/>
+
+        {/* Add 3D content here: */}
+
+        {/* Add every shape to the scene: */}
+        {shapeUUIDs.map((uuid: string) => (
+          <ShapeWidget uuid={uuid} key={uuid}/>
+        ))}
+      </Bvh>
 
       <ambientLight intensity={0.25} color="#F1F5F9"/>
       <directionalLight position={[1, 5, 2]} intensity={2} rotation={[45, 10, 0]} color="white" />

@@ -32,33 +32,36 @@ export default function VertexControls() {
     matrix.makeTranslation(new THREE.Vector3(...selectedVertices[0]));
 
   return selectedVertexSets.length > 0 && (
-    <PivotControls
-      autoTransform={false}
-      matrix={matrix}
-      disableRotations
-      disableScaling
-      activeAxes={[true, true, dimensions === "3d"]}
+    <group onClick={(e) => e.stopPropagation()}>
+      <PivotControls
+        autoTransform={false}
+        matrix={matrix}
+        disableRotations
+        disableScaling
+        activeAxes={[true, true, dimensions === "3d"]}
 
-      onDragStart={() => {
-        previousMatrix.current.copy(matrix);
-        beginInteraction();
-      }}
-      onDragEnd={() => {
-        endInteraction();
-      }}
-      onDrag={(_, _2, w) => {
-        // Get difference between previous movement and current movement as delta
-        previousMatrix.current.invert();
-        const delta = new THREE.Matrix4();
-        delta.copy(w);
-        delta.multiply(previousMatrix.current)
+        onDragStart={() => {
+          previousMatrix.current.copy(matrix);
+          beginInteraction();
+        }}
+        onDragEnd={() => {
+          endInteraction();
 
-        // Move all selected vertices by delta
-        matrixMultiplySelection(delta);
-        previousMatrix.current.copy(w);
-      }}
-    >
-      <mesh />
-    </PivotControls>
+        }}
+        onDrag={(_, _2, w) => {
+          // Get difference between previous movement and current movement as delta
+          previousMatrix.current.invert();
+          const delta = new THREE.Matrix4();
+          delta.copy(w);
+          delta.multiply(previousMatrix.current)
+
+          // Move all selected vertices by delta
+          matrixMultiplySelection(delta);
+          previousMatrix.current.copy(w);
+        }}
+      >
+        <mesh />
+      </PivotControls>
+    </group>
   );
 }
