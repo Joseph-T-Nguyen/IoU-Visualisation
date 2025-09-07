@@ -84,7 +84,7 @@ function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
         args={[undefined, undefined, selectedIds.size]}
         renderOrder={props.renderOrder}
       >
-        <sphereGeometry args={[radius, 16, 8]} />
+        <sphereGeometry args={[radius * 1.001, 16, 8]} />
         <meshBasicMaterial color="white" toneMapped={false}/>
       </instancedMesh>
       <instancedMesh

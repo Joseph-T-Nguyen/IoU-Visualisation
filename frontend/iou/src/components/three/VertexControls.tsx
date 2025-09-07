@@ -1,13 +1,25 @@
 import {PivotControls} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import * as THREE from "three";
-import {useRef} from "react";
+import {useEffect, useRef} from "react";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 
 export default function VertexControls() {
   const { beginInteraction, endInteraction } = useSetCameraInteraction("vertex-controls");
   const [dimensions, ] = useDimensions();
+
+  // Used to mess with the pivots in side effects
+  const pivotRef = useRef<THREE.Group<THREE.Object3DEventMap>>(null);
+
+  // put PivotControls on a separate layer
+  useEffect(() => {
+    if (pivotRef.current) {
+      pivotRef.current.layers.set(1); // layer 1 for controls
+      pivotRef.current.layers.enable(1);
+    }
+  }, []);
+
 
   const selections = useShapesStore(s => s.selections);
   const shapes = useShapesStore(s => s.shapes);
@@ -31,9 +43,12 @@ export default function VertexControls() {
   if (selectedVertices.length > 0)
     matrix.makeTranslation(new THREE.Vector3(...selectedVertices[0]));
 
+
+  // <group onClick={(e) => e.stopPropagation()}>
+  // </group>
   return selectedVertexSets.length > 0 && (
-    <group onClick={(e) => e.stopPropagation()}>
       <PivotControls
+        ref={pivotRef}
         autoTransform={false}
         matrix={matrix}
         disableRotations
@@ -59,9 +74,12 @@ export default function VertexControls() {
           matrixMultiplySelection(delta);
           previousMatrix.current.copy(w);
         }}
+        depthTest={false}
+
       >
-        <mesh />
+        <mesh renderOrder={999} layers={1}/>
+
+
       </PivotControls>
-    </group>
   );
 }

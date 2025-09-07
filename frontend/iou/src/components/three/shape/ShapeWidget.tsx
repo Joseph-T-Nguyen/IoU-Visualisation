@@ -25,11 +25,17 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
       vertices={vertices}
       baseColor={baseColor}
       vertexColor={color}
-      onPress={(vertexId: number) => {
-        select(props.uuid, [vertexId])
+      onPress={(vertexId?: number) => {
+        if (vertexId === undefined)
+          select(props.uuid)
+        else
+          select(props.uuid, [vertexId])
+
         console.log("selected ", name, vertexId);
       }}
+      maxVertexSelectionDistance={0.2}
       selectedIds={selection?.children ?? new Set<number>()}
+      wholeShapeSelected={selection && !selection?.children}
       onPointerDown={() => {
         beginInteraction();
         console.log("begin interaction ", name);

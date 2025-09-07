@@ -12,7 +12,7 @@ import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import {useEffect} from "react";
-import {Bvh} from "@react-three/drei";
+import {AdaptiveEvents, Bvh} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 
 export default function WorkspacePage() {
@@ -77,8 +77,19 @@ export default function WorkspacePage() {
       onPointerMissed={() => {
         deselect();
       }}
+      onCreated={({ raycaster, camera }) => {
+        // Only see layers 0 and 1
+        raycaster.layers.set(0)
+        raycaster.layers.enable(1)
+        camera.layers.set(0)
+        camera.layers.enable(0)
+        camera.layers.enable(1)
+      }}
+
     >
       <WorkspaceGrid/>
+      <AdaptiveEvents />
+
 
       <WorkspaceCamera/>
 
