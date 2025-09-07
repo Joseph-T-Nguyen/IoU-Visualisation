@@ -15,7 +15,9 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
   const baseColor = useMemo<string>(() => (
     Color(color).lighten(0.4).hex()
   ), [color])
-
+  const secondaryBaseColor = useMemo<string>(() => (
+    Color(baseColor).saturate(0.025).darken(0.25).hex()
+  ), [baseColor])
 
   const { beginInteraction, endInteraction } = useSetCameraInteraction(props.uuid);
   const select = useSelect();
@@ -42,6 +44,7 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
         console.log("begin interaction ", name);
       }}
       onPointerUp={endInteraction}
+      secondaryBaseColor={secondaryBaseColor}
     />
   )
 }

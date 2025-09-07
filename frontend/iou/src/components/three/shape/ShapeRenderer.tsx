@@ -1,20 +1,22 @@
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import InstancedVertexSpheres from "@/components/three/shape/InstancedVertexSpheres.tsx";
-import {useRef, useState} from "react";
-import type {ThreeEvent} from "@react-three/fiber";
-import {Outlines, useCursor} from "@react-three/drei";
+import {useEffect, useRef, useState} from "react";
+import {type ThreeEvent} from "@react-three/fiber";
+import {useCursor} from "@react-three/drei";
 import {findClosestVertexId, vec3ToVector3} from "@/components/three/shape/vertexHelpers.ts";
 import useConvexHull from "@/hooks/useConvexHull.ts";
-import {type Mesh} from "three";
+import {type IUniform, type Mesh} from "three";
 import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import EdgesRenderer from "@/components/three/shape/EdgesRenderer.tsx";
-import * as TSL from "three/tsl";
+import * as THREE from "three";
+import Color from "color";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
   vertexColor?: string,
   baseColor?: string,
+  secondaryBaseColor?: string,
   onPress?: (vertexId?: number) => void,
   onPointerDown?: () => void,
   onPointerUp?: () => void,
@@ -23,13 +25,63 @@ export interface ShapeRendererProps {
   maxVertexSelectionDistance?: number,
 }
 
+const vertexShader = /* glsl */ `
+  varying vec2 vUv;
+  varying vec3 vWorldPos;
+  
+  varying vec3 vNormal;
+  // varying vec3 vCameraDir;
+
+
+  void main() {
+    vUv = uv;
+    // vColor = (vec4(normal, 1.0)).xyz;
+    
+    vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+
+    vNormal = normal.xyz; 
+    
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const fragmentShader = /* glsl */ `
+  varying vec2 vUv;
+  
+  varying vec3 vNormal;
+  varying vec3 vWorldPos;
+  
+  uniform vec3 uColor;
+  uniform vec3 uSecondaryColor;
+
+  void main() {
+    vec3 cameraVector = -normalize(vWorldPos - cameraPosition);
+    
+    float light = abs(dot(cameraVector, vNormal));
+    
+    vec3 color = (uColor * vec3(light)) + (uSecondaryColor * vec3(1.0 - light));
+    
+    float fresnel = pow(1.0 - light, 5.0);
+    vec3 fresnelledColor = (vec3(fresnel)) + (color * vec3(1.0 - fresnel));
+    
+    
+    gl_FragColor = vec4(fresnelledColor, 1.0);
+  }
+`;
+
+interface ShapeMaterialUniforms {
+  uColor: THREE.Uniform<THREE.Vector3>,
+  uSecondaryColor: THREE.Uniform<THREE.Vector3>,
+}
+
 export default function ShapeRenderer(props: ShapeRendererProps) {
   const vertexColor = props.vertexColor ?? "blue";
   const baseColor = props.baseColor ?? "#F1F5F9";
+  const secondaryBaseColor = props.secondaryBaseColor ?? "blue";
 
   const [dimensions, ] = useDimensions();
-
   const [edges, setEdges] = useState<[Vec3, Vec3][]>([]);
+
 
   const geometry = useConvexHull(props.vertices, (edges) => {
     if (edges)
@@ -97,6 +149,19 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
       event.stopPropagation();
   }
 
+  // Material
+  const materialRef = useRef<THREE.ShaderMaterial>(null!);
+  const uniformsRef = useRef<ShapeMaterialUniforms>(null!);
+  if (!uniformsRef.current) uniformsRef.current = {
+    uColor: new THREE.Uniform(new THREE.Vector3()),
+    uSecondaryColor: new THREE.Uniform(new THREE.Vector3()),
+  };
+  // Set shader uniforms when colors change
+  useEffect(() => {
+    uniformsRef.current.uColor.value = new THREE.Vector3(...Color(baseColor).rgb().array().map(v => v/255));
+    uniformsRef.current.uSecondaryColor.value = new THREE.Vector3(...Color(secondaryBaseColor).rgb().array().map(v => v/255));
+  }, [baseColor, secondaryBaseColor]);
+
   return (
     <group
       onPointerMove={onPointerMove}
@@ -118,15 +183,22 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         ref={meshRef}
         // When in 2d, push the polygon away from the edges, to help with z fighting
         position={dimensions === "2d" ? [0, 0, -1] : [0, 0, 0]}
+
       >
         { dimensions === "2d" ? (
           <meshBasicMaterial color={baseColor} toneMapped={false}/>
         ) : (
-          <meshStandardMaterial color={baseColor} flatShading toneMapped={false}/>
+          <shaderMaterial
+            ref={materialRef}
+            vertexShader={vertexShader}
+            fragmentShader={fragmentShader}
+            uniforms={uniformsRef.current as unknown as {[key: string]: IUniform}}
+            // toneMapped={false}
+          />
         )}
-        { (shapeIsHovered || props.wholeShapeSelected) &&
-          <Outlines thickness={0.0625*1.5} color="#00D3F2" screenspace={true} angle={Math.PI/1} toneMapped={false}/>
-        }
+        {/*{ (shapeIsHovered || props.wholeShapeSelected) &&*/}
+        {/*  <Outlines thickness={0.0625*1.5} color="#00D3F2" screenspace={true} angle={Math.PI/4} toneMapped={false}/>*/}
+        {/*}*/}
       </mesh>
 
       <EdgesRenderer edges={edges} color={edgeColor}></EdgesRenderer>
