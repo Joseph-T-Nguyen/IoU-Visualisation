@@ -20,7 +20,7 @@ export default function WorkspacePage() {
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
-    <div className="flex flex-col md:flex-row justify-center w-full h-full py-3 p-3 gap-3">
+    <div className="flex flex-col md:flex-row justify-center w-full h-full py-3 p-3 gap-3 overscroll-contain overflow-clip">
       <div className="flex-grow overflow-clip">
         <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
           {/* Main view overlay */}
@@ -68,7 +68,7 @@ export default function WorkspacePage() {
     <WorkspaceActionListener />
     <FlexyCanvas
       /* min-h-[100dv] works better on mobile devices that h-screen */
-      className="w-screen min-h-[100dvh] overflow-scroll overscroll-contain bg-secondary"
+      className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
       overlay={overlay}
     >
       <WorkspaceGrid/>
