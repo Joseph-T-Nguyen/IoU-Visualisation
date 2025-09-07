@@ -6,11 +6,14 @@ import * as THREE from "three";
 
 export interface EdgesRendererProps {
   edges: [Vec3, Vec3][],
-  color?: string
+  color?: string,
+  radius?: number,
 }
 
 export default function EdgesRenderer(props: EdgesRendererProps) {
   const meshRef = useRef<InstancedMesh>(null);
+
+  const radius = props.radius ?? 0.0625/4;
 
   const matrices = useMemo(() => {
     return props.edges.map(([a, b]) => {
@@ -45,7 +48,7 @@ export default function EdgesRenderer(props: EdgesRendererProps) {
       args={[undefined, undefined, matrices.length]}
     >
       {/*<sphereGeometry args={[0.1, 16, 8]} />*/}
-      <cylinderGeometry args={[0.0125, 0.0125, 1, 4]} />
+      <cylinderGeometry args={[radius, radius, 1, 4]} />
       <meshBasicMaterial color={props.color} toneMapped={false}/>
     </instancedMesh>
   </>)

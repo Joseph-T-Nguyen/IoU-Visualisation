@@ -1,6 +1,6 @@
-import {vec3ToVector3} from "@/components/three/shape/vertexHelpers.ts";
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import {ConvexHull} from "three/examples/jsm/math/ConvexHull";
+import * as THREE from "three";
 
 // function sleep(ms: number) {
 //   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -15,7 +15,7 @@ export interface ConvexHullResult {
 // Worker code, runs the quick hull algorithm
 self.onmessage = async (event: MessageEvent<Vec3[]>) => {
   const vertices = event.data;
-  const vectors = vertices.map(vec3ToVector3)
+  const vectors = vertices.map(v => new THREE.Vector3(...v));
 
   if (vertices.length < 3) {
     // Special case for lines and points

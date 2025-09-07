@@ -10,7 +10,10 @@ export interface InstancedVertexSpheresProps {
 
   hoveredIds?: number[],
   selectedIds?: Set<number>,
-  renderOrder?: number
+  renderOrder?: number,
+
+  position?: Vec3,
+  hideSelection?: boolean
 }
 
 
@@ -73,6 +76,7 @@ function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
         ref={meshRef}
         args={[undefined, undefined, positions.length]}
         renderOrder={props.renderOrder}
+        position={props.position}
       >
         {/* Base sphere geometry */}
         <sphereGeometry args={[radius, 16, 8]} />
@@ -83,6 +87,7 @@ function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
         ref={selectedInnerMeshRef}
         args={[undefined, undefined, selectedIds.size]}
         renderOrder={props.renderOrder}
+        position={props.position}
       >
         <sphereGeometry args={[radius * 1.001, 16, 8]} />
         <meshBasicMaterial color="white" toneMapped={false}/>
@@ -91,6 +96,7 @@ function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
         ref={selectedOuterMeshRef}
         args={[undefined, undefined, hoveredMatrices.length]}
         renderOrder={props.renderOrder}
+        position={props.position}
       >
         <sphereGeometry args={[radius * 1.5, 16, 8]} />
         <meshBasicMaterial color="#00D3F2" side={BackSide} toneMapped={false}/>

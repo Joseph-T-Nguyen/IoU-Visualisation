@@ -1,7 +1,7 @@
-import {PivotControls} from "@react-three/drei";
+import {PivotControls, useCursor} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import * as THREE from "three";
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 
@@ -12,6 +12,9 @@ export default function VertexControls() {
   // Used to mess with the pivots in side effects
   const pivotRef = useRef<THREE.Group<THREE.Object3DEventMap>>(null);
 
+  const [mouseHovering, setMouseHovering] = useState<boolean>(false);
+  useCursor(mouseHovering, 'grab', 'auto', document.body);
+
   // put PivotControls on a separate layer
   useEffect(() => {
     if (pivotRef.current) {
@@ -19,7 +22,6 @@ export default function VertexControls() {
       pivotRef.current.layers.enable(1);
     }
   }, []);
-
 
   const selections = useShapesStore(s => s.selections);
   const shapes = useShapesStore(s => s.shapes);
@@ -37,16 +39,27 @@ export default function VertexControls() {
     return vertices.filter((_, i) => children.has(i));
   });
 
-  const selectedVertices = selectedVertexSets.flat();
+  const selectedVerticesRaw = selectedVertexSets.flat();
+  const selectedVertices = dimensions === "3d" ? selectedVerticesRaw :
+    selectedVerticesRaw.map(v => [v[0], v[1], 2]);
 
   const matrix = new THREE.Matrix4();
   if (selectedVertices.length > 0)
     matrix.makeTranslation(new THREE.Vector3(...selectedVertices[0]));
 
-
-  // <group onClick={(e) => e.stopPropagation()}>
-  // </group>
   return selectedVertexSets.length > 0 && (
+    <group
+      onClick={(e) => e.stopPropagation()}
+      onPointerEnter={(e) => {
+        setMouseHovering(true);
+        e.stopPropagation();
+      }}
+      onPointerOver={() => setMouseHovering(true)}
+      onPointerLeave={(e) => {
+        setMouseHovering(false);
+        e.stopPropagation();
+      }}
+    >
       <PivotControls
         ref={pivotRef}
         autoTransform={false}
@@ -56,14 +69,17 @@ export default function VertexControls() {
         activeAxes={[true, true, dimensions === "3d"]}
 
         onDragStart={() => {
+          document.body.style.cursor = "grabbing";
           previousMatrix.current.copy(matrix);
           beginInteraction();
         }}
         onDragEnd={() => {
+          if (document.body.style.cursor === "grabbing")
+            document.body.style.cursor = "auto";
           endInteraction();
-
         }}
         onDrag={(_, _2, w) => {
+          document.body.style.cursor = "grabbing";
           // Get difference between previous movement and current movement as delta
           previousMatrix.current.invert();
           const delta = new THREE.Matrix4();
@@ -75,11 +91,9 @@ export default function VertexControls() {
           previousMatrix.current.copy(w);
         }}
         depthTest={false}
-
       >
-        <mesh renderOrder={999} layers={1}/>
-
-
+        <mesh/>
       </PivotControls>
+    </group>
   );
 }

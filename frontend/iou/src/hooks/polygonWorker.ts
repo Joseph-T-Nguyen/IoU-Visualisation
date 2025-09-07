@@ -6,7 +6,8 @@ import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
  * @returns flattened array [x1, y1, z1, x2, y2, z2, ...] of all triangles, NOT a CCW winding order.
  */
 export function convexPolygonHull(vertices: Vec3[]): Vec3[] {
-  if (vertices.length <= 1) return vertices.flat();
+  if (vertices.length <= 1)
+    return vertices as Vec3[];
 
   // Sort by x, then y
   const points = [...vertices].sort((a, b) =>
