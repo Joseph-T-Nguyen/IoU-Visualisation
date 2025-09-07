@@ -3,7 +3,6 @@ import {Button} from "@/components/ui/button.tsx";
 import { LogOut } from "lucide-react"
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
-import {Grid} from "@react-three/drei";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
 import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
@@ -11,6 +10,7 @@ import WorkspaceTitle from "@/components/widgets/workspace/WorkspaceTitle.tsx";
 import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceActionListener.tsx";
 import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
+import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -56,19 +56,7 @@ export default function WorkspacePage() {
       className="w-screen h-screen overflow-clip bg-secondary"
       overlay={overlay}
     >
-
-      <Grid
-        infiniteGrid       // <- key flag
-        cellSize={1}
-        cellThickness={0.6}
-        sectionSize={10}
-        sectionThickness={1.0}
-        fadeDistance={50}
-        fadeStrength={1}
-        followCamera={false}
-        sectionColor={"#94a3b8"}
-        cellColor={"#94a3b8"}
-      ></Grid>
+      <WorkspaceGrid/>
 
       <WorkspaceCamera/>
       <VertexControls/>

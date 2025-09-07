@@ -7,7 +7,7 @@ export default function useShape(uuid: string) {
   const store: ShapeData = useShapesStore(s => s.shapes[uuid])!;
   const [dimensions, ] = useDimensions();
 
-  const vertices = useMemo(() => {
+  const vertices = useMemo<Vec3[]>(() => {
     // When in 2d, remove the z-axis
     if (dimensions === "2d")
       return store.vertices.map(v => [v[0], v[1], 0]);
