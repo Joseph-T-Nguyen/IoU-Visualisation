@@ -1,14 +1,13 @@
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import InstancedVertexSpheres from "@/components/three/shape/InstancedVertexSpheres.tsx";
-import {useEffect, useMemo, useRef, useState} from "react";
-// TODO: Figure out why this import statement isn't happy
-import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
+import {useRef, useState} from "react";
 import type {ThreeEvent} from "@react-three/fiber";
 import {Edges} from "@react-three/drei";
 import {findClosestVertexId} from "@/components/three/shape/vertexHelpers.ts";
 import useConvexHull from "@/hooks/useConvexHull.ts";
 import {type Mesh} from "three";
 import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
+import useDimensions from "@/hooks/workspace/useDimensions.ts";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
@@ -23,6 +22,8 @@ export interface ShapeRendererProps {
 export default function ShapeRenderer(props: ShapeRendererProps) {
   const vertexColor = props.vertexColor ?? "blue";
   const baseColor = props.baseColor ?? "#F1F5F9";
+
+  const [dimensions, ] = useDimensions();
 
   const geometry = useConvexHull(props.vertices);
   const meshRef = useRef<Mesh>(null);
@@ -74,7 +75,9 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         ref={meshRef}
       >
         <meshStandardMaterial color={baseColor} />
-        <Edges lineWidth={1} color={vertexColor} renderOrder={1} />
+        { dimensions === "3d" &&
+          <Edges lineWidth={1} color={vertexColor} renderOrder={1} />
+        }
       </mesh>
 
     </group>

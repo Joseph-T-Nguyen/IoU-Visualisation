@@ -1,25 +1,23 @@
-import {type BufferGeometry} from "three";
-import {ConvexGeometry} from "three/examples/jsm/geometries/ConvexGeometry";
 import {vec3ToVector3} from "@/components/three/shape/vertexHelpers.ts";
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import {ConvexHull} from "three/examples/jsm/math/ConvexHull";
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// function sleep(ms: number) {
+//   return new Promise((resolve) => setTimeout(resolve, ms));
+// }
 
 export interface ConvexHullResult {
   normals: number[],
   vertices: number[]
 }
 
-// Worker code
-self.onmessage = (event: MessageEvent<Vec3[]>) => {
+// Worker code, runs the quick hull algorithm
+self.onmessage = async (event: MessageEvent<Vec3[]>) => {
   const vertices = event.data;
-
   const vectors = vertices.map(vec3ToVector3)
 
   if (vertices.length < 3) {
+    // Special case for lines and points
     self.postMessage({
       vertices: [],
       normals: []
@@ -28,9 +26,11 @@ self.onmessage = (event: MessageEvent<Vec3[]>) => {
   }
   else if (vertices.length === 3) {
     // Special case for triangles
-    const norm = (vectors[1].sub(vectors[0])).cross(vectors[2].sub(vectors[0])).normalize();
+    // Get reverse vertices to draw a triangle on the other side of the shape
     const reversedVertices = [...vertices].reverse();
 
+    // Get the normal vector for the front face
+    const norm = (vectors[1].sub(vectors[0])).cross(vectors[2].sub(vectors[0])).normalize();
     const normals = vertices.map(() => [norm.x, norm.y, norm.z]).flat();
     const reversedNormals = vertices.map(() => [-norm.x, -norm.y, -norm.z]).flat();
 
@@ -64,6 +64,9 @@ self.onmessage = (event: MessageEvent<Vec3[]>) => {
 
     } while ( edge !== face.edge );
   }
+
+  // You can test simulated lag like this:
+  // await sleep(100);
 
   self.postMessage({
     vertices: outputVertices,

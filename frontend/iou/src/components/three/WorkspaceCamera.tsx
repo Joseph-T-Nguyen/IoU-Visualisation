@@ -1,28 +1,53 @@
 import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
-import {CameraControls, OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
+import {CameraControls, CameraControlsImpl, OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
+import useKeyPressed from "@/hooks/input/useKeyPressed.ts";
+import * as THREE from "three";
+import {useState} from "react";
+
+const { ACTION } = CameraControlsImpl;
+
 
 export default function WorkspaceCamera() {
   const [dimensions, ] = useDimensions();
   const cameraInteraction = useCameraInteraction();
+  const shiftPressed = useKeyPressed("Shift");
+
+  const [cam2dRef, setCam2dRef] = useState<THREE.OrthographicCamera | null>();
+  const [cam3dRef, setCam3dRef] = useState<THREE.PerspectiveCamera | null>();
 
   const camera3d = (<>
     <PerspectiveCamera
+      ref={setCam3dRef}
       makeDefault
       position={[0, 1.5, 5]}
     />
-    <CameraControls
-      enabled={cameraInteraction === undefined}
-    ></CameraControls>
   </>);
 
   const camera2d = (
     <OrthographicCamera
+      ref={setCam2dRef}
       makeDefault
       zoom={200}
       position={[0, 1.5, 100]}
     />
-  )
+  );
 
-  return dimensions === "2d" ? camera2d : camera3d;
+  const mouseControls = {
+    left: shiftPressed || dimensions === "2d" ? ACTION.TRUCK : ACTION.ROTATE,
+    middle: dimensions === "3d" ? ACTION.DOLLY : ACTION.NONE,
+    right: ACTION.TRUCK,
+    wheel: dimensions === "3d" ? ACTION.DOLLY : ACTION.ZOOM,
+  };
+
+  return (<>
+    {dimensions === "2d" ? camera2d : camera3d}
+    <CameraControls
+      enabled={cameraInteraction === undefined}
+      mouseButtons={mouseControls}
+      camera={(dimensions === "3d" ? cam3dRef : cam2dRef)!}
+
+
+    />
+  </>);
 }

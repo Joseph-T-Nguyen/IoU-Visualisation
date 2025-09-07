@@ -3,9 +3,11 @@ import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import * as THREE from "three";
 import {useRef} from "react";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
+import useDimensions from "@/hooks/workspace/useDimensions.ts";
 
 export default function VertexControls() {
   const { beginInteraction, endInteraction } = useSetCameraInteraction("vertex-controls");
+  const [dimensions, ] = useDimensions();
 
   const selections = useShapesStore(s => s.selections);
   const shapes = useShapesStore(s => s.shapes);
@@ -31,7 +33,12 @@ export default function VertexControls() {
 
   return selectedVertexSets.length > 0 && (
     <PivotControls
-      autoTransform={false} matrix={matrix} disableRotations disableScaling
+      autoTransform={false}
+      matrix={matrix}
+      disableRotations
+      disableScaling
+      activeAxes={[true, true, dimensions === "3d"]}
+
       onDragStart={() => {
         previousMatrix.current.copy(matrix);
         beginInteraction();
@@ -40,10 +47,13 @@ export default function VertexControls() {
         endInteraction();
       }}
       onDrag={(_, _2, w) => {
+        // Get difference between previous movement and current movement as delta
         previousMatrix.current.invert();
         const delta = new THREE.Matrix4();
         delta.copy(w);
         delta.multiply(previousMatrix.current)
+
+        // Move all selected vertices by delta
         matrixMultiplySelection(delta);
         previousMatrix.current.copy(w);
       }}
