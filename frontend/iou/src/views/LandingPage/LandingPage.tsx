@@ -6,7 +6,7 @@ import {TrackballControls} from "@react-three/drei";
 export default function LandingPage() {
 
   return (
-    <div className="py-0 flex p-0 min-h-screen w-full flex-col bg-secondary">
+    <div className="relative py-0 flex p-0 min-h-[100dv] overflow-hidden h-screen w-full flex-col bg-secondary">
       <div className="flex flex-row justify-center py-3">
         <h1 className="text-4xl font-light">IOU Calculator</h1>
       </div>

@@ -40,13 +40,19 @@ export default function WorkspaceCamera() {
     wheel: dimensions === "3d" ? ACTION.DOLLY : ACTION.ZOOM,
   };
 
+  const touchControls = {
+    one: shiftPressed || dimensions === "2d" ? ACTION.TOUCH_TRUCK : ACTION.TOUCH_ROTATE,
+    two: dimensions === "2d" ? ACTION.TOUCH_ZOOM_TRUCK : ACTION.TOUCH_DOLLY_TRUCK,
+    three: dimensions === "2d" ? ACTION.TOUCH_ZOOM_TRUCK : ACTION.TOUCH_DOLLY_TRUCK,
+  };
+
   return (<>
     {dimensions === "2d" ? camera2d : camera3d}
     <CameraControls
       enabled={cameraInteraction === undefined}
       mouseButtons={mouseControls}
       camera={(dimensions === "3d" ? cam3dRef : cam2dRef)!}
-
+      touches={touchControls}
 
     />
   </>);

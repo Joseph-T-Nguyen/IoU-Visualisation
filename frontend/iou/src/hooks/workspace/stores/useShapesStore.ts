@@ -4,6 +4,7 @@ import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/store
 import type {StateCreator} from "zustand/vanilla";
 import * as THREE from 'three';
 import monkey from "@/hooks/workspace/mokey.ts";
+import * as UUID from "uuid";
 
 export type Shapes = {[key: string]: ShapeData}
 export interface ShapesSlice {
@@ -95,7 +96,7 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     return ({
       shapes: {
         ...state.shapes,
-        [crypto.randomUUID().toString()]: {
+        [UUID.v4().toString()]: {
           name: `Shape ${count + 1}`,
           color: defaultColors[count % defaultColors.length],
           vertices: [

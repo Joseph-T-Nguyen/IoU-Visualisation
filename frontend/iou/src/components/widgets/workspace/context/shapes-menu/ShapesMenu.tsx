@@ -26,7 +26,7 @@ export default function ShapesMenu() {
         <Button
           onClick={addShape}
           size="sm"
-          className="cursor-pointer data-[disabled]:cursor-default"
+          className="cursor-pointer data-[disabled]:cursor-default pointer-events-auto"
         >
           <Plus/>
         </Button>

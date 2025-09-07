@@ -11,6 +11,7 @@ import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceAct
 import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
+import {useEffect} from "react";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -19,8 +20,8 @@ export default function WorkspacePage() {
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
-    <div className="flex flex-row justify-center w-full h-full py-3 p-3 gap-3">
-      <div className="flex-grow">
+    <div className="flex flex-col md:flex-row justify-center w-full h-full py-3 p-3 gap-3">
+      <div className="flex-grow overflow-clip">
         <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
           {/* Main view overlay */}
           <div>
@@ -50,10 +51,24 @@ export default function WorkspacePage() {
     </div>
   );
 
+  // Prevent scrolling on mobile devices
+  useEffect(() => {
+    const preventTouch = (e: TouchEvent) => {
+      e.preventDefault();
+    };
+
+    document.body.addEventListener('touchmove', preventTouch, { passive: false });
+
+    return () => {
+      document.body.removeEventListener('touchmove', preventTouch);
+    }
+  }, []);
+
   return (<>
     <WorkspaceActionListener />
     <FlexyCanvas
-      className="w-screen h-screen overflow-clip bg-secondary"
+      /* min-h-[100dv] works better on mobile devices that h-screen */
+      className="w-screen min-h-[100dvh] overflow-scroll overscroll-contain bg-secondary"
       overlay={overlay}
     >
       <WorkspaceGrid/>
