@@ -8,7 +8,8 @@ import {ConvexHull} from "three/examples/jsm/math/ConvexHull";
 
 export interface ConvexHullResult {
   normals: number[],
-  vertices: number[]
+  vertices: number[],
+  edges: [Vec3, Vec3][]
 }
 
 // Worker code, runs the quick hull algorithm
@@ -49,6 +50,8 @@ self.onmessage = async (event: MessageEvent<Vec3[]>) => {
   const outputVertices: number[] = [];
   const outputNormals: number[] = [];
 
+  const edgesSet = new Set<[Vec3, Vec3]>();
+
   for (let i = 0; i < faces.length; i ++ ) {
     const face = faces[ i ];
     let edge = face.edge;
@@ -62,6 +65,11 @@ self.onmessage = async (event: MessageEvent<Vec3[]>) => {
 
       edge = edge.next;
 
+      edgesSet.add([
+        [edge.prev.vertex.point.x, edge.prev.vertex.point.y, edge.prev.vertex.point.z],
+        [edge.vertex.point.x, edge.vertex.point.y, edge.vertex.point.z]
+      ])
+
     } while ( edge !== face.edge );
   }
 
@@ -71,5 +79,6 @@ self.onmessage = async (event: MessageEvent<Vec3[]>) => {
   self.postMessage({
     vertices: outputVertices,
     normals: outputNormals,
+    edges: [...edgesSet]
   });
 };

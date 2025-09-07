@@ -5,7 +5,7 @@ import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
  * @param vertices array of [x, y, 0] vertices
  * @returns flattened array [x1, y1, z1, x2, y2, z2, ...] of all triangles, NOT a CCW winding order.
  */
-export function convexPolygonHull(vertices: Vec3[]): number[] {
+export function convexPolygonHull(vertices: Vec3[]): Vec3[] {
   if (vertices.length <= 1) return vertices.flat();
 
   // Sort by x, then y
@@ -37,15 +37,18 @@ export function convexPolygonHull(vertices: Vec3[]): number[] {
   // Concatenate lower and upper, removing duplicate endpoints
   // array [[x1, y1, z1], [x2, y2, z2], ...] in CCW order. Not yet as faces
   const hull = lower.slice(0, -1).concat(upper.slice(0, -1));
+  return hull;
+}
 
+const ccwToFaces = (ccw: Vec3[]) => {
   // Special case for triangle. The CCW winding order happens to already be a triangle.
-  if (hull.length <= 3)
-    return hull.flat();
+  if (ccw.length <= 3)
+    return ccw.flat();
 
   // Manually construct individual triangles from the winding
   return [
-    ...hull.slice(0, 3).flat(),
-    ...hull.slice(3).flatMap((v, i) => [...hull[0], ...hull[i+2], ...v]),
+    ...ccw.slice(0, 3).flat(),
+    ...ccw.slice(3).flatMap((v, i) => [...ccw[0], ...ccw[i+2], ...v]),
   ];
 }
 
@@ -54,9 +57,11 @@ self.onmessage = async (event: MessageEvent<Vec3[]>) => {
   const vertices = event.data;
 
   const hull = convexPolygonHull(vertices);
+  const faces = ccwToFaces(hull);
 
   self.postMessage({
-    vertices: hull,
-    normals: Array(hull.length / 3).fill([0,0,1]).flat(),
+    vertices: faces,
+    normals: Array(hull.length).fill([0,0,1]).flat(),
+    edges: [...hull.slice(1).map((v, i) => [hull[i], v]), [hull[hull.length-1], hull[0]]],
   });
 };

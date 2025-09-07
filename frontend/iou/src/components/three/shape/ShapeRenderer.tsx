@@ -2,12 +2,13 @@ import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import InstancedVertexSpheres from "@/components/three/shape/InstancedVertexSpheres.tsx";
 import {useRef, useState} from "react";
 import type {ThreeEvent} from "@react-three/fiber";
-import {Edges, Outlines, useCursor} from "@react-three/drei";
+import {Edges, Instance, Instances, Outlines, Points, Segment, Segments, useCursor} from "@react-three/drei";
 import {findClosestVertexId, vec3ToVector3} from "@/components/three/shape/vertexHelpers.ts";
 import useConvexHull from "@/hooks/useConvexHull.ts";
 import {type Mesh} from "three";
 import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
+import EdgesRenderer from "@/components/three/shape/EdgesRenderer.tsx";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
@@ -27,7 +28,11 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
 
   const [dimensions, ] = useDimensions();
 
-  const geometry = useConvexHull(props.vertices);
+  const [edges, setEdges] = useState<[Vec3, Vec3][]>([]);
+
+  const geometry = useConvexHull(props.vertices, (e) => {
+    if (e) setEdges(e);
+  });
   const meshRef = useRef<Mesh>(null);
 
   const allowHovering = useCameraInteraction() === undefined;
@@ -99,14 +104,19 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         geometry={geometry}
         ref={meshRef}
       >
-        <meshStandardMaterial color={baseColor} flatShading/>
-        { dimensions === "3d" &&
-          <Edges lineWidth={1} color={vertexColor} renderOrder={1} />
-        }
+        { dimensions === "2d" ? (
+          <meshBasicMaterial color={baseColor} flatShading toneMapped={false}/>
+        ) : (
+          <meshStandardMaterial color={baseColor} flatShading toneMapped={false}/>
+        )}
+
+
         { (shapeIsHovered || props.wholeShapeSelected) &&
-            <Outlines thickness={0.0625/2} color="#00D3F2" screenspace={true} angle={Math.PI/1.5} toneMapped={false}/>
+          <Outlines thickness={0.0625*1.5} color="#00D3F2" screenspace={true} angle={Math.PI/1} toneMapped={false}/>
         }
       </mesh>
+
+      <EdgesRenderer edges={edges} color={vertexColor}></EdgesRenderer>
 
     </group>
   );

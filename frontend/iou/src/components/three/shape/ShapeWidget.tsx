@@ -16,6 +16,7 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
     Color(color).lighten(0.4).hex()
   ), [color])
 
+
   const { beginInteraction, endInteraction } = useSetCameraInteraction(props.uuid);
   const select = useSelect();
   const selection = useSelection(props.uuid);
