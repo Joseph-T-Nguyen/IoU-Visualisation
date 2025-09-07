@@ -10,6 +10,7 @@ import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
 import WorkspaceTitle from "@/components/widgets/workspace/WorkspaceTitle.tsx";
 import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceActionListener.tsx";
 import VertexControls from "@/components/three/VertexControls.tsx";
+import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -69,6 +70,7 @@ export default function WorkspacePage() {
         cellColor={"#94a3b8"}
       ></Grid>
 
+      <WorkspaceCamera/>
       <VertexControls/>
 
       {/* Add 3D content here: */}
