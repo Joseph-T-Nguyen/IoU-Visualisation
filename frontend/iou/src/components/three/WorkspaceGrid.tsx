@@ -12,7 +12,7 @@ export default function WorkspaceGrid() {
       cellSize={1}
       cellThickness={dimensions === "2d" ? 1 : 0.6}
       sectionSize={10}
-      sectionThickness={1.0}
+      sectionThickness={dimensions === "2d" ? 1.66666667 : 1}
       fadeDistance={50}
       fadeStrength={1}
       followCamera={false}
