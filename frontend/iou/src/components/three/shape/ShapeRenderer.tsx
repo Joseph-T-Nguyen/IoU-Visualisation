@@ -55,15 +55,16 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uSecondaryColor;
 
   void main() {
+    float extrapolation = 1.2;
     vec3 cameraVector = -normalize(vWorldPos - cameraPosition);
     
     float light = abs(dot(cameraVector, vNormal));
     
-    vec3 color = (uColor * vec3(light)) + (uSecondaryColor * vec3(1.0 - light));
+    float extrapolatedLight = extrapolation * light;
+    vec3 color = (uColor * vec3(extrapolatedLight)) + (uSecondaryColor * vec3(1.0 - extrapolatedLight));
     
     float fresnel = pow(1.0 - light, 5.0);
     vec3 fresnelledColor = (vec3(fresnel)) + (color * vec3(1.0 - fresnel));
-    
     
     gl_FragColor = vec4(fresnelledColor, 1.0);
   }
@@ -81,7 +82,6 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
 
   const [dimensions, ] = useDimensions();
   const [edges, setEdges] = useState<[Vec3, Vec3][]>([]);
-
 
   const geometry = useConvexHull(props.vertices, (edges) => {
     if (edges)
