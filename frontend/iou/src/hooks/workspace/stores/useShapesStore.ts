@@ -19,16 +19,8 @@ export interface ShapesSlice {
   matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
 }
 
-
 // We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
 export type ShapesStore = SelectionSlice & ShapesSlice;
-
-
-function circularDisplacement(start: number, end: number) {
-  const naiveDiff = end - start;
-  const sign = naiveDiff < 0 ? -1 : 1;
-  const diff = (sign * naiveDiff) % 360;
-}
 
 const defaultColors = [
   "#ef4444",

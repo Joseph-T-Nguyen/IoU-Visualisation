@@ -19,8 +19,8 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
   const secondaryBaseColor = useMemo<string>(() => {
     const col = Color(baseColor);
     const h = col.hue();
-    const step = 8; //< How much to rotate the secondary hue towards 230degrees by
-    return col.saturate(0.025).darken(0.25).rotate(h < 50 ? -step : h > 230 ? -step : step).hex()
+    const step = 10; //< How much to rotate the secondary hue towards 230degrees by
+    return col.saturate(0.025).darken(0.20).rotate(h < 50 ? -step : h > 230 ? -step : step).hex()
   }, [baseColor])
 
   const { beginInteraction, endInteraction } = useSetCameraInteraction(props.uuid);
