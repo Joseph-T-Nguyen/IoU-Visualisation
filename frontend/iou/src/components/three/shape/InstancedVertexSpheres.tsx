@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef} from 'react';
+import {memo, useEffect, useMemo, useRef} from 'react';
 import { InstancedMesh, Matrix4, BackSide } from 'three';
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 
@@ -9,18 +9,26 @@ export interface InstancedVertexSpheresProps {
   color?: string
 
   hoveredIds?: number[],
+  selectedIds?: Set<number>,
+  renderOrder?: number,
+
+  position?: Vec3,
+  hideSelection?: boolean
 }
 
-export default function InstancedVertexSpheres(props: InstancedVertexSpheresProps) {
+
+function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
   const meshRef = useRef<InstancedMesh>(null);
-  const hoveredOuterMeshRef = useRef<InstancedMesh>(null);
-  const hoveredInnerMeshRef = useRef<InstancedMesh>(null);
+  const selectedOuterMeshRef = useRef<InstancedMesh>(null);
+  const selectedInnerMeshRef = useRef<InstancedMesh>(null);
 
   const positions = props.vertices;
   const radius = props.radius ?? 0.0625;
   const color = props.color ?? "white";
 
-  const hoveredIds = props.hoveredIds ?? [];
+  const hoveredIds = useMemo(() => props.hoveredIds ?? [], [props.hoveredIds]);
+  const selectedIds = useMemo(() => props.selectedIds ?? new Set<number>(), [props.selectedIds]);
+  const selectedIdsArray = useMemo(() => [...selectedIds, ...hoveredIds], [selectedIds, hoveredIds]);
 
   // Precompute instance matrices
   const matrices = useMemo(() => {
@@ -29,60 +37,73 @@ export default function InstancedVertexSpheres(props: InstancedVertexSpheresProp
       m.setPosition(x, y, z);
       return m;
     });
-  }, [positions, meshRef.current]);
+  }, [positions]);
 
   const hoveredMatrices = useMemo(() => {
-    return hoveredIds.map((id: number) => matrices[id])
-  }, [matrices, hoveredIds]);
+    return selectedIdsArray.map((id: number) => matrices[id])
+  }, [matrices, selectedIdsArray]);
 
   // Update instance matrices once
   useEffect(() => {
     if (!meshRef.current) return;
     matrices.forEach((matrix, i) => {
-      if (!hoveredIds.includes(i))
+      if (!selectedIds.has(i))
         meshRef.current!.setMatrixAt(i, matrix);
       else
         meshRef.current!.setMatrixAt(i, new Matrix4(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0));
     });
     meshRef.current.instanceMatrix.needsUpdate = true;
-  }, [matrices, hoveredIds]);
+  }, [matrices, hoveredIds, selectedIds]);
 
   useEffect(() => {
-    if (!hoveredInnerMeshRef.current || !hoveredOuterMeshRef.current)
+    if (!selectedInnerMeshRef.current || !selectedOuterMeshRef.current)
       return;
-    hoveredMatrices.forEach((matrix, i) => {
-      hoveredInnerMeshRef.current!.setMatrixAt(i, matrix);
-      hoveredOuterMeshRef.current!.setMatrixAt(i, matrix);
+    selectedIdsArray.forEach((i, j) => {
+      if (i >= matrices.length)
+        return;
+
+      if (j < selectedIds.size)
+        selectedInnerMeshRef.current!.setMatrixAt(j, matrices[i]);
+      selectedOuterMeshRef.current!.setMatrixAt(j, matrices[i]);
     });
-    hoveredInnerMeshRef.current.instanceMatrix.needsUpdate = true;
-    hoveredOuterMeshRef.current.instanceMatrix.needsUpdate = true;
-  }, [hoveredMatrices]);
+    selectedInnerMeshRef.current.instanceMatrix.needsUpdate = true;
+    selectedOuterMeshRef.current.instanceMatrix.needsUpdate = true;
+  }, [hoveredMatrices, matrices, selectedIds.size, selectedIdsArray]);
 
   return (
     <>
       <instancedMesh
         ref={meshRef}
         args={[undefined, undefined, positions.length]}
+        renderOrder={props.renderOrder}
+        position={props.position}
       >
         {/* Base sphere geometry */}
-        <sphereGeometry args={[radius, 8, 8]} />
+        <sphereGeometry args={[radius, 16, 8]} />
         <meshBasicMaterial color={color} toneMapped={false}/>
       </instancedMesh>
 
       <instancedMesh
-        ref={hoveredInnerMeshRef}
-        args={[undefined, undefined, hoveredMatrices.length]}
+        ref={selectedInnerMeshRef}
+        args={[undefined, undefined, selectedIds.size]}
+        renderOrder={props.renderOrder}
+        position={props.position}
       >
-        <sphereGeometry args={[radius, 8, 8]} />
+        <sphereGeometry args={[radius * 1.001, 16, 8]} />
         <meshBasicMaterial color="white" toneMapped={false}/>
       </instancedMesh>
       <instancedMesh
-        ref={hoveredOuterMeshRef}
+        ref={selectedOuterMeshRef}
         args={[undefined, undefined, hoveredMatrices.length]}
+        renderOrder={props.renderOrder}
+        position={props.position}
       >
-        <sphereGeometry args={[radius * 1.5, 8, 8]} />
+        <sphereGeometry args={[radius * 1.5, 16, 8]} />
         <meshBasicMaterial color="#00D3F2" side={BackSide} toneMapped={false}/>
       </instancedMesh>
     </>
   );
 }
+
+const InstancedVertexShperes = memo(InstancedVertexSpheresUnmemoed);
+export default InstancedVertexShperes;

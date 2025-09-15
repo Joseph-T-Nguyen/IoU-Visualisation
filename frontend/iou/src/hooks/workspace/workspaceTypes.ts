@@ -11,12 +11,14 @@ export interface WorkspaceMetadata {
 
 // The data type held for each shape in the workspace store
 export interface ShapeData {
-  vertices: number[][];
-  faces: number[][];
+  vertices: Vec3[],
+  faces: [number, number, number][],
+
+  name: string,
+  color: string,
+
 
   // Extra data for managing workers calculating faces using the convex hull algorithm
-  isPending: boolean;
-  currentJobId?: number;
+  // isPending: boolean;
+  // currentJobId?: number;
 }
-
-
