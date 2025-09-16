@@ -1,15 +1,22 @@
 import {BrowserRouter, Routes, Route} from "react-router";
 import LandingPage from "@/views/LandingPage/LandingPage.tsx"
 import WorkspacesPage from "@/views/WorkspacesPage/WorkspacesPage.tsx"
+import CreateNewWorkspaMcePage from "@/views/CreateNewWorkspacePage/CreateNewWorkspacePage";
+import SignUpPage from "@/views/SignUpPage/SignUpPage";
+import LoginPage from "@/views/LoginPage/LoginPage";
 import WorkspacePage from "@/views/WorkspacePage/WorkspacePage.tsx";
+
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/workspaces" element={<WorkspacesPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/workspace" element={<WorkspacePage />} />
+        <Route path="/workspaces" element={<WorkspacesPage />} />
+        <Route path="/workspaces/new" element={<CreateNewWorkspacePage />} />
       </Routes>
     </BrowserRouter>
   );

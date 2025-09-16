@@ -1,26 +1,38 @@
 import FlexyCanvas from "@/components/shared/FlexyCanvas.tsx";
-import ShapeRenderer from "@/components/three/shape/ShapeRenderer.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import { LogOut } from "lucide-react"
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
-import {OrthographicCamera, PerspectiveCamera} from "@react-three/drei";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
-import useWorkspaceStore from "@/hooks/workspace/useWorkspaceStore.ts";
+import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
+import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
+import WorkspaceTitle from "@/components/widgets/workspace/WorkspaceTitle.tsx";
+import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceActionListener.tsx";
+import VertexControls from "@/components/three/VertexControls.tsx";
+import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
+import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
+import {useEffect} from "react";
+import {AdaptiveEvents, Bvh} from "@react-three/drei";
+import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 
 export default function WorkspacePage() {
-  const { displayName: workspaceName } = useWorkspaceStore();
   const [dimensions, setDimensions] = useDimensions();
+
+  const shapeUUIDs = useShapeUUIDs();
+
+  const deselect = useShapesStore(s => s.deselect);
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
-    <div className="flex flex-row justify-center w-full h-full py-3 p-3 gap-3">
-      <div className="flex-grow">
+    <div className="flex flex-col md:flex-row justify-center w-full h-full py-3 p-3 gap-3 overscroll-contain overflow-clip">
+      <div className="flex-grow overflow-visible">
         <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
           {/* Main view overlay */}
           <div>
-            <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg">
-              <LogOut className="transform scale-x-[-1] " />
+            <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg" asChild>
+              <a href="../">
+                <LogOut className="transform scale-x-[-1] " />
+              </a>
             </Button>
           </div>
           <div>
@@ -34,45 +46,70 @@ export default function WorkspacePage() {
               {dimensions?.toUpperCase() ?? "ERR"}
             </Button>
           </div>
-          <div className="flex flex-col justify-center ">
-            <span className="font-semibold text-lg">
-              {workspaceName}
-            </span>
+          <div className="flex flex-col justify-center items-center">
+            <WorkspaceTitle/>
           </div>
         </div>
       </div>
-      <ContextSidebar className="min-w-64"/>
+      <ContextSidebar className="min-w-64 overflow-y-scroll"/>
     </div>
   );
 
-  return (
-    <FlexyCanvas
-      className="w-screen h-screen overflow-clip"
-      overlay={overlay}
-      underlay={(
-        <div className="bg-secondary w-full h-full"/>
-      )}
-    >
-      {dimensions === "2d" ? (
-        <OrthographicCamera
-          makeDefault
-          zoom={200}
-          position={[0, 1.5, 100]}
-        />
-      ) : (
-        <PerspectiveCamera
-          makeDefault
-          position={[0, 1.5, 5]}
-        />
-      )}
+  // Prevent scrolling on mobile devices
+  useEffect(() => {
+    const preventTouch = (e: TouchEvent) => {
+      e.preventDefault();
+    };
 
-      {/* Add 3D content here: */}
-      <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]} baseColor="#fca5a5" vertexColor="#ef4444"/>
+    document.body.addEventListener('touchmove', preventTouch, { passive: false });
+
+    return () => {
+      document.body.removeEventListener('touchmove', preventTouch);
+    }
+  }, []);
+
+  return (<>
+    <WorkspaceActionListener />
+    <FlexyCanvas
+      /* min-h-[100dv] works better on mobile devices that h-screen */
+      className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
+      overlay={overlay}
+      onPointerMissed={() => {
+        deselect();
+      }}
+      onCreated={({ raycaster, camera }) => {
+        // Only see layers 0 and 1
+        raycaster.layers.set(0)
+        raycaster.layers.enable(1)
+        camera.layers.set(0)
+        camera.layers.enable(0)
+        camera.layers.enable(1)
+      }}
+
+    >
+      <WorkspaceGrid/>
+      <AdaptiveEvents />
+
+
+      <WorkspaceCamera/>
+
+      <Bvh firstHitOnly>
+
+        <VertexControls/>
+
+        {/* Add 3D content here: */}
+
+        {/* Add every shape to the scene: */}
+        {shapeUUIDs.map((uuid: string) => (
+          <ShapeWidget uuid={uuid} key={uuid}/>
+        ))}
+      </Bvh>
 
       <ambientLight intensity={0.25} color="#F1F5F9"/>
-      <directionalLight position={[0, 0, 5]} intensity={2} color="white" />
+      <directionalLight position={[1, 5, 2]} intensity={2} rotation={[45, 10, 0]} color="white" />
+
     </FlexyCanvas>
-  );
+  </>);
 }
 
 
