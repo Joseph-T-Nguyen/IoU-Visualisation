@@ -8,6 +8,7 @@ export interface EdgesRendererProps {
   edges: [Vec3, Vec3][],
   color?: string,
   radius?: number,
+  depthTest?: boolean,
 }
 
 export default function EdgesRenderer(props: EdgesRendererProps) {
@@ -49,7 +50,7 @@ export default function EdgesRenderer(props: EdgesRendererProps) {
     >
       {/*<sphereGeometry args={[0.1, 16, 8]} />*/}
       <cylinderGeometry args={[radius, radius, 1, 4]} />
-      <meshBasicMaterial color={props.color} toneMapped={false}/>
+      <meshBasicMaterial color={props.color} toneMapped={false} depthTest={props.depthTest}/>
     </instancedMesh>
   </>)
 

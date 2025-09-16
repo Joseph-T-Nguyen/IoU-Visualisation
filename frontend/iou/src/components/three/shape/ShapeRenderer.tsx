@@ -25,6 +25,9 @@ export interface ShapeRendererProps {
   selectedIds?: Set<number>,
   wholeShapeSelected?: boolean,
   maxVertexSelectionDistance?: number,
+
+  depthTest?: boolean,
+  renderOrder?: number,
 }
 
 const vertexShader = /* glsl */ `
@@ -165,6 +168,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
       onClick={onClick}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
+      renderOrder={props.renderOrder}
     >
       <InstancedVertexSpheres
         vertices={props.vertices}
@@ -173,6 +177,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         selectedIds={props.selectedIds ?? new Set<number>()}
 
         position={dimensions === "2d" ? [0, 0, 1] : [0, 0, 0]}
+        depthTest={props.depthTest ?? true}
       />
       <mesh
         geometry={props.geometry}
@@ -180,16 +185,21 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         // When in 2d, push the polygon away from the edges, to help with z fighting
         position={dimensions === "2d" ? [0, 0, -1] : [0, 0, 0]}
 
+        // This allows us to render the intersection in front of everything else
+        onBeforeRender={(props.renderOrder ?? 0) <= 0 ? undefined : (renderer) => {
+          renderer.clearDepth();
+        }}
       >
         { dimensions === "2d" ? (
-          <meshBasicMaterial color={baseColor} toneMapped={false}/>
+          <meshBasicMaterial color={baseColor} toneMapped={false} depthTest={props.depthTest} />
         ) : (
           <shaderMaterial
             ref={materialRef}
             vertexShader={vertexShader}
             fragmentShader={fragmentShader}
             uniforms={uniformsRef.current as unknown as {[key: string]: IUniform}}
-            // toneMapped={false}
+            depthTest={props.depthTest}
+            toneMapped={false}
           />
         )}
         {/*{ (shapeIsHovered || props.wholeShapeSelected) &&*/}
@@ -197,7 +207,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         {/*}*/}
       </mesh>
 
-      <EdgesRenderer edges={props.edges} color={edgeColor}></EdgesRenderer>
+      <EdgesRenderer edges={props.edges} color={edgeColor} depthTest={props.depthTest}></EdgesRenderer>
 
     </group>
   );

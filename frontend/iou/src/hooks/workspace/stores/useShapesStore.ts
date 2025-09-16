@@ -22,7 +22,7 @@ export interface ShapesSlice {
 // We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
 export type ShapesStore = SelectionSlice & ShapesSlice;
 
-const defaultColors = [
+export const defaultColors = [
   "#ef4444",
   "#10b981",
   "#0ea5e9",

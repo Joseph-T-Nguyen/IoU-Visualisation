@@ -14,6 +14,7 @@ import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import {useEffect} from "react";
 import {AdaptiveEvents, Bvh} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -90,7 +91,6 @@ export default function WorkspacePage() {
       <WorkspaceGrid/>
       <AdaptiveEvents />
 
-
       <WorkspaceCamera/>
 
       <Bvh firstHitOnly>
@@ -99,6 +99,7 @@ export default function WorkspacePage() {
 
         {/* Add 3D content here: */}
 
+        <IntersectionRenderer/>
         {/* Add every shape to the scene: */}
         {shapeUUIDs.map((uuid: string) => (
           <ShapeWidget uuid={uuid} key={uuid}/>
