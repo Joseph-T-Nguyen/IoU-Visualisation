@@ -38,34 +38,54 @@ const calculateNewIntersectionGeometry = (geometries: ShapeGeometries) => {
 /**
  * This is another store, separate to the shapes store, to just store the ThreeJS convex hulls. We need to access them
  * from multiple places to do intersections.
+ *
+ * Note: if you add anything to this slice, any time you call set, a new intersection geometry will be calculated as a
+ * side effect. If you want to add data to this, but changes to that data shouldn't change the result of the
+ * intersection calculation, you should probably make a new slice to contain that data
  */
-export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], ShapeGeometrySlice> = ((set) => ({
-  meshes: {
-    // No meshes to begin with!
-  },
-  intersection: undefined,
+export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], ShapeGeometrySlice> = (setRaw, get) => {
+  // This a function body, not a returned object! We set up some useful helper functions here
 
-  setGeometry: (shapeId: string, geometry: THREE.BufferGeometry) => set((state: ShapeGeometrySlice) => {
-    const newMeshes = {
-      ...state.meshes,
-      [shapeId]: geometry,
-    };
+  // We modify the 'set' function to have the side effect of calculating intersection geometry in a web worker
+  const set = (partial: Partial<ShapeGeometrySlice> | ((state: ShapeGeometrySlice) => Partial<ShapeGeometrySlice>)) => {
+    setRaw(partial);
 
-    return ({
-      meshes: newMeshes,
-      intersection: calculateNewIntersectionGeometry(newMeshes),
-    });
-  }),
+    // Manually get the current state of the store to work with
+    const state = get();
 
-  deleteGeometry: (shapeId: string) => set((state: ShapeGeometrySlice) => {
-    const {[shapeId]: _, ...newMeshes} = state.meshes;
+    // TODO: Do this in a web worker somehow
+    const intersectionGeometry = calculateNewIntersectionGeometry(state.meshes);
+    setRaw(() => ({
+      intersection: intersectionGeometry,
+    }));
+  };
 
-    return ({
-      meshes: newMeshes,
-      intersection: calculateNewIntersectionGeometry(newMeshes),
-    });
-  }),
-}));
+  // This is the actual initial store definition:
+  return ({
+    meshes: {
+      // No meshes to begin with!
+    },
+    intersection: undefined,
+
+    setGeometry: (shapeId: string, geometry: THREE.BufferGeometry) => set((state: ShapeGeometrySlice) => {
+      return {
+        meshes: {
+          ...state.meshes,
+          [shapeId]: geometry,
+        }
+      };
+    }),
+
+    deleteGeometry: (shapeId: string) => set((state: ShapeGeometrySlice) => {
+      const {[shapeId]: _, ...newMeshes} = state.meshes;
+
+      return ({
+        meshes: newMeshes,
+        intersection: calculateNewIntersectionGeometry(newMeshes),
+      });
+    }),
+  });
+};
 
 /**
  * This is another store, separate to the shapes store, to just store the ThreeJS convex hulls. We need to access them
