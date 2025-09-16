@@ -29,6 +29,7 @@ apiRouter.use(Paths.Users.Base, userRouter);
 // Workspaces
 const workspacesRouter = Router();
 workspacesRouter.get(Paths.Workspaces.List, WorkspaceRoutes.list);
+workspacesRouter.get(Paths.Workspaces.GetById, WorkspaceRoutes.getById);
 apiRouter.use(Paths.Workspaces.Base, workspacesRouter);
 
 

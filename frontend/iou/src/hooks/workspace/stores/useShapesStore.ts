@@ -9,6 +9,7 @@ import * as UUID from "uuid";
 export type Shapes = {[key: string]: ShapeData}
 export interface ShapesSlice {
   shapes: Shapes;
+  setAllShapes: (shapes: Shapes) => void;
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
   setShapeName: (id: string, name: string) => void;
@@ -85,6 +86,10 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     //   color: "#ef4444",
     // }
   },
+
+  setAllShapes: (shapes: Shapes) => set(() => ({
+    shapes,
+  })),
 
   // TODO: Calculate shape face data using the convex hull algorithm
   setVertices: applyReducerAux(set, fixPartialShapesReducer(setVerticesAux)),

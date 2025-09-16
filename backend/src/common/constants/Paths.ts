@@ -7,6 +7,7 @@ export default {
   Workspaces: {
     Base: '/workspaces',
     List: '/',
+    GetById: '/:id',
   },
   Users: {
     Base: '/users',
