@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import Paths from '@src/common/constants/Paths';
 import UserRoutes from './UserRoutes';
+import WorkspaceRoutes from './workspaces';
 
 
 /******************************************************************************
@@ -24,6 +25,11 @@ userRouter.delete(Paths.Users.Delete, UserRoutes.delete);
 
 // Add UserRouter
 apiRouter.use(Paths.Users.Base, userRouter);
+
+// Workspaces
+const workspacesRouter = Router();
+workspacesRouter.get(Paths.Workspaces.List, WorkspaceRoutes.list);
+apiRouter.use(Paths.Workspaces.Base, workspacesRouter);
 
 
 /******************************************************************************

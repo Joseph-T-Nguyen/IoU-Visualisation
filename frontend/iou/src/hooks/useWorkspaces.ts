@@ -19,33 +19,21 @@ export function useWorkspaces() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call - replace this with your actual data fetching
     const fetchWorkspaces = async () => {
-      setLoading(true);
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock data - you can change this number to test different scenarios
-      const mockWorkspaces: Workspace[] = [
-        { id: '1', name: "Workspace 1", lastEdited: "Edited 8/5/2025", previewImage: "green", versions: [] },
-        { id: '2', name: "Workspace 2", lastEdited: "Edited 8/5/2025", previewImage: "red", versions: [] },
-        { id: '3', name: "Workspace 3", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '4', name: "Workspace 4", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '5', name: "Workspace 5", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '6', name: "Workspace 6", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '7', name: "Workspace 7", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '8', name: "Workspace 8", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '9', name: "Workspace 9", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '10', name: "Workspace 10", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '11', name: "Workspace 11", lastEdited: "Edited 8/5/2025", versions: [] },
-        { id: '12', name: "Workspace 12", lastEdited: "Edited 8/5/2025", versions: [] },
-      ];
-      
-      setWorkspaces(mockWorkspaces);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const res = await fetch(`${apiUrl}/api/workspaces`);
+        const json = await res.json();
+        const ws: Workspace[] = json.workspaces || [];
+        setWorkspaces(ws);
+      } catch (err) {
+        console.error('Failed to fetch workspaces', err);
+        setWorkspaces([]);
+      } finally {
+        setLoading(false);
+      }
     };
-
     fetchWorkspaces();
   }, []);
 

@@ -2,6 +2,7 @@ import morgan from 'morgan';
 import path from 'path';
 import helmet from 'helmet';
 import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 import logger from 'jet-logger';
 
 import BaseRouter from '@src/routes';
@@ -25,6 +26,12 @@ const app = express();
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+// CORS for frontend dev server
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true,
+}));
 
 // Show routes called in console during development
 if (ENV.NodeEnv === NodeEnvs.Dev) {
