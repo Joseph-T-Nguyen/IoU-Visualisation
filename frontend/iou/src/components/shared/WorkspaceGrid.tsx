@@ -13,7 +13,6 @@ interface WorkspaceGridProps {
   maxVisibleCards?: number;
   onRenameWorkspace?: (id: string, currentName: string) => void;
   onDeleteWorkspace?: (id: string, name: string) => void;
-  onVersionHistory?: (id: string, name: string) => void;
   onShareWorkspace?: (id: string, name: string) => void;
   onDuplicateWorkspace?: (id: string) => void;
 }
@@ -23,7 +22,6 @@ export default function WorkspaceGrid({
   maxVisibleCards = 8,
   onRenameWorkspace,
   onDeleteWorkspace,
-  onVersionHistory,
   onShareWorkspace,
   onDuplicateWorkspace,
 }: WorkspaceGridProps) {
@@ -55,9 +53,6 @@ export default function WorkspaceGrid({
                 onDelete={() =>
                   onDeleteWorkspace?.(workspace.id, workspace.name)
                 }
-                onVersionHistory={() =>
-                  onVersionHistory?.(workspace.id, workspace.name)
-                }
                 onShare={() => onShareWorkspace?.(workspace.id, workspace.name)}
                 onDuplicate={() => onDuplicateWorkspace?.(workspace.id)}
               />
@@ -78,9 +73,6 @@ export default function WorkspaceGrid({
               }
               onRename={() => onRenameWorkspace?.(workspace.id, workspace.name)}
               onDelete={() => onDeleteWorkspace?.(workspace.id, workspace.name)}
-              onVersionHistory={() =>
-                onVersionHistory?.(workspace.id, workspace.name)
-              }
               onShare={() => onShareWorkspace?.(workspace.id, workspace.name)}
               onDuplicate={() => onDuplicateWorkspace?.(workspace.id)}
             />
