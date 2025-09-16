@@ -4,7 +4,6 @@ import {useEffect, useRef, useState} from "react";
 import {type ThreeEvent} from "@react-three/fiber";
 import {useCursor} from "@react-three/drei";
 import {findClosestVertexId, vec3ToVector3} from "@/components/three/shape/vertexHelpers.ts";
-import useConvexHull from "@/hooks/useConvexHull.ts";
 import {type IUniform, type Mesh} from "three";
 import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
@@ -14,6 +13,9 @@ import Color from "color";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
+  geometry: THREE.BufferGeometry,
+  edges: [Vec3, Vec3][],
+
   vertexColor?: string,
   baseColor?: string,
   secondaryBaseColor?: string,
@@ -81,12 +83,6 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   const secondaryBaseColor = props.secondaryBaseColor ?? "blue";
 
   const [dimensions, ] = useDimensions();
-  const [edges, setEdges] = useState<[Vec3, Vec3][]>([]);
-
-  const geometry = useConvexHull(props.vertices, (edges) => {
-    if (edges)
-      setEdges(edges);
-  });
   const meshRef = useRef<Mesh>(null);
 
   const allowHovering = useCameraInteraction() === undefined;
@@ -179,7 +175,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         position={dimensions === "2d" ? [0, 0, 1] : [0, 0, 0]}
       />
       <mesh
-        geometry={geometry}
+        geometry={props.geometry}
         ref={meshRef}
         // When in 2d, push the polygon away from the edges, to help with z fighting
         position={dimensions === "2d" ? [0, 0, -1] : [0, 0, 0]}
@@ -201,7 +197,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         {/*}*/}
       </mesh>
 
-      <EdgesRenderer edges={edges} color={edgeColor}></EdgesRenderer>
+      <EdgesRenderer edges={props.edges} color={edgeColor}></EdgesRenderer>
 
     </group>
   );

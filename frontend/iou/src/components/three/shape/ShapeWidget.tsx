@@ -5,11 +5,11 @@ import {useMemo} from "react";
 import useSelect from "@/hooks/workspace/useSelect.ts";
 import useSelection from "@/hooks/workspace/useSelection.ts";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
+import useShapeGeometry from "@/hooks/workspace/useShapeGeometry.ts";
 
 export interface ShapeWidgetProps {
   uuid: string
 }
-
 
 export default function ShapeWidget(props: ShapeWidgetProps) {
   const { vertices, color, name } = useShape(props.uuid);
@@ -27,9 +27,14 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
   const select = useSelect();
   const selection = useSelection(props.uuid);
 
+  const [geometry, edges] = useShapeGeometry(props.uuid, vertices);
+
   return (
     <ShapeRenderer
       vertices={vertices}
+      edges={edges}
+      geometry={geometry}
+
       baseColor={baseColor}
       vertexColor={color}
       onPress={(vertexId?: number) => {
