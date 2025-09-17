@@ -4,6 +4,7 @@ import * as THREE from "three";
 import {useEffect, useRef, useState} from "react";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
+import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
 
 export default function VertexControls() {
   const { beginInteraction, endInteraction } = useSetCameraInteraction("vertex-controls");
@@ -46,6 +47,18 @@ export default function VertexControls() {
   const matrix = new THREE.Matrix4();
   if (selectedVertices.length > 0)
     matrix.makeTranslation(new THREE.Vector3(...selectedVertices[0]));
+
+  const addGizmo = useCameraControlsStore(s => s.addGizmo);
+  const removeGizmo = useCameraControlsStore(s => s.removeGizmo);
+
+  useEffect(() => {
+    if (!pivotRef.current)
+      return;
+
+    const pivot = pivotRef.current;
+    addGizmo(pivot);
+    return () => removeGizmo(pivot);
+  }, [addGizmo, removeGizmo, pivotRef.current]);
 
   return selectedVertexSets.length > 0 && (
     <group

@@ -16,6 +16,9 @@ import {AdaptiveEvents} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
 import IOUWidget from "@/components/widgets/workspace/context/IOUWidget.tsx";
+import * as THREE from "three";
+import type {RootState} from "@react-three/fiber";
+import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -76,6 +79,9 @@ export default function WorkspacePage() {
     }
   }, []);
 
+  // This allows us to know what to preference in raycasting
+  const getGizmos = useCameraControlsStore(s => s.getGizmoMeshIdSet);
+
   return (<>
     <WorkspaceActionListener />
     <FlexyCanvas
@@ -85,15 +91,36 @@ export default function WorkspacePage() {
       onPointerMissed={() => {
         deselect();
       }}
-      // onCreated={({ raycaster, camera }) => {
-      //   // Only see layers 0 and 1
-      //   raycaster.layers.set(0)
-      //   raycaster.layers.enable(1)
-      //   camera.layers.set(0)
-      //   camera.layers.enable(0)
-      //   camera.layers.enable(1)
-      // }}
 
+      onCreated={(state: RootState) => {
+        // set a custom event filter globally
+        state.setEvents({
+          filter: (
+            intersections: THREE.Intersection[],
+          ): THREE.Intersection[] => {
+            if (intersections.length === 0)
+              return intersections;
+
+            const gizmos = getGizmos();
+
+            // climb up parents to allow for child hits (GLTF children, etc.)
+            const preferredHit = intersections.find((it) => {
+              let o: THREE.Object3D | null = it.object
+
+              while (o) {
+                if (gizmos.has(o.id))
+                  return true;
+
+                o = o.parent;
+              }
+
+              return false;
+            });
+
+            return preferredHit ? [preferredHit] : intersections
+          },
+        })
+      }}
     >
       <WorkspaceGrid/>
       <AdaptiveEvents />
