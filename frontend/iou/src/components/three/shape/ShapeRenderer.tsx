@@ -28,6 +28,8 @@ export interface ShapeRendererProps {
 
   depthTest?: boolean,
   renderOrder?: number,
+
+  captureMovement?: boolean
 }
 
 const vertexShader = /* glsl */ `
@@ -103,7 +105,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   // When hovered, use a drei util to change the mouse to a pointer
   useCursor(hoveredIds.length > 0 || shapeIsHovered, 'pointer', 'auto', document.body);
 
-  const onPointerMove = (event: ThreeEvent<PointerEvent>) => {
+  const onPointerMove = props.captureMovement && ((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
     if (dimensions === "2d")
       event.point.z = 0;
@@ -117,15 +119,15 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
 
     setClosestVertexIds(vertexWasInRange ? [closest] : []);
     setShapeIsHoveredRaw(!vertexWasInRange);
-  };
+  });
 
-  const onPointerOut = () => {
+  const onPointerOut = props.onPointerUp && (() => {
     setClosestVertexIds(null);
     setShapeIsHoveredRaw(false);
     props.onPointerUp?.();
-  }
+  })
 
-  const onClick = (event: ThreeEvent<PointerEvent>) => {
+  const onClick = props.onPress && ((event: ThreeEvent<PointerEvent>) => {
     if (dimensions === "2d")
       event.point.z = 0;
 
@@ -137,17 +139,17 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
     props.onPress?.(vertexWasInRange ? vertex : undefined);
     if (props.onPress)
       event.stopPropagation();
-  }
+  });
 
-  const onPointerUp = () => {
+  const onPointerUp = props.onPointerUp && (() => {
     props.onPointerUp?.();
-  }
+  });
 
-  const onPointerDown = (event: ThreeEvent<PointerEvent>) => {
+  const onPointerDown = props.onPointerDown && ((event: ThreeEvent<PointerEvent>) => {
     props.onPointerDown?.();
     if (props.onPointerDown)
       event.stopPropagation();
-  }
+  })
 
   // Material
   const materialRef = useRef<THREE.ShaderMaterial>(null!);

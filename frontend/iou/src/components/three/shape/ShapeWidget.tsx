@@ -54,6 +54,7 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
       }}
       onPointerUp={endInteraction}
       secondaryBaseColor={secondaryBaseColor}
+      captureMovement={true}
 
       renderOrder={0}
     />
