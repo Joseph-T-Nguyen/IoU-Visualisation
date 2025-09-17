@@ -7,11 +7,12 @@ import type {WorkerGeometryInput, WorkerInput} from "@/hooks/workspace/stores/in
 export type ShapeGeometries = {[shapeId: string]: THREE.BufferGeometry};
 
 export interface ShapeGeometrySlice {
-  meshes: ShapeGeometries;
-  intersection?: THREE.BufferGeometry;
+  meshes: ShapeGeometries,
+  intersection?: THREE.BufferGeometry,
+  iou?: number,
 
-  setGeometry: (shapeId: string, geometry: THREE.BufferGeometry) => void;
-  deleteGeometry: (shapeId: string) => void;
+  setGeometry: (shapeId: string, geometry: THREE.BufferGeometry) => void,
+  deleteGeometry: (shapeId: string) => void,
 }
 
 interface Ref<T> {
