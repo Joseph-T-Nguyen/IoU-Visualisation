@@ -16,14 +16,6 @@ export default function VertexControls() {
   const [mouseHovering, setMouseHovering] = useState<boolean>(false);
   useCursor(mouseHovering, 'grab', 'auto', document.body);
 
-  // put PivotControls on a separate layer
-  useEffect(() => {
-    if (pivotRef.current) {
-      pivotRef.current.layers.set(1); // layer 1 for controls
-      pivotRef.current.layers.enable(1);
-    }
-  }, []);
-
   const selections = useShapesStore(s => s.selections);
   const shapes = useShapesStore(s => s.shapes);
   const matrixMultiplySelection = useShapesStore(s => s.matrixMultiplySelection);
@@ -51,16 +43,49 @@ export default function VertexControls() {
   const addGizmo = useCameraControlsStore(s => s.addGizmo);
   const removeGizmo = useCameraControlsStore(s => s.removeGizmo);
 
+  // Whether the vertex controls should appear at all
+  const shouldRender = selectedVertexSets.length > 0;
+
   useEffect(() => {
-    if (!pivotRef.current)
-      return;
+    // If the pivotRef isn't set yet, repeatedly wait 10 ms and try setting it again
+    if (!pivotRef.current) {
+      let pivot: THREE.Group<THREE.Object3DEventMap> | null = null;
+
+      let id = undefined as number | undefined;
+      const deferredSet = () => {
+        id = setTimeout(() => {
+          if (!pivotRef.current) {
+            deferredSet();
+            return;
+          }
+
+          pivot = pivotRef.current;
+          id = undefined;
+          addGizmo(pivot);
+        }, 10);
+      }
+      deferredSet();
+
+      return () => {
+        if (id)
+          removeGizmo(pivot!);
+        else
+          clearTimeout(id);
+      };
+    }
 
     const pivot = pivotRef.current;
     addGizmo(pivot);
-    return () => removeGizmo(pivot);
-  }, [addGizmo, removeGizmo, pivotRef.current]);
 
-  return selectedVertexSets.length > 0 && (
+    return () => removeGizmo(pivot);
+  }, [addGizmo, removeGizmo, pivotRef.current, shouldRender]);
+
+  useEffect(() => {
+    if (!shouldRender)
+      endInteraction();
+  }, [endInteraction, shouldRender]);
+
+  return shouldRender && (
     <group
       onClick={(e) => e.stopPropagation()}
       onPointerEnter={(e) => {
