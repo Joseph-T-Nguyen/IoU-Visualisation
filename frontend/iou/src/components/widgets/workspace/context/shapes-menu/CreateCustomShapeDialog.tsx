@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Plus, Minus, Shapes } from "lucide-react";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
-import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import type { Vec3 } from "@/hooks/workspace/workspaceTypes.ts";
 import * as UUID from "uuid";
 
@@ -24,7 +23,6 @@ interface VertexInput {
 }
 
 export default function CreateCustomShapeDialog() {
-  const [dimensions] = useDimensions();
   const [open, setOpen] = useState(false);
 
   // Always get default cube vertices (3D shape)
