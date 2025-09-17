@@ -1,9 +1,9 @@
 import type {StateCreator} from "zustand/vanilla";
 import {create} from "zustand/react";
-import { CSG } from 'three-csg-ts';
 import * as THREE from 'three';
+import {BufferGeometry, Float32BufferAttribute} from "three";
+import type {WorkerGeometryInput, WorkerInput} from "@/hooks/workspace/stores/intersection.worker.ts";
 
-export type BufferGeometryMesh = THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>
 export type ShapeGeometries = {[shapeId: string]: THREE.BufferGeometry};
 
 export interface ShapeGeometrySlice {
@@ -14,25 +14,8 @@ export interface ShapeGeometrySlice {
   deleteGeometry: (shapeId: string) => void;
 }
 
-/**
- * Uses three-csg-ts to calculate the intersection of all the given shape geometries, by first creating meshes with the
- * geometries.
- * @param geometries The current registered geometries
- */
-const calculateNewIntersectionGeometry = (geometries: ShapeGeometries) => {
-  const shapeIds = Object.keys(geometries);
-  const meshes = shapeIds
-    .map(id => geometries[id])
-    .map(mesh => new THREE.Mesh(mesh) as BufferGeometryMesh);
-
-  if (meshes.length < 2)
-    return undefined;
-
-  const intersectionMesh = meshes
-    .slice(1)
-    .reduce((acc: THREE.Mesh, value: THREE.Mesh) => CSG.intersect(acc, value), meshes[0]);
-
-  return intersectionMesh.geometry as THREE.BufferGeometry;
+interface Ref<T> {
+  current: T;
 }
 
 /**
@@ -46,18 +29,80 @@ const calculateNewIntersectionGeometry = (geometries: ShapeGeometries) => {
 export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], ShapeGeometrySlice> = (setRaw, get) => {
   // This a function body, not a returned object! We set up some useful helper functions here
 
+  const pendingDataRef : Ref<ShapeGeometries | null> = {current: null};
+  const runningRef : Ref<boolean> = {current: false};
+
+  const workerUrl = new URL("./intersection.worker.ts", import.meta.url);
+  const worker = new Worker(workerUrl, { type: "module" });
+
+  const sendToWorker = (input: WorkerInput) => {
+    runningRef.current = true;
+    worker.postMessage(input);
+  }
+
+  const onDataReceived = (reply: WorkerGeometryInput) => {
+    if (reply.position === undefined) {
+      setRaw(() => ({
+        intersection: undefined,
+      }));
+      return;
+    }
+
+    // Apply result from worker
+    const buffer = new BufferGeometry();
+
+    // TODO: Use FloatArrays instead when transferring data between the worker and the main thread
+    buffer.setAttribute( 'position', new Float32BufferAttribute(reply.position, 3));
+    buffer.setAttribute( 'normal', new Float32BufferAttribute(reply.normal, 3));
+
+    setRaw(() => ({
+      intersection: buffer,
+    }));
+  }
+
+  const storeGeometryToWorkerGeometry = (geometries: ShapeGeometries) => {
+    const shapeIds = Object.keys(geometries);
+    const meshes = shapeIds
+      .map(id => geometries[id])
+      .map(geo => ({
+        position: geo.getAttribute("position").array,
+        normal: geo.getAttribute("normal").array,
+      }) as WorkerGeometryInput);
+
+    return {
+      meshes: meshes,
+    } as WorkerInput;
+  }
+
+  worker.onmessage = (e) => {
+    onDataReceived(e.data as WorkerGeometryInput);
+
+    if (pendingDataRef.current === null) {
+      runningRef.current = false;
+      return;
+    }
+
+    // Service next bit of data
+    sendToWorker(storeGeometryToWorkerGeometry(pendingDataRef.current));
+    pendingDataRef.current = null;
+  }
+
+  const calculateNewIntersection = (geometries: ShapeGeometries) => {
+    if (runningRef.current) {
+      pendingDataRef.current = geometries;
+      return;
+    }
+
+    sendToWorker(storeGeometryToWorkerGeometry(geometries));
+  }
+
   // We modify the 'set' function to have the side effect of calculating intersection geometry in a web worker
   const set = (partial: Partial<ShapeGeometrySlice> | ((state: ShapeGeometrySlice) => Partial<ShapeGeometrySlice>)) => {
     setRaw(partial);
 
     // Manually get the current state of the store to work with
     const state = get();
-
-    // TODO: Do this in a web worker somehow
-    const intersectionGeometry = calculateNewIntersectionGeometry(state.meshes);
-    setRaw(() => ({
-      intersection: intersectionGeometry,
-    }));
+    calculateNewIntersection(state.meshes);
   };
 
   // This is the actual initial store definition:
@@ -81,7 +126,6 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
 
       return ({
         meshes: newMeshes,
-        intersection: calculateNewIntersectionGeometry(newMeshes),
       });
     }),
   });

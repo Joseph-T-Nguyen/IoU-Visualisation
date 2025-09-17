@@ -1,3 +1,5 @@
+/// <reference lib="webworker" />
+
 import type { Vec3 } from "@/hooks/workspace/workspaceTypes.ts";
 import { ConvexHull } from "three/examples/jsm/math/ConvexHull";
 import * as THREE from "three";

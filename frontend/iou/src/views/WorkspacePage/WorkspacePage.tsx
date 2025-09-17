@@ -78,14 +78,14 @@ export default function WorkspacePage() {
       onPointerMissed={() => {
         deselect();
       }}
-      onCreated={({ raycaster, camera }) => {
-        // Only see layers 0 and 1
-        raycaster.layers.set(0)
-        raycaster.layers.enable(1)
-        camera.layers.set(0)
-        camera.layers.enable(0)
-        camera.layers.enable(1)
-      }}
+      // onCreated={({ raycaster, camera }) => {
+      //   // Only see layers 0 and 1
+      //   raycaster.layers.set(0)
+      //   raycaster.layers.enable(1)
+      //   camera.layers.set(0)
+      //   camera.layers.enable(0)
+      //   camera.layers.enable(1)
+      // }}
 
     >
       <WorkspaceGrid/>
