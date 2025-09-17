@@ -4,7 +4,7 @@ import * as THREE from "three";
 import ShapeRenderer from "@/components/three/shape/ShapeRenderer.tsx";
 import {useMemo} from "react";
 import Color from "color";
-import {defaultColors} from "@/hooks/workspace/stores/useShapesStore.ts";
+import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
@@ -154,8 +154,10 @@ export default function IntersectionRenderer() {
   const shapesUUIDs = useShapeUUIDs();
   const shapeCount = shapesUUIDs.length;
 
+
   // Styling
-  const color = defaultColors[(shapeCount + 1) % defaultColors.length];
+  const color = useShapesStore(state => state.colorQueue[1]);
+
   const baseColor = useMemo<string>(() => (
     Color(color).lighten(0.4).hex()
   ), [color])

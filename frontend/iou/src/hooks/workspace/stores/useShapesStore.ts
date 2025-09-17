@@ -3,12 +3,14 @@ import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/stores/createSelectionSlice.ts";
 import type {StateCreator} from "zustand/vanilla";
 import * as THREE from 'three';
-import monkey from "@/hooks/workspace/mokey.ts";
+// import monkey from "@/hooks/workspace/mokey.ts";
 import * as UUID from "uuid";
 
 export type Shapes = {[key: string]: ShapeData}
 export interface ShapesSlice {
   shapes: Shapes;
+  colorQueue: string[];
+
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
   setShapeName: (id: string, name: string) => void;
@@ -17,6 +19,7 @@ export interface ShapesSlice {
   deleteSelections: () => void;
   setManyVertices: (mods: [string, Vec3[]][]) => void;
   matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
+
 }
 
 // We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
@@ -78,13 +81,16 @@ function applyReducerAux<T extends unknown[], Store>(set: (partial: Partial<Stor
  */
 export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = ((set, get) => ({
   shapes: {
-    default_shape_uuid: {
-      vertices: monkey as Vec3[], //[[2, 0, -1], [0, 2, -1], [-2, 0, -1], [2, 2, -1], [0, 1, 1]],
-      faces: [],
-      name: "Default Shape",
-      color: "#ef4444",
-    }
+    // default_shape_uuid: {
+    //   vertices: monkey as Vec3[], //[[2, 0, -1], [0, 2, -1], [-2, 0, -1], [2, 2, -1], [0, 1, 1]],
+    //   faces: [],
+    //   name: "Default Shape",
+    //   color: "#ef4444",
+    // }
   },
+
+  // We use this to determine what the next shape's colour should be, and what the colour of the intersection should be
+  colorQueue: defaultColors,
 
   // TODO: Calculate shape face data using the convex hull algorithm
   setVertices: applyReducerAux(set, fixPartialShapesReducer(setVerticesAux)),
@@ -97,7 +103,7 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
         ...state.shapes,
         [UUID.v4().toString()]: {
           name: `Shape ${count + 1}`,
-          color: defaultColors[count % defaultColors.length],
+          color: state.colorQueue[0],
           vertices: [
             [0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 0],
             [0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]
@@ -105,7 +111,10 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
           // TODO: Face generation from convex hull algorithm
           faces: [],
         }
-      }
+      },
+
+      // Pop this color in the color queue, and put it at the back of the queue
+      colorQueue: [...state.colorQueue.slice(1), state.colorQueue[0]]
     });
   }),
 
@@ -138,8 +147,9 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     // Filter out shapes based on elements in selection
     for (const key in selection) {
       // If no specific children (vertices) are defined in the selection, delete the whole shape
-      if (selection[key].children === undefined)
+      if (selection[key].children === undefined) {
         delete newShapes[key]
+      }
       else if (state.shapes[key] !== undefined) {
         // Otherwise filter out specified children (vertices)
         const newVertices = state.shapes[key].vertices.filter((_, i) => !selection[key]?.children?.has(i));
