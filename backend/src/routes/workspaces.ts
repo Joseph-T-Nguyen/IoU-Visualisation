@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 
 export default {
-  async list(_: Request, res: Response, next: NextFunction) {
+  async list(req: Request, res: Response, next: NextFunction) {
     try {
+      const userId = String((req.query.userId ?? '1'));
       const data = [
         { id: '1', name: 'Workspace 1', lastEdited: 'Edited 8/5/2025', previewImage: 'green' },
         { id: '2', name: 'Workspace 2', lastEdited: 'Edited 8/5/2025', previewImage: 'red' },
         { id: '3', name: 'Workspace 3', lastEdited: 'Edited 8/5/2025' },
       ];
-      return res.json({ workspaces: data });
+      // For now, just echo the userId back and return mock data.
+      return res.json({ userId, workspaces: data });
     } catch (err) {
       return next(err);
     }
