@@ -7,6 +7,8 @@ import {BufferGeometry, Float32BufferAttribute} from "three";
 
 export type BufferGeometryMesh = THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>
 
+const EPSILON = 1e-6;
+
 /**
  * Compute the volume of a closed BufferGeometry mesh.
  * Assumes the geometry is composed of triangles.
@@ -15,7 +17,7 @@ export type BufferGeometryMesh = THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasi
  * @returns {number} volume
  */
 export function computeGeometryVolume(geometry: THREE.BufferGeometry): number {
-  let position = geometry.attributes.position;
+  const position = geometry.attributes.position;
   if (!position)
     return 0;
 
@@ -26,6 +28,9 @@ export function computeGeometryVolume(geometry: THREE.BufferGeometry): number {
   const pC = new THREE.Vector3();
 
   const vectorCross = new THREE.Vector3();
+
+  if (position.count <= 3)
+    return 0;
 
   // Loop over each triangle
   for (let i = 0; i < position.count; i += 3) {
@@ -69,6 +74,9 @@ const calculateNewIntersectionGeometry = (buffers: THREE.BufferGeometry[]) => {
   const meshes = buffers
     .map(geo => new THREE.Mesh(geo) as BufferGeometryMesh);
 
+  if (meshes[0].geometry.getAttribute('position').count === 3)
+    return undefined;
+
   const intersectionMesh = meshes
     .slice(1)
     .reduce((acc: THREE.Mesh | undefined, value: THREE.Mesh) => {
@@ -77,6 +85,9 @@ const calculateNewIntersectionGeometry = (buffers: THREE.BufferGeometry[]) => {
 
       const newAcc = CSG.intersect(acc, value);
 
+      // Filter triangles
+      if (newAcc.geometry.getAttribute('position').count === 3)
+        return undefined;
       if (newAcc.geometry.getAttribute('position').count === 0)
         return undefined;
       return newAcc;
@@ -98,7 +109,7 @@ function calculateIOU(buffers: THREE.BufferGeometry[], intersection: THREE.Buffe
       .reduce((acc, v) => acc + v)
     const unionVolume = unionVolumeWithOvercount - intersectionVolume;
 
-    console.log("iou: ", intersectionVolume, " / ", unionVolume);
+    console.log("iou: ", intersectionVolume, " / ", unionVolume, );
 
     return intersectionVolume / unionVolume;
   }
@@ -140,13 +151,21 @@ self.onmessage = (event: MessageEvent<Vec3[]>) => {
       return buffer;
     });
 
+  const volumes = buffers.map(buffer => computeGeometryVolume(buffer))
+  const anyVolumesAreFlat = volumes
+    .map(v => Math.abs(v) < EPSILON)
+    .reduce((a, b) => a || b, false);
+
+  // Prevent flat shapes from causing chaos
+  if (anyVolumesAreFlat) {
+    self.postMessage({});
+    return;
+  }
+
   const intersection = calculateNewIntersectionGeometry(buffers);
 
   if (intersection === undefined) {
-    self.postMessage({
-      position: undefined,
-      normal: undefined,
-    });
+    self.postMessage({});
     return;
   }
 
