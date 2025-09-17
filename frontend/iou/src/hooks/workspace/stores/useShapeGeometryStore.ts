@@ -2,7 +2,11 @@ import type {StateCreator} from "zustand/vanilla";
 import {create} from "zustand/react";
 import * as THREE from 'three';
 import {BufferGeometry, Float32BufferAttribute} from "three";
-import type {WorkerGeometryInput, WorkerInput} from "@/hooks/workspace/stores/intersection.worker.ts";
+import type {
+  IntersectionWorkerReply,
+  WorkerGeometryInput,
+  WorkerInput
+} from "@/hooks/workspace/stores/intersection.worker.ts";
 
 export type ShapeGeometries = {[shapeId: string]: THREE.BufferGeometry};
 
@@ -41,10 +45,11 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
     worker.postMessage(input);
   }
 
-  const onDataReceived = (reply: WorkerGeometryInput) => {
+  const onDataReceived = (reply: IntersectionWorkerReply) => {
     if (reply.position === undefined) {
       setRaw(() => ({
         intersection: undefined,
+        iou: reply.iou, //< the position buffer being undefined should also mean this is undefined, but why not add this
       }));
       return;
     }
@@ -54,10 +59,11 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
 
     // TODO: Use FloatArrays instead when transferring data between the worker and the main thread
     buffer.setAttribute( 'position', new Float32BufferAttribute(reply.position, 3));
-    buffer.setAttribute( 'normal', new Float32BufferAttribute(reply.normal, 3));
+    buffer.setAttribute( 'normal', new Float32BufferAttribute(reply.normal!, 3));
 
     setRaw(() => ({
       intersection: buffer,
+      iou: reply.iou
     }));
   }
 
@@ -76,7 +82,7 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
   }
 
   worker.onmessage = (e) => {
-    onDataReceived(e.data as WorkerGeometryInput);
+    onDataReceived(e.data as IntersectionWorkerReply);
 
     if (pendingDataRef.current === null) {
       runningRef.current = false;

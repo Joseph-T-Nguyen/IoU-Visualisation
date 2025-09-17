@@ -12,9 +12,10 @@ import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import {useEffect} from "react";
-import {AdaptiveEvents, Bvh} from "@react-three/drei";
+import {AdaptiveEvents} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
+import IOUWidget from "@/components/widgets/workspace/context/IOUWidget.tsx";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -25,34 +26,40 @@ export default function WorkspacePage() {
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
-    <div className="flex flex-col md:flex-row justify-center w-full h-full py-3 p-3 gap-3 overscroll-contain overflow-clip">
-      <div className="flex-grow overflow-visible">
-        <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
-          {/* Main view overlay */}
-          <div>
-            <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg" asChild>
-              <a href="../">
-                <LogOut className="transform scale-x-[-1] " />
-              </a>
-            </Button>
-          </div>
-          <div>
-            <WorkspaceMenubar />
-          </div>
-          <div className="flex flex-col justify-center pointer-events-auto">
-            <Button
-              size="icon" variant="outline" className="shadow-lg font-light text-md cursor-pointer"
-              onClick={() => setDimensions(dimensions === "3d" ? "2d" : "3d")}
-            >
-              {dimensions?.toUpperCase() ?? "ERR"}
-            </Button>
-          </div>
-          <div className="flex flex-col justify-center items-center">
-            <WorkspaceTitle/>
+    <div className="flex flex-col w-full h-full overflow-clip overscroll-contain py-3 p-3 gap-3">
+      <div className="flex flex-col md:flex-row justify-center gap-3 grow">
+        <div className="flex-grow overflow-visible">
+          <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
+            {/* Main view overlay */}
+            <div>
+              <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg" asChild>
+                <a href="../">
+                  <LogOut className="transform scale-x-[-1] " />
+                </a>
+              </Button>
+            </div>
+            <div>
+              <WorkspaceMenubar />
+            </div>
+            <div className="flex flex-col justify-center pointer-events-auto">
+              <Button
+                size="icon" variant="outline" className="shadow-lg font-light text-md cursor-pointer"
+                onClick={() => setDimensions(dimensions === "3d" ? "2d" : "3d")}
+              >
+                {dimensions?.toUpperCase() ?? "ERR"}
+              </Button>
+            </div>
+            <div className="flex flex-col justify-center items-center">
+              <WorkspaceTitle/>
+            </div>
           </div>
         </div>
+        <ContextSidebar className="min-w-64 overflow-y-scroll"/>
       </div>
-      <ContextSidebar className="min-w-64 overflow-y-scroll"/>
+      <div className="flex flex-row justify-end">
+        <IOUWidget/>
+
+      </div>
     </div>
   );
 
@@ -93,7 +100,7 @@ export default function WorkspacePage() {
 
       <WorkspaceCamera/>
 
-      <Bvh firstHitOnly>
+      {/*<Bvh firstHitOnly>*/}
 
         <VertexControls/>
 
@@ -104,7 +111,7 @@ export default function WorkspacePage() {
         {shapeUUIDs.map((uuid: string) => (
           <ShapeWidget uuid={uuid} key={uuid}/>
         ))}
-      </Bvh>
+      {/*</Bvh>*/}
 
       <ambientLight intensity={0.25} color="#F1F5F9"/>
       <directionalLight position={[1, 5, 2]} intensity={2} rotation={[45, 10, 0]} color="white" />

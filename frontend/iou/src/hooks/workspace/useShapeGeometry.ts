@@ -27,9 +27,7 @@ export default function useShapeGeometry(shapeId: string, vertices: Vec3[]): [Bu
   }, [deleteGeometry, shapeId]);
 
   useEffect(() => {
-    // TODO: Alert the shape geometry store of the new geometry
     setGeometry(shapeId, geometry);
-    console.log(geometry);
   }, [setGeometry, shapeId, geometry]);
 
   return [geometry, edges];

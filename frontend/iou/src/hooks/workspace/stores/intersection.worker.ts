@@ -90,13 +90,15 @@ function calculateIOU(buffers: THREE.BufferGeometry[], intersection: THREE.Buffe
   if (buffers.length < 2 || intersection === undefined)
     return undefined;
 
-  const intersectionVolume = computeGeometryVolume(buffers[0]);
+  const intersectionVolume = computeGeometryVolume(intersection);
 
   if (buffers.length == 2) {
     const unionVolumeWithOvercount = buffers
       .map(buffer => computeGeometryVolume(buffer))
       .reduce((acc, v) => acc + v)
     const unionVolume = unionVolumeWithOvercount - intersectionVolume;
+
+    console.log("iou: ", intersectionVolume, " / ", unionVolume);
 
     return intersectionVolume / unionVolume;
   }
@@ -120,6 +122,8 @@ function calculateIOU(buffers: THREE.BufferGeometry[], intersection: THREE.Buffe
 
   const union = unionMesh?.geometry;
   const unionVolume = union ? computeGeometryVolume(union) : 0;
+
+  console.log("iou: ", intersectionVolume, " / ", unionVolume);
 
   return union ? intersectionVolume / unionVolume : undefined;
 }
