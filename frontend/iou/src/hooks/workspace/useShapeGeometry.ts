@@ -13,6 +13,7 @@ import useShapeGeometryStore from "@/hooks/workspace/stores/useShapeGeometryStor
 export default function useShapeGeometry(shapeId: string, vertices: Vec3[]): [BufferGeometry, [Vec3, Vec3][]] {
   const [edges, setEdges] = useState<[Vec3, Vec3][]>([]);
   const setGeometry = useShapeGeometryStore(store => store.setGeometry);
+  const deleteGeometry = useShapeGeometryStore(store => store.deleteGeometry);
 
   const geometry = useConvexHull(vertices, (edges) => {
     if (edges)
@@ -20,8 +21,15 @@ export default function useShapeGeometry(shapeId: string, vertices: Vec3[]): [Bu
   });
 
   useEffect(() => {
+    return () => {
+      deleteGeometry(shapeId);
+    }
+  }, [deleteGeometry, shapeId]);
+
+  useEffect(() => {
     // TODO: Alert the shape geometry store of the new geometry
     setGeometry(shapeId, geometry);
+    console.log(geometry);
   }, [setGeometry, shapeId, geometry]);
 
   return [geometry, edges];

@@ -44,7 +44,7 @@ const vertexShader = /* glsl */ `
     
     vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
 
-    vNormal = normal.xyz; 
+    vNormal = normalize(normal.xyz); 
     
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
@@ -72,6 +72,7 @@ const fragmentShader = /* glsl */ `
     vec3 fresnelledColor = (vec3(fresnel)) + (color * vec3(1.0 - fresnel));
     
     gl_FragColor = vec4(fresnelledColor, 1.0);
+    // gl_FragColor = vec4(vNormal, 1.0);
   }
 `;
 
@@ -191,23 +192,20 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         }}
       >
         { dimensions === "2d" ? (
-          <meshBasicMaterial color={baseColor} toneMapped={false} depthTest={props.depthTest} />
+          <meshBasicMaterial color={baseColor} toneMapped={false} depthTest={props.depthTest ?? true} />
         ) : (
           <shaderMaterial
             ref={materialRef}
             vertexShader={vertexShader}
             fragmentShader={fragmentShader}
             uniforms={uniformsRef.current as unknown as {[key: string]: IUniform}}
-            depthTest={props.depthTest}
+            depthTest={props.depthTest ?? true}
             toneMapped={false}
           />
         )}
-        {/*{ (shapeIsHovered || props.wholeShapeSelected) &&*/}
-        {/*  <Outlines thickness={0.0625*1.5} color="#00D3F2" screenspace={true} angle={Math.PI/4} toneMapped={false}/>*/}
-        {/*}*/}
       </mesh>
 
-      <EdgesRenderer edges={props.edges} color={edgeColor} depthTest={props.depthTest}></EdgesRenderer>
+      <EdgesRenderer edges={props.edges} color={edgeColor} depthTest={props.depthTest ?? true}></EdgesRenderer>
 
     </group>
   );
