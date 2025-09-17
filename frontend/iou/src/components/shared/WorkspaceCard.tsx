@@ -2,7 +2,6 @@ import {
   MoreVertical,
   FolderOpen,
   Edit,
-  History,
   Share2,
   Trash2,
   Copy,
@@ -23,7 +22,6 @@ interface WorkspaceCardProps {
   onMenuClick?: () => void;
   onRename?: () => void;
   onDelete?: () => void;
-  onVersionHistory?: () => void;
   onShare?: () => void;
   onDuplicate?: () => void;
 }
@@ -35,7 +33,6 @@ export default function WorkspaceCard({
   onMenuClick,
   onRename,
   onDelete,
-  onVersionHistory,
   onShare,
   onDuplicate,
 }: WorkspaceCardProps) {
@@ -46,9 +43,6 @@ export default function WorkspaceCard({
     }
     if (action === "delete" && onDelete) {
       onDelete();
-    }
-    if (action === "version-history" && onVersionHistory) {
-      onVersionHistory();
     }
     if (action === "share" && onShare) {
       onShare();
@@ -105,13 +99,6 @@ export default function WorkspaceCard({
               >
                 <Copy className="mr-2 h-4 w-4" />
                 Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleMenuAction("version-history")}
-                className="cursor-pointer"
-              >
-                <History className="mr-2 h-4 w-4" />
-                Version history
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleMenuAction("share")}

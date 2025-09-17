@@ -14,6 +14,7 @@ import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import {useEffect} from "react";
 import {AdaptiveEvents, Bvh} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import useLoadWorkspace from "@/hooks/workspace/useLoadWorkspace.ts";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -21,6 +22,9 @@ export default function WorkspacePage() {
   const shapeUUIDs = useShapeUUIDs();
 
   const deselect = useShapesStore(s => s.deselect);
+
+  // Load default workspace id "1" on mount
+  useLoadWorkspace('1'); // TODO: Load workspace id from user selection thing
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
