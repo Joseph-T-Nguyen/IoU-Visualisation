@@ -13,27 +13,56 @@ export default function VertexInfo() {
   const [dimensions] = useDimensions();
   const selections = useShapesStore((s) => s.selections);
   const shapes = useShapesStore((s) => s.shapes);
+  const setVertices = useShapesStore((s) => s.setVertices);
 
   const selectionKeys = Object.keys(selections);
 
-  // Get all selected vertices
-  const selectedVertexSets = selectionKeys.map((key) => {
+  // Get selected vertex info (shape key, vertex index, and vertex data)
+  let selectedVertexInfo: {
+    shapeKey: string;
+    vertexIndex: number;
+    vertex: Vec3;
+  } | null = null;
+
+  for (const key of selectionKeys) {
     const vertices = shapes[key]?.vertices ?? [];
     const children = selections[key]?.children;
 
-    if (!children) return vertices;
-    return vertices.filter((_, i) => children.has(i));
-  });
-
-  const selectedVertices = selectedVertexSets.flat();
+    if (children) {
+      const selectedIndices = Array.from(children);
+      if (selectedIndices.length === 1) {
+        const vertexIndex = selectedIndices[0];
+        selectedVertexInfo = {
+          shapeKey: key,
+          vertexIndex,
+          vertex: vertices[vertexIndex],
+        };
+        break;
+      }
+    }
+  }
 
   // Only show if exactly one vertex is selected
-  if (selectedVertices.length !== 1) {
+  if (!selectedVertexInfo) {
     return null;
   }
 
-  const vertex = selectedVertices[0] as Vec3;
+  const { shapeKey, vertexIndex, vertex } = selectedVertexInfo;
   const [x, y, z] = vertex;
+
+  const updateVertex = (field: "x" | "y" | "z", value: string) => {
+    const numValue = parseFloat(value) || 0;
+    const currentVertices = shapes[shapeKey].vertices;
+    const updatedVertices = [...currentVertices];
+    const [currentX, currentY, currentZ] = updatedVertices[vertexIndex];
+
+    updatedVertices[vertexIndex] = [
+      field === "x" ? numValue : currentX,
+      field === "y" ? numValue : currentY,
+      field === "z" ? numValue : currentZ,
+    ];
+    setVertices(shapeKey, updatedVertices);
+  };
 
   return (
     <Card className="w-full max-w-sm pointer-events-auto py-3 gap-1.5 px-0 shadow-lg">
@@ -47,8 +76,10 @@ export default function VertexInfo() {
           </label>
           <Input
             id="vertex-x"
+            type="number"
+            step="0.1"
             value={x.toFixed(1)}
-            readOnly
+            onChange={(e) => updateVertex("x", e.target.value)}
             className="h-8 text-sm flex-1"
           />
         </div>
@@ -58,8 +89,10 @@ export default function VertexInfo() {
           </label>
           <Input
             id="vertex-y"
+            type="number"
+            step="0.1"
             value={y.toFixed(1)}
-            readOnly
+            onChange={(e) => updateVertex("y", e.target.value)}
             className="h-8 text-sm flex-1"
           />
         </div>
@@ -70,8 +103,10 @@ export default function VertexInfo() {
             </label>
             <Input
               id="vertex-z"
+              type="number"
+              step="0.1"
               value={z.toFixed(1)}
-              readOnly
+              onChange={(e) => updateVertex("z", e.target.value)}
               className="h-8 text-sm flex-1"
             />
           </div>
