@@ -36,18 +36,19 @@ export default function VertexControls() {
   }, [shapes, selections]);
 
   // The midpoint of all selected vertices, if any vertices are selected
-  const averageVertexPos = useMemo(() => {
+  const [averageVertexPos, multipoint] = useMemo(() => {
     const selectedVerticesRaw = selectedVertexSets.flat();
     const selectedVertices = dimensions === "3d" ? selectedVerticesRaw :
       selectedVerticesRaw.map(v => [v[0], v[1], 2]);
 
     if (selectedVerticesRaw.length === 0)
-      return undefined;
+      return [undefined, false];
 
-    return selectedVertices
+    const averageVertexPos = selectedVertices
       .map(v => new THREE.Vector3(...v))
       .reduce((l, r) => l.add(r), new THREE.Vector3())
       .divideScalar(selectedVertices.length);
+    return [averageVertexPos, selectedVertices.length > 1];
   }, [selectedVertexSets, dimensions]);
 
   const matrix = new THREE.Matrix4();
@@ -119,8 +120,8 @@ export default function VertexControls() {
         ref={pivotRef}
         autoTransform={false}
         matrix={matrix}
-        disableRotations
-        disableScaling
+        disableRotations={!multipoint}
+        disableScaling={!multipoint}
         activeAxes={[true, true, dimensions === "3d"]}
 
         onDragStart={() => {
