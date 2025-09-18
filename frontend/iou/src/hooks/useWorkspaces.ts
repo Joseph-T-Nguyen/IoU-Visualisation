@@ -16,7 +16,8 @@ export function useWorkspaces() {
       try {
         setLoading(true);
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        const res = await fetch(`${apiUrl}/api/workspaces`);
+        const USER_ID = import.meta.env.VITE_USER_ID || '1';
+        const res = await fetch(`${apiUrl}/api/workspaces?userId=${encodeURIComponent(USER_ID)}`);
         const json = await res.json();
         const ws: Workspace[] = json.workspaces || [];
         setWorkspaces(ws);

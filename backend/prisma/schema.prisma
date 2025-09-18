@@ -16,7 +16,6 @@ datasource db {
 
 model User {
   id         String      @id @default(uuid()) @map("user_id")
-  email      String      @unique
   name       String?
   workspaces Workspace[]
 
