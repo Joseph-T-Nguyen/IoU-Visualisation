@@ -12,8 +12,13 @@ import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import {useEffect} from "react";
-import {AdaptiveEvents, Bvh} from "@react-three/drei";
+import {AdaptiveEvents} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
+import IOUWidget from "@/components/widgets/workspace/context/IOUWidget.tsx";
+import * as THREE from "three";
+import type {RootState} from "@react-three/fiber";
+import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -24,34 +29,40 @@ export default function WorkspacePage() {
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
-    <div className="flex flex-col md:flex-row justify-center w-full h-full py-3 p-3 gap-3 overscroll-contain overflow-clip">
-      <div className="flex-grow overflow-visible">
-        <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
-          {/* Main view overlay */}
-          <div>
-            <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg" asChild>
-              <a href="../">
-                <LogOut className="transform scale-x-[-1] " />
-              </a>
-            </Button>
-          </div>
-          <div>
-            <WorkspaceMenubar />
-          </div>
-          <div className="flex flex-col justify-center pointer-events-auto">
-            <Button
-              size="icon" variant="outline" className="shadow-lg font-light text-md cursor-pointer"
-              onClick={() => setDimensions(dimensions === "3d" ? "2d" : "3d")}
-            >
-              {dimensions?.toUpperCase() ?? "ERR"}
-            </Button>
-          </div>
-          <div className="flex flex-col justify-center items-center">
-            <WorkspaceTitle/>
+    <div className="flex flex-col w-full h-full overflow-clip overscroll-contain py-3 p-3 gap-3">
+      <div className="flex flex-col md:flex-row justify-center gap-3 grow">
+        <div className="flex-grow overflow-visible">
+          <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
+            {/* Main view overlay */}
+            <div>
+              <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg" asChild>
+                <a href="../">
+                  <LogOut className="transform scale-x-[-1] " />
+                </a>
+              </Button>
+            </div>
+            <div>
+              <WorkspaceMenubar />
+            </div>
+            <div className="flex flex-col justify-center pointer-events-auto">
+              <Button
+                size="icon" variant="outline" className="shadow-lg font-light text-md cursor-pointer"
+                onClick={() => setDimensions(dimensions === "3d" ? "2d" : "3d")}
+              >
+                {dimensions?.toUpperCase() ?? "ERR"}
+              </Button>
+            </div>
+            <div className="flex flex-col justify-center items-center">
+              <WorkspaceTitle/>
+            </div>
           </div>
         </div>
+        <ContextSidebar className="min-w-64 overflow-y-scroll"/>
       </div>
-      <ContextSidebar className="min-w-64 overflow-y-scroll"/>
+      <div className="flex flex-row justify-end">
+        <IOUWidget/>
+
+      </div>
     </div>
   );
 
@@ -68,6 +79,9 @@ export default function WorkspacePage() {
     }
   }, []);
 
+  // This allows us to know what to preference in raycasting
+  const getGizmos = useCameraControlsStore(s => s.getGizmoMeshIdSet);
+
   return (<>
     <WorkspaceActionListener />
     <FlexyCanvas
@@ -77,33 +91,54 @@ export default function WorkspacePage() {
       onPointerMissed={() => {
         deselect();
       }}
-      onCreated={({ raycaster, camera }) => {
-        // Only see layers 0 and 1
-        raycaster.layers.set(0)
-        raycaster.layers.enable(1)
-        camera.layers.set(0)
-        camera.layers.enable(0)
-        camera.layers.enable(1)
-      }}
 
+      onCreated={(state: RootState) => {
+        // set a custom event filter globally
+        state.setEvents({
+          filter: (
+            intersections: THREE.Intersection[],
+          ): THREE.Intersection[] => {
+            if (intersections.length === 0)
+              return intersections;
+
+            const gizmos = getGizmos();
+
+            // climb up parents to allow for child hits (GLTF children, etc.)
+            const preferredHit = intersections.find((it) => {
+              let o: THREE.Object3D | null = it.object
+
+              while (o) {
+                if (gizmos.has(o.id))
+                  return true;
+
+                o = o.parent;
+              }
+
+              return false;
+            });
+
+            return preferredHit ? [preferredHit] : intersections
+          },
+        })
+      }}
     >
       <WorkspaceGrid/>
       <AdaptiveEvents />
 
-
       <WorkspaceCamera/>
 
-      <Bvh firstHitOnly>
+      {/*<Bvh firstHitOnly>*/}
 
         <VertexControls/>
 
         {/* Add 3D content here: */}
 
+        <IntersectionRenderer/>
         {/* Add every shape to the scene: */}
         {shapeUUIDs.map((uuid: string) => (
           <ShapeWidget uuid={uuid} key={uuid}/>
         ))}
-      </Bvh>
+      {/*</Bvh>*/}
 
       <ambientLight intensity={0.25} color="#F1F5F9"/>
       <directionalLight position={[1, 5, 2]} intensity={2} rotation={[45, 10, 0]} color="white" />
