@@ -2,7 +2,7 @@ import {create} from "zustand/react";
 import * as THREE from "three";
 
 export interface CameraControlsStore {
-  activeInteractions: string[],
+  activeInteractions: Set<string>,
 
   addInteraction: (interaction: string) => void,
   removeInteraction: (interaction: string) => void,
@@ -14,13 +14,13 @@ export interface CameraControlsStore {
 }
 
 const useCameraControlsStore = create<CameraControlsStore>((set, get) => ({
-  activeInteractions: [],
+  activeInteractions: new Set<string>(),
 
-  addInteraction: (interaction: string) => set(state => ({
-    activeInteractions: [...state.activeInteractions, interaction]
+  addInteraction: (interaction: string) => set((state) => ({
+    activeInteractions: new Set([...state.activeInteractions, interaction])
   })),
   removeInteraction: (interaction: string) => set(state => ({
-    activeInteractions: state.activeInteractions.filter(element => element !== interaction)
+    activeInteractions: new Set([...state.activeInteractions].filter(element => element !== interaction))
   })),
 
   gizmoMeshIdSet: new Set<number>(),
@@ -32,7 +32,7 @@ const useCameraControlsStore = create<CameraControlsStore>((set, get) => ({
   }),
   removeGizmo: (gizmo: THREE.Object3D) => set((state) => {
     return ({
-      gizmoMeshIdSet: new Set<number>([...state.gizmoMeshIdSet].filter(id => id !== gizmo.id))
+      gizmoMeshIdSet: new Set<number>([...state.gizmoMeshIdSet].filter(id => id !== gizmo?.id))
     })
   }),
 

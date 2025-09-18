@@ -1,19 +1,26 @@
-import { memo, useEffect, useMemo, useRef } from "react";
-import { InstancedMesh, Matrix4, BackSide } from "three";
-import type { Vec3 } from "@/hooks/workspace/workspaceTypes.ts";
+import {memo, useEffect, useMemo, useRef} from 'react';
+import { InstancedMesh, Matrix4, BackSide } from 'three';
+import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 
 export interface InstancedVertexSpheresProps {
-  vertices: Vec3[];
-  radius?: number;
+  vertices: Vec3[],
+  radius?: number,
 
-  color?: string;
+  color?: string
 
-  hoveredIds?: number[];
+  hoveredIds?: number[],
+  selectedIds?: Set<number>,
+  renderOrder?: number,
+
+  position?: Vec3,
+  hideSelection?: boolean,
+
+  depthTest?: boolean,
+  drawOrder?: number
 }
 
-export default function InstancedVertexSpheres(
-  props: InstancedVertexSpheresProps
-) {
+
+function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
   const meshRef = useRef<InstancedMesh>(null);
   const selectedOuterMeshRef = useRef<InstancedMesh>(null);
   const selectedInnerMeshRef = useRef<InstancedMesh>(null);
@@ -23,14 +30,8 @@ export default function InstancedVertexSpheres(
   const color = props.color ?? "white";
 
   const hoveredIds = useMemo(() => props.hoveredIds ?? [], [props.hoveredIds]);
-  const selectedIds = useMemo(
-    () => props.selectedIds ?? new Set<number>(),
-    [props.selectedIds]
-  );
-  const selectedIdsArray = useMemo(
-    () => [...selectedIds, ...hoveredIds],
-    [selectedIds, hoveredIds]
-  );
+  const selectedIds = useMemo(() => props.selectedIds ?? new Set<number>(), [props.selectedIds]);
+  const selectedIdsArray = useMemo(() => [...selectedIds, ...hoveredIds], [selectedIds, hoveredIds]);
 
   // Precompute instance matrices
   const matrices = useMemo(() => {
@@ -42,27 +43,27 @@ export default function InstancedVertexSpheres(
   }, [positions]);
 
   const hoveredMatrices = useMemo(() => {
-    return selectedIdsArray.map((id: number) => matrices[id]);
+    return selectedIdsArray.map((id: number) => matrices[id])
   }, [matrices, selectedIdsArray]);
 
   // Update instance matrices once
   useEffect(() => {
     if (!meshRef.current) return;
     matrices.forEach((matrix, i) => {
-      if (!selectedIds.has(i)) meshRef.current!.setMatrixAt(i, matrix);
+      if (!selectedIds.has(i))
+        meshRef.current!.setMatrixAt(i, matrix);
       else
-        meshRef.current!.setMatrixAt(
-          i,
-          new Matrix4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        );
+        meshRef.current!.setMatrixAt(i, new Matrix4(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0));
     });
     meshRef.current.instanceMatrix.needsUpdate = true;
   }, [matrices, hoveredIds, selectedIds]);
 
   useEffect(() => {
-    if (!selectedInnerMeshRef.current || !selectedOuterMeshRef.current) return;
+    if (!selectedInnerMeshRef.current || !selectedOuterMeshRef.current)
+      return;
     selectedIdsArray.forEach((i, j) => {
-      if (i >= matrices.length) return;
+      if (i >= matrices.length)
+        return;
 
       if (j < selectedIds.size)
         selectedInnerMeshRef.current!.setMatrixAt(j, matrices[i]);
@@ -81,8 +82,8 @@ export default function InstancedVertexSpheres(
         position={props.position}
       >
         {/* Base sphere geometry */}
-        <sphereGeometry args={[radius, 8, 8]} />
-        <meshBasicMaterial color={color} toneMapped={false} />
+        <sphereGeometry args={[radius, 16, 8]} />
+        <meshBasicMaterial color={color} toneMapped={false} depthTest={props.depthTest}/>
       </instancedMesh>
 
       <instancedMesh
@@ -91,8 +92,8 @@ export default function InstancedVertexSpheres(
         renderOrder={props.renderOrder}
         position={props.position}
       >
-        <sphereGeometry args={[radius, 8, 8]} />
-        <meshBasicMaterial color="white" toneMapped={false} />
+        <sphereGeometry args={[radius * 1.001, 16, 8]} />
+        <meshBasicMaterial color="white" toneMapped={false} depthTest={props.depthTest}/>
       </instancedMesh>
       <instancedMesh
         ref={selectedOuterMeshRef}
@@ -100,8 +101,8 @@ export default function InstancedVertexSpheres(
         renderOrder={props.renderOrder}
         position={props.position}
       >
-        <sphereGeometry args={[radius * 1.5, 8, 8]} />
-        <meshBasicMaterial color="#00D3F2" side={BackSide} toneMapped={false} />
+        <sphereGeometry args={[radius * 1.5, 16, 8]} />
+        <meshBasicMaterial color="#00D3F2" side={BackSide} toneMapped={false} depthTest={props.depthTest}/>
       </instancedMesh>
     </>
   );
