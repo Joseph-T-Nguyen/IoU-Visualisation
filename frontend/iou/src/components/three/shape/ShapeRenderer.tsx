@@ -9,7 +9,7 @@ import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import EdgesRenderer from "@/components/three/shape/EdgesRenderer.tsx";
 import * as THREE from "three";
-import Color from "color";
+import Color, {type ColorInstance} from "color";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
@@ -18,7 +18,12 @@ export interface ShapeRendererProps {
 
   vertexColor?: string,
   baseColor?: string,
-  secondaryBaseColor?: string,
+  secondaryBaseColor?: string | ColorInstance,
+  hoverColor?: string | ColorInstance,
+  secondaryHoverColor?: string | ColorInstance,
+  fresnelColor?: string | ColorInstance,
+  hoverFresnelColor?: string | ColorInstance,
+
   onPress?: (vertexId?: number) => void,
   onPointerDown?: () => void,
   onPointerUp?: () => void,
@@ -30,6 +35,12 @@ export interface ShapeRendererProps {
   renderOrder?: number,
 
   captureMovement?: boolean
+}
+
+function colToVector(color: ColorInstance | string) {
+  if (typeof color === "string")
+    color = Color(color);
+  return new THREE.Vector3(...color.rgb().array().map(v => v/255));
 }
 
 const vertexShader = /* glsl */ `
@@ -60,6 +71,7 @@ const fragmentShader = /* glsl */ `
   
   uniform vec3 uColor;
   uniform vec3 uSecondaryColor;
+  uniform vec3 uFresnelColor;
 
   void main() {
     float extrapolation = 1.2;
@@ -71,22 +83,21 @@ const fragmentShader = /* glsl */ `
     vec3 color = (uColor * vec3(extrapolatedLight)) + (uSecondaryColor * vec3(1.0 - extrapolatedLight));
     
     float fresnel = pow(1.0 - light, 5.0);
-    vec3 fresnelledColor = (vec3(fresnel)) + (color * vec3(1.0 - fresnel));
+    vec3 fresnelledColor = (uFresnelColor * vec3(fresnel)) + (color * vec3(1.0 - fresnel));
     
     gl_FragColor = vec4(fresnelledColor, 1.0);
     // gl_FragColor = vec4(vNormal, 1.0);
   }
 `;
 
+// Uniform data we pass to the shader
 interface ShapeMaterialUniforms {
   uColor: THREE.Uniform<THREE.Vector3>,
   uSecondaryColor: THREE.Uniform<THREE.Vector3>,
+  uFresnelColor: THREE.Uniform<THREE.Vector3>,
 }
 
 export default function ShapeRenderer(props: ShapeRendererProps) {
-  const vertexColor = props.vertexColor ?? "blue";
-  const baseColor = props.baseColor ?? "#F1F5F9";
-  const secondaryBaseColor = props.secondaryBaseColor ?? "blue";
 
   const [dimensions, ] = useDimensions();
   const meshRef = useRef<Mesh>(null);
@@ -96,15 +107,26 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   const [closestVertexIds, setClosestVertexIds] = useState<number[] | null>(null);
   const hoveredIds = closestVertexIds ?? [];
   const [shapeIsHoveredRaw, setShapeIsHoveredRaw] = useState(false);
-  // Apply allow hoverign to shapeIsHoveredRaw
+  // Apply allowHovering to shapeIsHoveredRaw
   const shapeIsHovered = allowHovering && shapeIsHoveredRaw;
 
-  const edgeColor = dimensions === "3d" ? vertexColor
+  // Get colors
+  const vertexColor = props.vertexColor ?? "blue";
+  const edgeColor = dimensions === "3d"
+    ? props.wholeShapeSelected ? "#00D3F2" : vertexColor
     : shapeIsHovered || props.wholeShapeSelected ? "#00D3F2" : vertexColor;
+
+  const baseColor = props.baseColor ?? "#F1F5F9";
+  const secondaryBaseColor = props.secondaryBaseColor ?? "blue";
+  const hoverColor = props.hoverColor ?? baseColor;
+  const secondaryHoverColor = props.secondaryHoverColor ?? secondaryBaseColor;
+  const fresnelColor = props.fresnelColor ?? "#FFFFFF";
+  const hoverFresnelColor = props.hoverFresnelColor ?? fresnelColor;
 
   // When hovered, use a drei util to change the mouse to a pointer
   useCursor(hoveredIds.length > 0 || shapeIsHovered, 'pointer', 'auto', document.body);
 
+  // Called when hovering over the shape
   const onPointerMove = props.captureMovement && ((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
     if (dimensions === "2d")
@@ -121,12 +143,14 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
     setShapeIsHoveredRaw(!vertexWasInRange);
   });
 
+  // Called when we stop hovering over the shape
   const onPointerOut = props.onPointerUp && (() => {
     setClosestVertexIds(null);
     setShapeIsHoveredRaw(false);
     props.onPointerUp?.();
   })
 
+  // Called when we click the shape
   const onClick = props.onPress && ((event: ThreeEvent<PointerEvent>) => {
     if (dimensions === "2d")
       event.point.z = 0;
@@ -141,28 +165,33 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
       event.stopPropagation();
   });
 
+  // Called when we stop clicking the shape
   const onPointerUp = props.onPointerUp && (() => {
     props.onPointerUp?.();
   });
 
+  // Called when we start clicking the shape
   const onPointerDown = props.onPointerDown && ((event: ThreeEvent<PointerEvent>) => {
     props.onPointerDown?.();
     if (props.onPointerDown)
       event.stopPropagation();
   })
 
-  // Material
+  // Uniform variables to be given to the shader
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
   const uniformsRef = useRef<ShapeMaterialUniforms>(null!);
   if (!uniformsRef.current) uniformsRef.current = {
     uColor: new THREE.Uniform(new THREE.Vector3()),
     uSecondaryColor: new THREE.Uniform(new THREE.Vector3()),
+    uFresnelColor: new THREE.Uniform(new THREE.Vector3()),
   };
+
   // Set shader uniforms when colors change
   useEffect(() => {
-    uniformsRef.current.uColor.value = new THREE.Vector3(...Color(baseColor).rgb().array().map(v => v/255));
-    uniformsRef.current.uSecondaryColor.value = new THREE.Vector3(...Color(secondaryBaseColor).rgb().array().map(v => v/255));
-  }, [baseColor, secondaryBaseColor]);
+    uniformsRef.current.uColor.value = colToVector(shapeIsHovered ? hoverColor : baseColor);
+    uniformsRef.current.uSecondaryColor.value = colToVector(shapeIsHovered ? secondaryHoverColor : secondaryBaseColor);
+    uniformsRef.current.uFresnelColor.value = colToVector(shapeIsHovered ? hoverFresnelColor : fresnelColor);
+  }, [baseColor, secondaryBaseColor, hoverColor, secondaryHoverColor, shapeIsHovered, fresnelColor, hoverFresnelColor]);
 
   return (
     <group
@@ -194,7 +223,11 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         }}
       >
         { dimensions === "2d" ? (
-          <meshBasicMaterial color={baseColor} toneMapped={false} depthTest={props.depthTest ?? true} />
+          <meshBasicMaterial
+            color={baseColor}
+            toneMapped={false}
+            depthTest={props.depthTest ?? true}
+          />
         ) : (
           <shaderMaterial
             ref={materialRef}
@@ -207,7 +240,11 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         )}
       </mesh>
 
-      <EdgesRenderer edges={props.edges} color={edgeColor} depthTest={props.depthTest ?? true}></EdgesRenderer>
+      <EdgesRenderer
+        edges={props.edges}
+        color={edgeColor}
+        depthTest={props.depthTest ?? true}
+      />
 
     </group>
   );
