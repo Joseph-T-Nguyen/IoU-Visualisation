@@ -4,21 +4,7 @@ import { LogOut } from "lucide-react"
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
-import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
-import ShapeWidget from "@/components/three/shape/ShapeWidget.tsx";
-import WorkspaceTitle from "@/components/widgets/workspace/WorkspaceTitle.tsx";
-import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceActionListener.tsx";
-import VertexControls from "@/components/three/VertexControls.tsx";
-import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
-import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
-import {useEffect} from "react";
-import {AdaptiveEvents} from "@react-three/drei";
-import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
-import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
-import IOUWidget from "@/components/widgets/workspace/context/IOUWidget.tsx";
-import * as THREE from "three";
-import type {RootState} from "@react-three/fiber";
-import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
+import useWorkspaceStore from "@/hooks/workspace/useWorkspaceStore.ts";
 
 export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
@@ -29,32 +15,30 @@ export default function WorkspacePage() {
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
-    <div className="flex flex-col w-full h-full overflow-clip overscroll-contain py-3 p-3 gap-3">
-      <div className="flex flex-col md:flex-row justify-center gap-3 grow">
-        <div className="flex-grow overflow-visible">
-          <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
-            {/* Main view overlay */}
-            <div>
-              <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg" asChild>
-                <a href="../">
-                  <LogOut className="transform scale-x-[-1] " />
-                </a>
-              </Button>
-            </div>
-            <div>
-              <WorkspaceMenubar />
-            </div>
-            <div className="flex flex-col justify-center pointer-events-auto">
-              <Button
-                size="icon" variant="outline" className="shadow-lg font-light text-md cursor-pointer"
-                onClick={() => setDimensions(dimensions === "3d" ? "2d" : "3d")}
-              >
-                {dimensions?.toUpperCase() ?? "ERR"}
-              </Button>
-            </div>
-            <div className="flex flex-col justify-center items-center">
-              <WorkspaceTitle/>
-            </div>
+    <div className="flex flex-row justify-center w-full h-full py-3 p-3 gap-3">
+      <div className="flex-grow">
+        <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
+          {/* Main view overlay */}
+          <div>
+            <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg">
+              <LogOut className="transform scale-x-[-1] " />
+            </Button>
+          </div>
+          <div>
+            <WorkspaceMenubar />
+          </div>
+          <div className="flex flex-col justify-center pointer-events-auto">
+            <Button
+              size="icon" variant="outline" className="shadow-lg font-light text-md cursor-pointer"
+              onClick={() => setDimensions(dimensions === "3d" ? "2d" : "3d")}
+            >
+              {dimensions?.toUpperCase() ?? "ERR"}
+            </Button>
+          </div>
+          <div className="flex flex-col justify-center ">
+            <span className="font-semibold text-lg">
+              {workspaceName}
+            </span>
           </div>
         </div>
         <ContextSidebar className="min-w-64 overflow-y-scroll"/>
@@ -63,82 +47,34 @@ export default function WorkspacePage() {
         <IOUWidget/>
 
       </div>
+      <ContextSidebar className="min-w-64"/>
     </div>
   );
 
-  // Prevent scrolling on mobile devices
-  useEffect(() => {
-    const preventTouch = (e: TouchEvent) => {
-      e.preventDefault();
-    };
-
-    document.body.addEventListener('touchmove', preventTouch, { passive: false });
-
-    return () => {
-      document.body.removeEventListener('touchmove', preventTouch);
-    }
-  }, []);
-
-  // This allows us to know what to preference in raycasting
-  const getGizmos = useCameraControlsStore(s => s.getGizmoMeshIdSet);
-
-  return (<>
-    <WorkspaceActionListener />
+  return (
     <FlexyCanvas
       /* min-h-[100dv] works better on mobile devices that h-screen */
       className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
       overlay={overlay}
-      onPointerMissed={() => {
-        deselect();
-      }}
-
-      onCreated={(state: RootState) => {
-        // set a custom event filter globally
-        state.setEvents({
-          filter: (
-            intersections: THREE.Intersection[],
-          ): THREE.Intersection[] => {
-            if (intersections.length === 0)
-              return intersections;
-
-            const gizmos = getGizmos();
-
-            // climb up parents to allow for child hits (GLTF children, etc.)
-            const preferredHit = intersections.find((it) => {
-              let o: THREE.Object3D | null = it.object
-
-              while (o) {
-                if (gizmos.has(o.id))
-                  return true;
-
-                o = o.parent;
-              }
-
-              return false;
-            });
-
-            return preferredHit ? [preferredHit] : intersections
-          },
-        })
-      }}
+      underlay={(
+        <div className="bg-secondary w-full h-full"/>
+      )}
     >
-      <WorkspaceGrid/>
-      <AdaptiveEvents />
+      {dimensions === "2d" ? (
+        <OrthographicCamera
+          makeDefault
+          zoom={200}
+          position={[0, 1.5, 100]}
+        />
+      ) : (
+        <PerspectiveCamera
+          makeDefault
+          position={[0, 1.5, 5]}
+        />
+      )}
 
-      <WorkspaceCamera/>
-
-      {/*<Bvh firstHitOnly>*/}
-
-        <VertexControls/>
-
-        {/* Add 3D content here: */}
-
-        <IntersectionRenderer/>
-        {/* Add every shape to the scene: */}
-        {shapeUUIDs.map((uuid: string) => (
-          <ShapeWidget uuid={uuid} key={uuid}/>
-        ))}
-      {/*</Bvh>*/}
+      {/* Add 3D content here: */}
+      <ShapeRenderer vertices={[[2, 0, 0], [0, 2, 0], [-2, 0, 0], [2, 2, 0], [0, 1, 2]]} baseColor="#fca5a5" vertexColor="#ef4444"/>
 
       <ambientLight intensity={0.25} color="#F1F5F9"/>
       <directionalLight position={[1, 5, 2]} intensity={2} rotation={[45, 10, 0]} color="white" />
