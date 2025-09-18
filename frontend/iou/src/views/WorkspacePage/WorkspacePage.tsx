@@ -93,7 +93,7 @@ export default function WorkspacePage() {
       }}
 
       onCreated={(state: RootState) => {
-        // set a custom event filter globally
+        // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
         state.setEvents({
           filter: (
             intersections: THREE.Intersection[],
@@ -104,7 +104,7 @@ export default function WorkspacePage() {
             const gizmos = getGizmos();
 
             // climb up parents to allow for child hits (GLTF children, etc.)
-            const preferredHit = intersections.find((it) => {
+            const preferredHit = intersections.filter((it) => {
               let o: THREE.Object3D | null = it.object
 
               while (o) {
@@ -117,7 +117,7 @@ export default function WorkspacePage() {
               return false;
             });
 
-            return preferredHit ? [preferredHit] : intersections
+            return preferredHit.length > 0 ? preferredHit : intersections
           },
         })
       }}

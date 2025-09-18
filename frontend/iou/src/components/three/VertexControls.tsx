@@ -53,6 +53,9 @@ export default function VertexControls() {
 
       let id = undefined as number | undefined;
       const deferredSet = () => {
+        // ts linter is wrong here. ignore it.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         id = setTimeout(() => {
           if (!pivotRef.current) {
             deferredSet();
