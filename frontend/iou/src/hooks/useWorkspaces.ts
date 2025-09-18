@@ -44,22 +44,20 @@ export function useWorkspaces() {
     setWorkspaces(prevWorkspaces => [newWorkspace, ...prevWorkspaces]);
   };
 
-  const renameWorkspace = (id: string, newName: string) => {
-    const now = new Date();
-    const formattedDate = `Edited ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
-
-    setWorkspaces(prevWorkspaces => 
-      prevWorkspaces.map(workspace => {
-        if (workspace.id === id) {
-          return { 
-            ...workspace, 
-            name: newName || "Untitled", 
-            lastEdited: formattedDate,
-          };
-        }
-        return workspace;
-      })
-    );
+  const renameWorkspace = async (id: string, newName: string) => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    try {
+      const res = await fetch(`${apiUrl}/api/workspaces/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName || 'Untitled' }),
+      });
+      if (!res.ok) throw new Error(`Failed to update: ${res.status}`);
+      const updated: Workspace = await res.json();
+      setWorkspaces(prev => prev.map(w => (w.id === id ? { ...w, name: updated.name, lastEdited: updated.lastEdited } : w)));
+    } catch (e) {
+      console.error('Rename failed', e);
+    }
   };
 
   const deleteWorkspace = (id: string) => {
@@ -68,48 +66,19 @@ export function useWorkspaces() {
     );
   };
 
-  const duplicateWorkspace = (id: string) => {
-    const workspaceToDuplicate = workspaces.find(w => w.id === id);
-    if (!workspaceToDuplicate) return;
-
-    const now = new Date();
-    const formattedDate = `Edited ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
-
-    const baseName = workspaceToDuplicate.name.replace(/ \(copy( \d+)?\)$/,'');
-    const copyPattern = new RegExp(`^${baseName.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')} \\(copy( \\d+)?\\)$`);
-    const existingCopies = workspaces.filter(w => 
-      w.name === baseName || copyPattern.test(w.name)
-    );
-
-    let copyNumber = 1;
-    if (existingCopies.length > 1) {
-      const copyNumbers = existingCopies
-        .map(w => {
-          const match = w.name.match(/\(copy( (\d+))?\)$/);
-          if (match) {
-            return match[2] ? parseInt(match[2]) : 1;
-          }
-          return 0;
-        })
-        .filter(n => n > 0);
-
-      if (copyNumbers.length > 0) {
-        copyNumber = Math.max(...copyNumbers) + 1;
-      }
+  const duplicateWorkspace = async (id: string) => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    try {
+      const res = await fetch(`${apiUrl}/api/workspaces/${encodeURIComponent(id)}/duplicate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) throw new Error(`Failed to duplicate: ${res.status}`);
+      const created: Workspace = await res.json();
+      setWorkspaces(prev => [created, ...prev]);
+    } catch (e) {
+      console.error('Duplicate failed', e);
     }
-
-    const newName = copyNumber === 1 
-      ? `${baseName} (copy)` 
-      : `${baseName} (copy ${copyNumber})`;
-
-    const duplicatedWorkspace: Workspace = {
-      id: `dup-${Date.now()}`,
-      name: newName,
-      lastEdited: formattedDate,
-      previewImage: workspaceToDuplicate.previewImage,
-    };
-
-    setWorkspaces(prevWorkspaces => [duplicatedWorkspace, ...prevWorkspaces]);
   };
 
   return { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, duplicateWorkspace };

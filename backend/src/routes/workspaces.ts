@@ -11,6 +11,7 @@ export default {
         name: r.name,
         lastEdited: `Edited ${r.updatedAt.toLocaleDateString()}`,
       }));
+      res.set('Cache-Control', 'no-store');
       return res.json({ userId, workspaces });
     } catch (err) {
       return next(err);
@@ -29,7 +30,44 @@ export default {
           vertices: s.vertices as number[][],
         };
       }
+      res.set('Cache-Control', 'no-store');
       return res.json({ workspace: { id: ws.id, name: ws.name, shapes: shapesMap } });
+    } catch (err) {
+      return next(err);
+    }
+  },
+  async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params as { id: string };
+      const { name } = req.body as { name?: string };
+      if (!name || name.trim().length === 0) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
+      const updated = await WorkspaceRepo.updateName(id, name.trim());
+      return res.json({ id: updated.id, name: updated.name, lastEdited: `Edited ${updated.updatedAt.toLocaleDateString()}` });
+    } catch (err) {
+      return next(err);
+    }
+  },
+  async create(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { ownerId, name } = req.body as { ownerId?: string, name?: string };
+      if (!ownerId) return res.status(400).json({ error: 'ownerId is required' });
+      if (!name || name.trim().length === 0) return res.status(400).json({ error: 'name is required' });
+      const created = await WorkspaceRepo.createWorkspace(ownerId, name.trim());
+      res.set('Cache-Control', 'no-store');
+      return res.status(201).json({ id: created.id, name: created.name, lastEdited: `Edited ${created.updatedAt.toLocaleDateString()}` });
+    } catch (err) {
+      return next(err);
+    }
+  },
+  async duplicate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params as { id: string };
+      const created = await WorkspaceRepo.duplicateWorkspace(id);
+      if (!created) return res.status(404).json({ error: 'Workspace not found' });
+      res.set('Cache-Control', 'no-store');
+      return res.status(201).json({ id: created.id, name: created.name, lastEdited: `Edited ${new Date().toLocaleDateString()}` });
     } catch (err) {
       return next(err);
     }

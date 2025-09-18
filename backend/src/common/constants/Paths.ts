@@ -8,6 +8,9 @@ export default {
     Base: '/workspaces',
     List: '/',
     GetById: '/:id',
+    Update: '/:id',
+    Create: '/',
+    Duplicate: '/:id/duplicate',
   },
   Users: {
     Base: '/users',
