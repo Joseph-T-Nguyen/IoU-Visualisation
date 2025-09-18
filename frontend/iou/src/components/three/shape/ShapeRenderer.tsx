@@ -18,11 +18,12 @@ export interface ShapeRendererProps {
 
   vertexColor?: string,
   baseColor?: string,
-  secondaryBaseColor?: string | ColorInstance,
-  hoverColor?: string | ColorInstance,
-  secondaryHoverColor?: string | ColorInstance,
-  fresnelColor?: string | ColorInstance,
-  hoverFresnelColor?: string | ColorInstance,
+  secondaryBaseColor?: string,
+  hoverColor?: string,
+  secondaryHoverColor?: string,
+  fresnelColor?: string,
+  hoverFresnelColor?: string,
+  selectedEdgeColor?: string,
 
   onPress?: (vertexId?: number) => void,
   onPointerDown?: () => void,
@@ -112,9 +113,12 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
 
   // Get colors
   const vertexColor = props.vertexColor ?? "blue";
-  const edgeColor = dimensions === "3d"
-    ? props.wholeShapeSelected ? "#00D3F2" : vertexColor
-    : shapeIsHovered || props.wholeShapeSelected ? "#00D3F2" : vertexColor;
+
+  // const selectedEdgeColor = props.selectedEdgeColor ?? "#00D3F2";
+  // const edgeColor = dimensions === "3d"
+  //   ? props.wholeShapeSelected ? selectedEdgeColor : vertexColor
+  //   : shapeIsHovered || props.wholeShapeSelected ? "#00D3F2" : vertexColor;
+  const edgeColor = vertexColor;
 
   const baseColor = props.baseColor ?? "#F1F5F9";
   const secondaryBaseColor = props.secondaryBaseColor ?? "blue";
@@ -245,6 +249,16 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         color={edgeColor}
         depthTest={props.depthTest ?? true}
       />
+      {(shapeIsHovered || props.wholeShapeSelected) && (
+        <EdgesRenderer
+          edges={props.edges}
+          color={"#00D3F2"}
+          depthTest={props.depthTest ?? true}
+          side={THREE.BackSide}
+          radius={0.0625 / 2}
+        />
+      )}
+
 
     </group>
   );

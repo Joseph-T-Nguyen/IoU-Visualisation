@@ -8,6 +8,7 @@ export interface EdgesRendererProps {
   color?: string;
   radius?: number;
   depthTest?: boolean;
+  side?: THREE.Side;
 }
 
 export default function EdgesRenderer(props: EdgesRendererProps) {
@@ -57,6 +58,7 @@ export default function EdgesRenderer(props: EdgesRendererProps) {
           color={props.color}
           toneMapped={false}
           depthTest={props.depthTest}
+          side={props.side}
         />
       </instancedMesh>
     </>
