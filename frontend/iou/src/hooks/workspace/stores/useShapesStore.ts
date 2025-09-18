@@ -11,7 +11,6 @@ export interface ShapesSlice {
   shapes: Shapes;
   colorQueue: string[];
   createdShapeCount: number;
-  yellowUsed: boolean;
 
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
@@ -22,7 +21,6 @@ export interface ShapesSlice {
   deleteSelections: () => void;
   setManyVertices: (mods: [string, Vec3[]][]) => void;
   matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
-
 }
 
 // We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
@@ -32,7 +30,6 @@ export const defaultColors = [
   "#ef4444",
   "#10b981",
   "#0ea5e9",
-  "#f59e0b",
   "#db2777",
   "#84cc16",
   "#14b8a6",
@@ -41,6 +38,7 @@ export const defaultColors = [
   "#16a34a",
   "#4f46e5",
 ];
+export const intersectionColor = "#f59e0b";
 
 const setVerticesAux = (id: string, vertices: Vec3[]) => (state: ShapesSlice) => ({
   shapes: {
@@ -89,10 +87,10 @@ function shuffleArray(arr: string[]) {
 }
 function getRandomDefaultColors() {
   // Keep these colors the same every time:
-  const start = defaultColors.slice(0, 4);
+  const start = defaultColors.slice(0, 3);
 
   // Vary everything else
-  const shuffled = shuffleArray(defaultColors.slice(4));
+  const shuffled = shuffleArray(defaultColors.slice(3));
   return [...start, ...shuffled];
 }
 
@@ -114,7 +112,6 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
   colorQueue: getRandomDefaultColors(),
   // Used to figure out what number to give the shape in the shape name
   createdShapeCount: 0,
-  yellowUsed: false,
 
   // TODO: Calculate shape face data using the convex hull algorithm
   setVertices: applyReducerAux(set, fixPartialShapesReducer(setVerticesAux)),
@@ -136,7 +133,6 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       },
 
       // Pop this color in the color queue
-      yellowUsed: state.yellowUsed || state.colorQueue[0] === defaultColors[3],
       colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
       createdShapeCount: state.createdShapeCount + 1,
     });
@@ -156,8 +152,6 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
           color: state.colorQueue[0]
         }
       },
-
-      yellowUsed: state.yellowUsed || state.colorQueue[0] === defaultColors[3],
     }
   }),
 

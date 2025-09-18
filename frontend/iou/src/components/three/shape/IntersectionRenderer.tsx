@@ -4,7 +4,7 @@ import * as THREE from "three";
 import ShapeRenderer from "@/components/three/shape/ShapeRenderer.tsx";
 import {useMemo} from "react";
 import Color from "color";
-import useShapesStore, {defaultColors} from "@/hooks/workspace/stores/useShapesStore.ts";
+import {intersectionColor} from "@/hooks/workspace/stores/useShapesStore.ts";
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 
@@ -143,18 +143,15 @@ function getSharpEdgesAsVec3(
 
 export default function IntersectionRenderer() {
   const intersection = useShapeGeometryStore(state => state.intersection);
-  const geometry = intersection ?? new THREE.BufferGeometry();
   const vertices = [] as Vec3[];
   const edges = useMemo(() => (
     intersection ? getSharpEdgesAsVec3(mergeVertices(intersection), 0.1) : []
-  ), [geometry]);
+  ), [intersection]);
 
   const [dimensions, ] = useDimensions();
 
   // Styling
-  const yellowUsed = useShapesStore(state => state.yellowUsed);
-  const nextNextColor = useShapesStore(state => state.colorQueue.length > 1 ? state.colorQueue[1] : undefined) ?? defaultColors[3];
-  const color = yellowUsed ? nextNextColor : defaultColors[3];
+  const color = intersectionColor;
 
   const baseColor = useMemo<string>(() => (
     Color(color).lighten(0.4).hex()
@@ -170,7 +167,7 @@ export default function IntersectionRenderer() {
     <ShapeRenderer
       vertices={vertices}
       edges={edges}
-      geometry={geometry}
+      geometry={intersection!}
       baseColor={baseColor}
       secondaryBaseColor={secondaryBaseColor}
       vertexColor={color}
