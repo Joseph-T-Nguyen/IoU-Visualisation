@@ -7,8 +7,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate } from "react-router";
 
 export default function CreateNewWorkspacePage() {
+  const navigate = useNavigate();
+
+  const handleCancel = () => {
+    navigate("/workspaces");
+  };
+
+  const handleCreateWorkspace = () => {
+    // TODO: Add actual workspace creation logic when backend is ready
+    console.log("Creating workspace...");
+    navigate("/workspaces");
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-4">
       <Card className="w-[400px] p-4 rounded-sm">
@@ -37,8 +50,8 @@ export default function CreateNewWorkspacePage() {
           </div>
 
           <div className="flex justify-end pt-4 space-x-2 w-1/2 ml-auto">
-            <Button variant="outline">Cancel</Button>
-            <Button>Create Workspace</Button>
+            <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+            <Button onClick={handleCreateWorkspace}>Create Workspace</Button>
           </div>
 
         </CardContent>
