@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import {
   Card,
   CardHeader,
@@ -20,6 +21,7 @@ interface FormErrors {
 }
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -101,6 +103,8 @@ export default function LoginPage() {
       // Form is valid, handle submission
       console.log("Form submitted:", formData);
       // TODO: Add actual submission logic when backend is ready
+      // For now, redirect to workspaces page
+      navigate("/workspaces");
     }
   };
 
@@ -156,7 +160,12 @@ export default function LoginPage() {
       </Card>
 
       <div className="flex justify-center gap-22 w-[400px] text-sm">
-        <span className="text-muted-foreground cursor-pointer">Create an Account</span>
+        <span 
+          className="text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+          onClick={() => navigate("/signup")}
+        >
+          Create an Account
+        </span>
         <span className="text-muted-foreground cursor-pointer">Forgot Password?</span>
       </div>
     </div>

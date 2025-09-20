@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import {
   Card,
   CardHeader,
@@ -24,6 +25,7 @@ interface FormErrors {
 }
 
 export default function SignUpPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     email: "",
     username: "",
@@ -120,6 +122,8 @@ export default function SignUpPage() {
       // Form is valid, handle submission
       console.log("Form submitted:", formData);
       // TODO: Add actual submission logic when backend is ready
+      // For now, redirect to workspaces page
+      navigate("/workspaces");
     }
   };
 
@@ -205,7 +209,12 @@ export default function SignUpPage() {
           </form>
         </CardContent>
       </Card>
-      <span className="text-muted-foreground cursor-pointer">Log in</span>
+      <span 
+        className="text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+        onClick={() => navigate("/login")}
+      >
+        Log in
+      </span>
     </div>
   );
 }

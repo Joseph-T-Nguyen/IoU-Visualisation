@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { Plus, Copy, Check, ChevronDown } from "lucide-react";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function WorkspacesPage() {
+  const navigate = useNavigate();
   // Use the hook to fetch workspaces data
   const { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, getWorkspaceVersions, duplicateWorkspace } = useWorkspaces();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -93,6 +95,13 @@ export default function WorkspacesPage() {
     setSharePermission("viewer");
     setIsCopied(false);
     setIsShareDialogOpen(true);
+  };
+
+  const handleOpenWorkspace = (workspaceId: string) => {
+    // For now, navigate to the same workspace page for all workspaces
+    // TODO: Pass workspaceId as parameter when individual workspace routing is implemented
+    console.log(`Opening workspace: ${workspaceId}`);
+    navigate("/workspace");
   };
 
   const getShareUrl = () => {
@@ -188,6 +197,7 @@ export default function WorkspacesPage() {
           onVersionHistory={handleOpenVersionDialog}
           onShareWorkspace={handleOpenShareDialog}
           onDuplicateWorkspace={duplicateWorkspace}
+          onOpenWorkspace={handleOpenWorkspace}
         />
       )}
 
