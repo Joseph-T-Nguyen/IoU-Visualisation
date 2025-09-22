@@ -1,12 +1,14 @@
 import useShapeGeometryStore from "@/hooks/workspace/stores/useShapeGeometryStore.ts";
-import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
+import type { Vec3 } from "@/hooks/workspace/workspaceTypes.ts";
 import * as THREE from "three";
 import ShapeRenderer from "@/components/three/shape/ShapeRenderer.tsx";
-import {useMemo} from "react";
+import { useMemo } from "react";
 import Color from "color";
-import useShapesStore, {defaultColors} from "@/hooks/workspace/stores/useShapesStore.ts";
-import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import useDimensions from "@/hooks/workspace/useDimensions.ts";
+import useShapesStore, {
+  defaultColors,
+} from "@/hooks/workspace/stores/useShapesStore.ts";
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import useDimensions from "@/hooks/workspace/useDimensions";
 
 // function getEdgesAsVec3(geometry: THREE.BufferGeometry): [Vec3, Vec3][] {
 //   const posAttr = geometry.attributes.position;
@@ -96,7 +98,8 @@ function getSharpEdgesAsVec3(
   type FaceEdge = { face: number; v1: number; v2: number };
   const edgeMap = new Map<string, FaceEdge[]>();
 
-  const encodeEdge = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${a}`);
+  const encodeEdge = (a: number, b: number) =>
+    a < b ? `${a}_${b}` : `${b}_${a}`;
 
   for (let f = 0; f < triCount; f++) {
     const a = getIndex(f * 3);
@@ -140,46 +143,56 @@ function getSharpEdgesAsVec3(
   return result;
 }
 
-
 export default function IntersectionRenderer() {
-  const intersection = useShapeGeometryStore(state => state.intersection);
+  const intersection = useShapeGeometryStore((state) => state.intersection);
   const geometry = intersection ?? new THREE.BufferGeometry();
   const vertices = [] as Vec3[];
-  const edges = useMemo(() => (
-    intersection ? getSharpEdgesAsVec3(mergeVertices(intersection), 0.1) : []
-  ), [geometry]);
+  const edges = useMemo(
+    () =>
+      intersection ? getSharpEdgesAsVec3(mergeVertices(intersection), 0.1) : [],
+    [geometry]
+  );
 
-  const [dimensions, ] = useDimensions();
+  const [dimensions] = useDimensions();
 
   // Styling
-  const yellowUsed = useShapesStore(state => state.yellowUsed);
-  const nextNextColor = useShapesStore(state => state.colorQueue.length > 1 ? state.colorQueue[1] : undefined) ?? defaultColors[3];
+  const yellowUsed = useShapesStore((state) => state.yellowUsed);
+  const nextNextColor =
+    useShapesStore((state) =>
+      state.colorQueue.length > 1 ? state.colorQueue[1] : undefined
+    ) ?? defaultColors[3];
   const color = yellowUsed ? nextNextColor : defaultColors[3];
 
-  const baseColor = useMemo<string>(() => (
-    Color(color).lighten(0.4).hex()
-  ), [color])
+  const baseColor = useMemo<string>(
+    () => Color(color).lighten(0.4).hex(),
+    [color]
+  );
   const secondaryBaseColor = useMemo<string>(() => {
     const col = Color(baseColor);
     const h = col.hue();
     const step = 10; //< How much to rotate the secondary hue towards 230degrees by
-    return col.saturate(0.025).darken(0.20).rotate(h < 50 ? -step : h > 230 ? -step : step).hex()
+    return col
+      .saturate(0.025)
+      .darken(0.2)
+      .rotate(h < 50 ? -step : h > 230 ? -step : step)
+      .hex();
   }, [baseColor]);
 
-  return intersection !== undefined && dimensions === "3d" && (
-    <ShapeRenderer
-      vertices={vertices}
-      edges={edges}
-      geometry={geometry}
-      baseColor={baseColor}
-      secondaryBaseColor={secondaryBaseColor}
-      vertexColor={color}
-
-      maxVertexSelectionDistance={0}
-      selectedIds={new Set<number>()}
-      wholeShapeSelected={false}
-
-      renderOrder={999}
-    />
+  return (
+    intersection !== undefined && (
+      <ShapeRenderer
+        vertices={vertices}
+        edges={edges}
+        geometry={geometry}
+        baseColor={baseColor}
+        secondaryBaseColor={secondaryBaseColor}
+        vertexColor={color}
+        maxVertexSelectionDistance={0}
+        selectedIds={new Set<number>()}
+        wholeShapeSelected={false}
+        renderOrder={dimensions === "3d" ? 999 : 0}
+        position={dimensions === "3d" ? [0, 0, 0] : [0, 0, 0.5]}
+      />
+    )
   );
 }

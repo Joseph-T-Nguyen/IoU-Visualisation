@@ -61,8 +61,8 @@ self.onmessage = async (event: MessageEvent<Vec3[]>) => {
   const faces = ccwToFaces(hull);
 
   self.postMessage({
-    positions: faces,
-    normals: Array(faces.length / 3).fill([0,0,1]).flat(),
+    vertices: faces,
+    normals: Array(hull.length).fill([0,0,1]).flat(),
     edges: [...hull.slice(1).map((v, i) => [hull[i], v]), [hull[hull.length-1], hull[0]]],
   });
 };
