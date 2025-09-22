@@ -9,11 +9,14 @@ export interface ShapesMenuItemProps {
 }
 
 export default function ShapesMenuItem(props: ShapesMenuItemProps) {
-  const { name, setName, color } = useShape(props.uuid);
+  const { name, setName, color, toggleColor } = useShape(props.uuid);
 
   return (
     <div className="flex flex-row gap-1.5 justify-center items-center">
-      <ColorPicker color={color} />
+      <ColorPicker
+        color={color}
+        onClick={toggleColor}
+      />
       <Input
         className="h-6 px-1.5 flex-grow text-sm text-left align-middle border-none shadow-none"
         value={name}
