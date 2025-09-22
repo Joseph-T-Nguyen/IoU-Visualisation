@@ -3,14 +3,18 @@ import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/stores/createSelectionSlice.ts";
 import type {StateCreator} from "zustand/vanilla";
 import * as THREE from 'three';
-import monkey from "@/hooks/workspace/mokey.ts";
 import * as UUID from "uuid";
 
 export type Shapes = {[key: string]: ShapeData}
 export interface ShapesSlice {
   shapes: Shapes;
+  colorQueue: string[];
+  createdShapeCount: number;
+  yellowUsed: boolean;
+
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
+  toggleShapeColor: (id: string) => void;
   setShapeName: (id: string, name: string) => void;
   setShapeColor: (id: string, name: string) => void;
 
@@ -22,7 +26,7 @@ export interface ShapesSlice {
 // We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
 export type ShapesStore = SelectionSlice & ShapesSlice;
 
-const defaultColors = [
+export const defaultColors = [
   "#ef4444",
   "#10b981",
   "#0ea5e9",
@@ -37,6 +41,27 @@ const defaultColors = [
   "#a855f7",
   "#22c55e",
 ];
+
+// So I can randomize colours
+function shuffleArray(arr: string[]) {
+  const array = arr.slice();
+  for (let i = array.length - 1; i > 0; i--) {
+    // Pick a random index from 0 to i
+    const j = Math.floor(Math.random() * (i + 1));
+    // Swap elements array[i] and array[j]
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function getRandomDefaultColors() {
+  // Keep these colors the same every time:
+  const start = defaultColors.slice(0, 4);
+
+  // Vary everything else
+  const shuffled = shuffleArray(defaultColors.slice(4));
+  return [...start, ...shuffled];
+}
 
 const setVerticesAux = (id: string, vertices: Vec3[]) => (state: ShapesSlice) => ({
   shapes: {
@@ -86,18 +111,22 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     // }
   },
 
+  // We use this to determine what the next shape's colour should be, and what the colour of the intersection should be
+  colorQueue: getRandomDefaultColors(),
+  // Used to figure out what number to give the shape in the shape name
+  createdShapeCount: 0,
+  yellowUsed: false,
+
   // TODO: Calculate shape face data using the convex hull algorithm
   setVertices: applyReducerAux(set, fixPartialShapesReducer(setVerticesAux)),
 
   addShape: () => set((state: ShapesSlice) => {
-    const count = Object.keys(state.shapes).length;
-
     return ({
       shapes: {
         ...state.shapes,
         [UUID.v4().toString()]: {
-          name: `Shape ${count + 1}`,
-          color: defaultColors[count % defaultColors.length],
+          name: `Shape ${state.createdShapeCount + 1}`,
+          color: state.colorQueue[0],
           vertices: [
             [0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 0],
             [0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]
@@ -105,8 +134,32 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
           // TODO: Face generation from convex hull algorithm
           faces: [],
         }
-      }
+      },
+
+      // Pop this color in the color queue
+      yellowUsed: state.yellowUsed || state.colorQueue[0] === defaultColors[3],
+      colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
+      createdShapeCount: state.createdShapeCount + 1,
     });
+  }),
+
+  toggleShapeColor: (id: string) => set((state) => {
+    const shape = state.shapes[id];
+    if (shape === undefined)
+      return {};
+
+    return {
+      colorQueue: [...state.colorQueue.slice(1), shape.color],
+      shapes: {
+        ...state.shapes,
+        [id]: {
+          ...shape,
+          color: state.colorQueue[0]
+        }
+      },
+
+      yellowUsed: state.yellowUsed || state.colorQueue[0] === defaultColors[3],
+    }
   }),
 
   setShapeName: (id: string, name: string) => set((state: ShapesSlice) => ({

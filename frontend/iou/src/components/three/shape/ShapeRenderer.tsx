@@ -14,6 +14,9 @@ import Color from "color";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
+  geometry?: THREE.BufferGeometry,
+  edges?: [Vec3, Vec3][],
+
   vertexColor?: string,
   baseColor?: string,
   secondaryBaseColor?: string,
@@ -23,6 +26,11 @@ export interface ShapeRendererProps {
   selectedIds?: Set<number>,
   wholeShapeSelected?: boolean,
   maxVertexSelectionDistance?: number,
+
+  depthTest?: boolean,
+  renderOrder?: number,
+
+  captureMovement?: boolean
 }
 
 const vertexShader = /* glsl */ `
@@ -39,7 +47,7 @@ const vertexShader = /* glsl */ `
     
     vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
 
-    vNormal = normal.xyz; 
+    vNormal = normalize(normal.xyz); 
     
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
@@ -67,6 +75,7 @@ const fragmentShader = /* glsl */ `
     vec3 fresnelledColor = (vec3(fresnel)) + (color * vec3(1.0 - fresnel));
     
     gl_FragColor = vec4(fresnelledColor, 1.0);
+    // gl_FragColor = vec4(vNormal, 1.0);
   }
 `;
 
@@ -81,12 +90,16 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   const secondaryBaseColor = props.secondaryBaseColor ?? "blue";
 
   const [dimensions, ] = useDimensions();
-  const [edges, setEdges] = useState<[Vec3, Vec3][]>([]);
+  const [generatedEdges, setGeneratedEdges] = useState<[Vec3, Vec3][]>([]);
 
-  const geometry = useConvexHull(props.vertices, (edges) => {
+  const generatedGeometry = useConvexHull(props.vertices, (edges) => {
     if (edges)
-      setEdges(edges);
+      setGeneratedEdges(edges);
   });
+  
+  // Use provided geometry/edges if available, otherwise use generated ones
+  const geometry = props.geometry ?? generatedGeometry;
+  const edges = props.edges ?? generatedEdges;
   const meshRef = useRef<Mesh>(null);
 
   const allowHovering = useCameraInteraction() === undefined;
@@ -103,7 +116,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
   // When hovered, use a drei util to change the mouse to a pointer
   useCursor(hoveredIds.length > 0 || shapeIsHovered, 'pointer', 'auto', document.body);
 
-  const onPointerMove = (event: ThreeEvent<PointerEvent>) => {
+  const onPointerMove = props.captureMovement !== false ? (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
     if (dimensions === "2d")
       event.point.z = 0;
@@ -117,15 +130,15 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
 
     setClosestVertexIds(vertexWasInRange ? [closest] : []);
     setShapeIsHoveredRaw(!vertexWasInRange);
-  };
+  } : undefined;
 
-  const onPointerOut = () => {
+  const onPointerOut = props.onPointerUp ? () => {
     setClosestVertexIds(null);
     setShapeIsHoveredRaw(false);
     props.onPointerUp?.();
-  }
+  } : undefined;
 
-  const onClick = (event: ThreeEvent<PointerEvent>) => {
+  const onClick = props.onPress ? (event: ThreeEvent<PointerEvent>) => {
     if (dimensions === "2d")
       event.point.z = 0;
 
@@ -137,17 +150,17 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
     props.onPress?.(vertexWasInRange ? vertex : undefined);
     if (props.onPress)
       event.stopPropagation();
-  }
+  } : undefined;
 
-  const onPointerUp = () => {
+  const onPointerUp = props.onPointerUp ? () => {
     props.onPointerUp?.();
-  }
+  } : undefined;
 
-  const onPointerDown = (event: ThreeEvent<PointerEvent>) => {
+  const onPointerDown = props.onPointerDown ? (event: ThreeEvent<PointerEvent>) => {
     props.onPointerDown?.();
     if (props.onPointerDown)
       event.stopPropagation();
-  }
+  } : undefined;
 
   // Material
   const materialRef = useRef<THREE.ShaderMaterial>(null!);
@@ -169,6 +182,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
       onClick={onClick}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
+      renderOrder={props.renderOrder}
     >
       <InstancedVertexSpheres
         vertices={props.vertices}
@@ -177,6 +191,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         selectedIds={props.selectedIds ?? new Set<number>()}
 
         position={dimensions === "2d" ? [0, 0, 1] : [0, 0, 0]}
+        depthTest={props.depthTest ?? true}
       />
       <mesh
         geometry={geometry}
@@ -184,16 +199,21 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         // When in 2d, push the polygon away from the edges, to help with z fighting
         position={dimensions === "2d" ? [0, 0, -1] : [0, 0, 0]}
 
+        // This allows us to render the intersection in front of everything else
+        onBeforeRender={(props.renderOrder ?? 0) <= 0 ? undefined : (renderer) => {
+          renderer.clearDepth();
+        }}
       >
         { dimensions === "2d" ? (
-          <meshBasicMaterial color={baseColor} toneMapped={false}/>
+          <meshBasicMaterial color={baseColor} toneMapped={false} depthTest={props.depthTest ?? true} />
         ) : (
           <shaderMaterial
             ref={materialRef}
             vertexShader={vertexShader}
             fragmentShader={fragmentShader}
             uniforms={uniformsRef.current as unknown as {[key: string]: IUniform}}
-            // toneMapped={false}
+            depthTest={props.depthTest ?? true}
+            toneMapped={false}
           />
         )}
         {/*{ (shapeIsHovered || props.wholeShapeSelected) &&*/}
@@ -201,7 +221,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         {/*}*/}
       </mesh>
 
-      <EdgesRenderer edges={edges} color={edgeColor}></EdgesRenderer>
+      <EdgesRenderer edges={edges} color={edgeColor} depthTest={props.depthTest ?? true}></EdgesRenderer>
 
     </group>
   );

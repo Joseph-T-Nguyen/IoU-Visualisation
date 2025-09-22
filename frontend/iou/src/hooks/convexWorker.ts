@@ -1,5 +1,5 @@
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
-import {ConvexHull} from "three/examples/jsm/math/ConvexHull";
+import {ConvexHull} from "three/examples/jsm/math/ConvexHull.js";
 import * as THREE from "three";
 
 // function sleep(ms: number) {

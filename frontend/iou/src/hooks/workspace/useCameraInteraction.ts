@@ -3,5 +3,5 @@ import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsSt
 
 export default function useCameraInteraction(): string | undefined {
   const interactions = useCameraControlsStore(s => s.activeInteractions);
-  return interactions.length > 0 ? interactions[0] : undefined;
+  return interactions.size > 0 ? [...interactions][0] : undefined;
 }
