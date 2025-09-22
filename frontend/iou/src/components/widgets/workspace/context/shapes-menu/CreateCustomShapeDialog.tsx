@@ -25,24 +25,16 @@ interface VertexInput {
 export default function CreateCustomShapeDialog() {
   const [open, setOpen] = useState(false);
 
-  // Always get default cube vertices (3D shape)
   const getDefaultVertices = (): VertexInput[] => {
-    // Default cube vertices - always in 3D
     return [
       { id: UUID.v4(), x: "0", y: "0", z: "0" },
       { id: UUID.v4(), x: "0", y: "1", z: "0" },
       { id: UUID.v4(), x: "1", y: "0", z: "0" },
-      { id: UUID.v4(), x: "1", y: "1", z: "0" },
-      { id: UUID.v4(), x: "0", y: "0", z: "1" },
-      { id: UUID.v4(), x: "0", y: "1", z: "1" },
-      { id: UUID.v4(), x: "1", y: "0", z: "1" },
-      { id: UUID.v4(), x: "1", y: "1", z: "1" },
     ];
   };
 
   const [vertices, setVertices] = useState<VertexInput[]>(getDefaultVertices());
   const [shapeName, setShapeName] = useState("");
-
   const shapes = useShapesStore((s) => s.shapes);
 
   const addVertex = () => {
@@ -50,8 +42,7 @@ export default function CreateCustomShapeDialog() {
   };
 
   const removeVertex = (id: string) => {
-    const minVertices = 4; // Always minimum 4 vertices for 3D shapes (tetrahedron)
-    if (vertices.length > minVertices) {
+    if (vertices.length > 3) {
       setVertices(vertices.filter((v) => v.id !== id));
     }
   };
@@ -62,41 +53,15 @@ export default function CreateCustomShapeDialog() {
     );
   };
 
-  // Volume validation for 3D shapes
-  const hasVolume = (vertices: Vec3[]): boolean => {
-    if (vertices.length < 4) return false;
-
-    // Simple check: if we have vertices with different Z values, we have volume
-    const zValues = vertices.map((v) => v[2]);
-    const uniqueZ = new Set(zValues);
-
-    // If we have at least 2 different Z values, we likely have volume
-    if (uniqueZ.size >= 2) {
-      return true;
-    }
-
-    // If all Z values are the same, check if it's a 2D shape (all Z = 0)
-    return false;
-  };
-
   const createShape = () => {
-    // Convert input vertices to Vec3 format (always 3D)
     const vertexData: Vec3[] = vertices.map((v) => [
       parseFloat(v.x) || 0,
       parseFloat(v.y) || 0,
       parseFloat(v.z) || 0,
     ]);
 
-    // Validate volume for 3D shapes
-    if (!hasVolume(vertexData)) {
-      return; // Don't create shape if it has no volume
-    }
-
-    // Create new shape UUID
     const newShapeId = UUID.v4().toString();
     const count = Object.keys(shapes).length;
-
-    // Add shape to store (using the same pattern as addShape)
     const defaultColors = [
       "#ef4444",
       "#10b981",
@@ -113,7 +78,6 @@ export default function CreateCustomShapeDialog() {
       "#22c55e",
     ];
 
-    // Manually add the shape since we need custom vertices
     useShapesStore.setState((state) => ({
       ...state,
       shapes: {
@@ -127,7 +91,6 @@ export default function CreateCustomShapeDialog() {
       },
     }));
 
-    // Reset form and close dialog
     setVertices(getDefaultVertices());
     setShapeName("");
     setOpen(false);
@@ -149,13 +112,12 @@ export default function CreateCustomShapeDialog() {
         <DialogHeader>
           <DialogTitle>Create Custom Shape</DialogTitle>
           <DialogDescription>
-            Add vertices to create your custom 3D shape. Minimum 4 vertices
-            required for 3D shapes with volume.
+            Add at least 3 vertices to create a custom shape. The IoU metric
+            will be calculated as area in 2D and volume in 3D.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Shape name input */}
           <div className="space-y-2">
             <label htmlFor="shape-name" className="text-sm font-medium">
               Shape Name (optional)
@@ -169,7 +131,6 @@ export default function CreateCustomShapeDialog() {
             />
           </div>
 
-          {/* Vertices section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Vertices</label>
@@ -241,7 +202,7 @@ export default function CreateCustomShapeDialog() {
                     variant="outline"
                     size="sm"
                     onClick={() => removeVertex(vertex.id)}
-                    disabled={vertices.length <= 4}
+                    disabled={vertices.length <= 3}
                     className="h-7 w-7 p-0"
                   >
                     <Minus className="w-3 h-3" />
@@ -256,19 +217,7 @@ export default function CreateCustomShapeDialog() {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button
-            onClick={createShape}
-            disabled={
-              vertices.length < 4 ||
-              !hasVolume(
-                vertices.map((v) => [
-                  parseFloat(v.x) || 0,
-                  parseFloat(v.y) || 0,
-                  parseFloat(v.z) || 0,
-                ])
-              )
-            }
-          >
+          <Button onClick={createShape} disabled={vertices.length < 3}>
             Create Shape
           </Button>
         </DialogFooter>
