@@ -92,6 +92,7 @@ export default function WorkspacePage() {
       onPointerMissed={() => {
         deselect();
       }}
+      frameloop={"demand"}
 
       onCreated={(state: RootState) => {
         // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
