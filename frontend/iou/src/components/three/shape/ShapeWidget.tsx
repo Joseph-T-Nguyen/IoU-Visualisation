@@ -47,7 +47,7 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
       hoverColor={hoverColor}
       secondaryHoverColor={secondaryHoverColor}
 
-      fresnelColor={"#FFFFFF"}
+      fresnelColor={wholeShapeIsSelected ? hoverFresnelColor : "#FFFFFF"}
       hoverFresnelColor={hoverFresnelColor}
 
       onPress={(vertexId?: number) => {

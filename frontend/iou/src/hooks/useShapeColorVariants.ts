@@ -67,7 +67,7 @@ function hex(c: Color) {
 }
 
 const selectionColor = "#00D3F2";
-const hoverFresnelColor = hex(lighten(saturate(new Color(selectionColor), 0.5),0.99));
+const hoverFresnelColor = hex(lighten(new Color(selectionColor), 0.23));
 
 export default function useShapeColorVariants(shapeColor: string, wholeShapeIsSelected: boolean = false) {
 
