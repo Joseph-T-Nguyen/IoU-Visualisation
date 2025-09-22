@@ -3,8 +3,8 @@ import { create } from "zustand/react";
 import * as THREE from 'three';
 import { BufferGeometry, Float32BufferAttribute } from "three";
 import type { IntersectionWorkerReply as IntersectionWorkerReply3D, WorkerGeometryInput, WorkerInput as WorkerInput3D } from "@/hooks/workspace/stores/intersection.worker.ts";
-// NOTE: 2D worker imports are removed for now as it is not implemented yet.
-import { useDimensionsStore, type DimensionsStore } from "@/hooks/workspace/stores/useDimensionsStore.ts";
+import type { IntersectionWorkerReply2D, WorkerGeometryInput2D, WorkerInput2D } from "@/hooks/workspace/stores/2d-intersection.worker.ts";
+import { useDimensionsStore } from "@/hooks/workspace/stores/useDimensionsStore.ts";
 
 export type ShapeGeometries = { [shapeId: string]: THREE.BufferGeometry };
 
@@ -24,9 +24,10 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
   const pendingDataRef: Ref<ShapeGeometries | null> = { current: null };
   const runningRef: Ref<boolean> = { current: false };
 
-  let worker: Worker | null = null;
+  let worker3D: Worker | null = null;
+  let worker2D: Worker | null = null;
 
-  const onDataReceived = (reply: IntersectionWorkerReply3D) => {
+  const onDataReceived = (reply: IntersectionWorkerReply3D | IntersectionWorkerReply2D) => {
     if (reply.position) {
       const buffer = new BufferGeometry();
       buffer.setAttribute('position', new Float32BufferAttribute(reply.position, 3));
@@ -46,31 +47,37 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
     }
   };
 
-  const getOrCreateWorker = (): Worker => {
-    if (worker) {
-      return worker;
+  const getOrCreateWorker = (dimensions: '2d' | '3d'): Worker => {
+    if (dimensions === '3d') {
+      if (worker3D) {
+        return worker3D;
+      }
+      const workerUrl = new URL("./intersection.worker.ts", import.meta.url);
+      const newWorker = new Worker(workerUrl, { type: "module" });
+      newWorker.onmessage = (e) => onDataReceived(e.data);
+      worker3D = newWorker;
+      return worker3D;
+    } else {
+      if (worker2D) {
+        return worker2D;
+      }
+      const workerUrl = new URL("./2d-intersection.worker.ts", import.meta.url);
+      const newWorker = new Worker(workerUrl, { type: "module" });
+      newWorker.onmessage = (e) => onDataReceived(e.data);
+      worker2D = newWorker;
+      return worker2D;
     }
-    const workerUrl = new URL("./intersection.worker.ts", import.meta.url);
-    const newWorker = new Worker(workerUrl, { type: "module" });
-    newWorker.onmessage = (e) => onDataReceived(e.data);
-    worker = newWorker;
-    return worker;
   };
 
   const calculateNewIntersection = (geometries: ShapeGeometries) => {
     const dimensions = useDimensionsStore.getState().dimensions;
-    if (dimensions === '2d') {
-        // If we are in 2D, just clear the intersection and do nothing.
-        setRaw({ intersection: undefined, iou: undefined });
-        return;
-    }
       
     if (runningRef.current) {
       pendingDataRef.current = geometries;
       return;
     }
 
-    const worker = getOrCreateWorker();
+    const worker = getOrCreateWorker(dimensions);
     runningRef.current = true;
 
     const shapeIds = Object.keys(geometries);
@@ -79,8 +86,13 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
       .map(geo => ({
         position: geo.getAttribute("position").array as Float32Array,
         normal: geo.getAttribute("normal").array as Float32Array,
-      }) as WorkerGeometryInput);
-    worker.postMessage({ meshes } as WorkerInput3D);
+      }));
+    
+    if (dimensions === '3d') {
+      worker.postMessage({ meshes } as WorkerInput3D);
+    } else {
+      worker.postMessage({ meshes } as WorkerInput2D);
+    }
   };
 
   const set = (partial: Partial<ShapeGeometrySlice> | ((state: ShapeGeometrySlice) => Partial<ShapeGeometrySlice>)) => {
@@ -89,11 +101,8 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
     calculateNewIntersection(state.meshes);
   };
 
-  // Subscribe to dimension changes to clear intersection state
-  useDimensionsStore.subscribe((state: DimensionsStore) => {
-    if (state.dimensions === '2d') {
-        setRaw({ intersection: undefined, iou: undefined });
-    }
+  // Subscribe to dimension changes to recalculate intersection
+  useDimensionsStore.subscribe(() => {
     calculateNewIntersection(get().meshes);
   });
 
