@@ -100,7 +100,6 @@ interface ShapeMaterialUniforms {
 }
 
 export default function ShapeRenderer(props: ShapeRendererProps) {
-
   const [dimensions] = useDimensions();
   const meshRef = useRef<Mesh>(null);
 
@@ -114,11 +113,6 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
 
   // Get colors
   const vertexColor = props.vertexColor ?? "blue";
-
-  // const selectedEdgeColor = props.selectedEdgeColor ?? "#00D3F2";
-  // const edgeColor = dimensions === "3d"
-  //   ? props.wholeShapeSelected ? selectedEdgeColor : vertexColor
-  //   : shapeIsHovered || props.wholeShapeSelected ? "#00D3F2" : vertexColor;
   const edgeColor = vertexColor;
 
   const baseColor = props.baseColor ?? "#F1F5F9";
@@ -217,7 +211,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         depthTest={props.depthTest ?? true}
       />
       <mesh
-        geometry={geometry}
+        geometry={props.geometry}
         ref={meshRef}
         // When in 2d, push the polygon away from the edges, to help with z fighting
         position={dimensions === "2d" ? [0, 0, -1] : [0, 0, 0]}

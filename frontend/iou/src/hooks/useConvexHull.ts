@@ -28,8 +28,8 @@ export default function useConvexHull(vertices: Vec3[], onEdges?: (edges?: [Vec3
     // Apply result from worker
     const buffer = new BufferGeometry();
     // TODO: Use FloatArrays instead when transferring data between the worker and the main thread
-    buffer.setAttribute( 'position', new Float32BufferAttribute(reply.vertices, 3));
-    buffer.setAttribute( 'normal', new Float32BufferAttribute(reply.normals, 3));
+    buffer.setAttribute('position', new Float32BufferAttribute(reply.positions, 3));
+    buffer.setAttribute('normal', new Float32BufferAttribute(reply.normals, 3));
 
     onEdges?.(reply.edges);
 
