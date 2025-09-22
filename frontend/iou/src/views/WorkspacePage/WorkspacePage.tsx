@@ -24,7 +24,6 @@ export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
-  const shapes = useShapesStore((s) => s.shapes);
 
   const deselect = useShapesStore((s) => s.deselect);
 
@@ -137,7 +136,6 @@ export default function WorkspacePage() {
       <IntersectionRenderer />
       {/* Add every shape to the scene: */}
       {shapeUUIDs
-        .filter((uuid) => shapes[uuid]?.visible)
         .map((uuid: string) => (
           <ShapeWidget uuid={uuid} key={uuid} />
         ))

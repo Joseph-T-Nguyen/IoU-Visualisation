@@ -13,7 +13,7 @@ export interface ShapeWidgetProps {
 
 
 export default function ShapeWidget(props: ShapeWidgetProps) {
-  const { vertices, color: shapeColor } = useShape(props.uuid);
+  const { vertices, color: shapeColor, visible } = useShape(props.uuid);
 
   const { beginInteraction, endInteraction } = useSetCameraInteraction(props.uuid);
   const select = useSelect();
@@ -32,7 +32,7 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
 
   const [geometry, edges] = useShapeGeometry(props.uuid, vertices);
 
-  return (
+  return visible && (
     <ShapeRenderer
       vertices={vertices}
       edges={edges}
