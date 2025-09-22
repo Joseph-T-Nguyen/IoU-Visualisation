@@ -28,6 +28,7 @@
     "clsx": "^2.1.1",
     "color": "^5.0.0",
     "comlink": "^4.4.2",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.536.0",
     "martinez-polygon-clipping": "^0.7.4",
     "react": "^19.1.1",
