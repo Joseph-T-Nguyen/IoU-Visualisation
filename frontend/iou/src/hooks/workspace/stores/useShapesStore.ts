@@ -3,7 +3,6 @@ import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/stores/createSelectionSlice.ts";
 import type {StateCreator} from "zustand/vanilla";
 import * as THREE from 'three';
-// import monkey from "@/hooks/workspace/mokey.ts";
 import * as UUID from "uuid";
 
 export type Shapes = {[key: string]: ShapeData}
@@ -12,6 +11,7 @@ export interface ShapesSlice {
   colorQueue: string[];
   createdShapeCount: number;
   yellowUsed: boolean;
+  toggleShapeVisibility: (id: string) => void;
 
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
@@ -22,7 +22,6 @@ export interface ShapesSlice {
   deleteSelections: () => void;
   setManyVertices: (mods: [string, Vec3[]][]) => void;
   matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
-
 }
 
 // We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
@@ -33,14 +32,37 @@ export const defaultColors = [
   "#10b981",
   "#0ea5e9",
   "#f59e0b",
-  "#db2777",
-  "#84cc16",
+  "#ec4899",
   "#14b8a6",
-  "#ea580c",
-  "#9333ea",
-  "#16a34a",
-  "#4f46e5",
+  "#6366f1",
+  "#eab308",
+  "#f43f5e",
+  "#f97316",
+  "#84cc16",
+  "#a855f7",
+  "#22c55e",
 ];
+
+// So I can randomize colours
+function shuffleArray(arr: string[]) {
+  const array = arr.slice();
+  for (let i = array.length - 1; i > 0; i--) {
+    // Pick a random index from 0 to i
+    const j = Math.floor(Math.random() * (i + 1));
+    // Swap elements array[i] and array[j]
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function getRandomDefaultColors() {
+  // Keep these colors the same every time:
+  const start = defaultColors.slice(0, 4);
+
+  // Vary everything else
+  const shuffled = shuffleArray(defaultColors.slice(4));
+  return [...start, ...shuffled];
+}
 
 const setVerticesAux = (id: string, vertices: Vec3[]) => (state: ShapesSlice) => ({
   shapes: {
@@ -74,26 +96,6 @@ function fixPartialShapesReducer<T extends unknown[]>(f: (...args: T) => ((state
 
 function applyReducerAux<T extends unknown[], Store>(set: (partial: Partial<Store> | ((state: Store) => Partial<Store>)) => void, reducer: (...args: T) => ((state: Store) => Partial<Store>) | Partial<Store>) {
   return (...args: T) => set(reducer(...args))
-}
-
-// So I can randomize colours
-function shuffleArray(arr: string[]) {
-  const array = arr.slice();
-  for (let i = array.length - 1; i > 0; i--) {
-    // Pick a random index from 0 to i
-    const j = Math.floor(Math.random() * (i + 1));
-    // Swap elements array[i] and array[j]
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-function getRandomDefaultColors() {
-  // Keep these colors the same every time:
-  const start = defaultColors.slice(0, 4);
-
-  // Vary everything else
-  const shuffled = shuffleArray(defaultColors.slice(4));
-  return [...start, ...shuffled];
 }
 
 /**
@@ -130,8 +132,8 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
             [0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 0],
             [0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]
           ],
-          // TODO: Face generation from convex hull algorithm
           faces: [],
+          visible: true, // Set default visibility
         }
       },
 
@@ -140,6 +142,22 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
       createdShapeCount: state.createdShapeCount + 1,
     });
+  }),
+
+  toggleShapeVisibility: (id: string) => set((state) => {
+    const shape = state.shapes[id];
+    if (shape === undefined)
+      return {};
+
+    return {
+      shapes: {
+        ...state.shapes,
+        [id]: {
+          ...shape,
+          visible: !shape.visible,
+        }
+      },
+    }
   }),
 
   toggleShapeColor: (id: string) => set((state) => {
@@ -187,29 +205,17 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     // Gets the current selections from the selection slice
     const selection = get().selections;
 
-    const deletedColors: string[] = [];
-
     // Filter out shapes based on elements in selection
     for (const key in selection) {
       // If no specific children (vertices) are defined in the selection, delete the whole shape
-      if (selection[key].children === undefined) {
-        // Put the shape's color back into the colorQueue
-        if (state.shapes[key])
-          deletedColors.push(state.shapes[key].color);
-        // Delete the shape
-        delete newShapes[key];
-      }
+      if (selection[key].children === undefined)
+        delete newShapes[key]
       else if (state.shapes[key] !== undefined) {
         // Otherwise filter out specified children (vertices)
         const newVertices = state.shapes[key].vertices.filter((_, i) => !selection[key]?.children?.has(i));
 
-        if (newVertices.length === 0) {
-          // Put the shape's color back into the colorQueue
-          if (state.shapes[key])
-            deletedColors.push(state.shapes[key].color);
-          // Delete the shape
+        if (newVertices.length === 0)
           delete newShapes[key];
-        }
         else {
           newShapes[key] = {
             ...state.shapes[key],
@@ -222,7 +228,6 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     return {
       selections: {},
       shapes: newShapes,
-      colorQueue: [...deletedColors, ...state.colorQueue]
     }
   }),
 

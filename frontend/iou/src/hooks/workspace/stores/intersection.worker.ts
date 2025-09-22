@@ -1,5 +1,3 @@
-/// <reference lib="webworker" />
-
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import { CSG } from 'three-csg-ts';
 import * as THREE from "three";
@@ -136,42 +134,46 @@ function calculateIOU(buffers: THREE.BufferGeometry[], intersection: THREE.Buffe
 }
 
 self.onmessage = (event: MessageEvent<Vec3[]>) => {
+  try {
+    const geometries = (event.data as unknown as WorkerInput).meshes;
+    const buffers = geometries
+      .map((geo) => {
+        const buffer = new BufferGeometry();
 
-  const geometries = (event.data as unknown as WorkerInput).meshes;
-  const buffers = geometries
-    .map((geo) => {
-      const buffer = new BufferGeometry();
+        buffer.setAttribute( 'position', new Float32BufferAttribute(geo.position, 3));
+        buffer.setAttribute( 'normal', new Float32BufferAttribute(geo.normal, 3));
+        return buffer;
+      });
 
-      buffer.setAttribute( 'position', new Float32BufferAttribute(geo.position, 3));
-      buffer.setAttribute( 'normal', new Float32BufferAttribute(geo.normal, 3));
-      return buffer;
-    });
+    const volumes = buffers.map(buffer => computeGeometryVolume(buffer))
+    const anyVolumesAreFlat = volumes
+      .map(v => Math.abs(v) < EPSILON)
+      .reduce((a, b) => a || b, false);
 
-  const volumes = buffers.map(buffer => computeGeometryVolume(buffer))
-  const anyVolumesAreFlat = volumes
-    .map(v => Math.abs(v) < EPSILON)
-    .reduce((a, b) => a || b, false);
+    // Prevent flat shapes from causing chaos
+    if (anyVolumesAreFlat) {
+      self.postMessage({});
+      return;
+    }
 
-  // Prevent flat shapes from causing chaos
-  if (anyVolumesAreFlat) {
-    self.postMessage({});
-    return;
+    const intersection = calculateNewIntersectionGeometry(buffers);
+
+    if (intersection === undefined) {
+      self.postMessage({});
+      return;
+    }
+
+    const iou = intersection ? calculateIOU(buffers, intersection) : undefined;
+
+    const reply = {
+      position: intersection.getAttribute("position").array,
+      normal: intersection.getAttribute("normal").array,
+      iou
+    } as IntersectionWorkerReply;
+
+    self.postMessage(reply, { transfer: [reply.position!.buffer, reply.normal!.buffer] });
+  } catch (e) {
+    console.error("Error in intersection worker:", e);
+    self.postMessage({}); // Send an empty message on error
   }
-
-  const intersection = calculateNewIntersectionGeometry(buffers);
-
-  if (intersection === undefined) {
-    self.postMessage({});
-    return;
-  }
-
-  const iou = intersection ? calculateIOU(buffers, intersection) : undefined;
-
-  const reply = {
-    position: intersection.getAttribute("position").array,
-    normal: intersection.getAttribute("normal").array,
-    iou
-  } as IntersectionWorkerReply;
-
-  self.postMessage(reply, [reply.position!.buffer, reply.normal!.buffer]);
 }

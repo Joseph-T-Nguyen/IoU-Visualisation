@@ -24,33 +24,39 @@ import {
 export default function WorkspacesPage() {
   const navigate = useNavigate();
   // Use the hook to fetch workspaces data
-  const { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, getWorkspaceVersions, duplicateWorkspace } = useWorkspaces();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [workspaceName, setWorkspaceName] = useState("Untitled");
+  const {
+    workspaces,
+    loading,
+    renameWorkspace,
+    deleteWorkspace,
+    getWorkspaceVersions,
+    duplicateWorkspace,
+  } = useWorkspaces();
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-  const [renameWorkspaceId, setRenameWorkspaceId] = useState<string | null>(null);
+  const [renameWorkspaceId, setRenameWorkspaceId] = useState<string | null>(
+    null
+  );
   const [renameWorkspaceName, setRenameWorkspaceName] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deleteWorkspaceId, setDeleteWorkspaceId] = useState<string | null>(null);
+  const [deleteWorkspaceId, setDeleteWorkspaceId] = useState<string | null>(
+    null
+  );
   const [deleteWorkspaceName, setDeleteWorkspaceName] = useState("");
   const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
-  const [versionWorkspaceId, setVersionWorkspaceId] = useState<string | null>(null);
+  const [versionWorkspaceId, setVersionWorkspaceId] = useState<string | null>(
+    null
+  );
   const [versionWorkspaceName, setVersionWorkspaceName] = useState("");
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [shareWorkspaceId, setShareWorkspaceId] = useState<string | null>(null);
   const [shareWorkspaceName, setShareWorkspaceName] = useState("");
-  const [sharePermission, setSharePermission] = useState<"viewer" | "editor">("viewer");
+  const [sharePermission, setSharePermission] = useState<"viewer" | "editor">(
+    "viewer"
+  );
   const [isCopied, setIsCopied] = useState(false);
 
-  const handleCreateWorkspace = () => {
-    createWorkspace(workspaceName);
-    setIsDialogOpen(false);
-    setWorkspaceName("Untitled");
-  };
-
-  const handleOpenDialog = () => {
-    setWorkspaceName("Untitled");
-    setIsDialogOpen(true);
+  const handleCreateNewWorkspace = () => {
+    navigate("/workspaces/new");
   };
 
   const handleOpenRenameDialog = (workspaceId: string, currentName: string) => {
@@ -68,7 +74,10 @@ export default function WorkspacesPage() {
     }
   };
 
-  const handleOpenDeleteDialog = (workspaceId: string, workspaceName: string) => {
+  const handleOpenDeleteDialog = (
+    workspaceId: string,
+    workspaceName: string
+  ) => {
     setDeleteWorkspaceId(workspaceId);
     setDeleteWorkspaceName(workspaceName);
     setIsDeleteDialogOpen(true);
@@ -83,13 +92,19 @@ export default function WorkspacesPage() {
     }
   };
 
-  const handleOpenVersionDialog = (workspaceId: string, workspaceName: string) => {
+  const handleOpenVersionDialog = (
+    workspaceId: string,
+    workspaceName: string
+  ) => {
     setVersionWorkspaceId(workspaceId);
     setVersionWorkspaceName(workspaceName);
     setIsVersionDialogOpen(true);
   };
 
-  const handleOpenShareDialog = (workspaceId: string, workspaceName: string) => {
+  const handleOpenShareDialog = (
+    workspaceId: string,
+    workspaceName: string
+  ) => {
     setShareWorkspaceId(workspaceId);
     setShareWorkspaceName(workspaceName);
     setSharePermission("viewer");
@@ -170,7 +185,7 @@ export default function WorkspacesPage() {
             variant="outline"
             className="w-full sm:w-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
             aria-label="Create new workspace"
-            onClick={handleOpenDialog}
+            onClick={handleCreateNewWorkspace}
           >
             <Plus className="w-4 h-4" />
             New Workspace
@@ -182,15 +197,15 @@ export default function WorkspacesPage() {
       {workspaces.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <div className="text-gray-500 mb-4">No workspaces found</div>
-          <Button variant="outline" onClick={handleOpenDialog}>
+          <Button variant="outline" onClick={handleCreateNewWorkspace}>
             <Plus className="w-4 h-4 mr-2" />
             Create your first workspace
           </Button>
         </div>
       ) : (
         /* Use WorkspaceGrid with data from the hook */
-        <WorkspaceGrid 
-          workspaces={workspaces} 
+        <WorkspaceGrid
+          workspaces={workspaces}
           maxVisibleCards={8}
           onRenameWorkspace={handleOpenRenameDialog}
           onDeleteWorkspace={handleOpenDeleteDialog}
@@ -200,44 +215,6 @@ export default function WorkspacesPage() {
           onOpenWorkspace={handleOpenWorkspace}
         />
       )}
-
-      {/* Dialog for creating new workspace */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create New Workspace</DialogTitle>
-            <DialogDescription>
-              Enter a name for your new workspace. You can change this later.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="name" className="text-right text-sm font-medium">
-                Name
-              </label>
-              <Input
-                id="name"
-                value={workspaceName}
-                onChange={(e) => setWorkspaceName(e.target.value)}
-                className="col-span-3"
-                placeholder="Enter workspace name"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleCreateWorkspace();
-                  }
-                }}
-                autoFocus
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateWorkspace}>Create</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Dialog for renaming workspace */}
       <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
@@ -250,7 +227,10 @@ export default function WorkspacesPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="rename-name" className="text-right text-sm font-medium">
+              <label
+                htmlFor="rename-name"
+                className="text-right text-sm font-medium"
+              >
                 Name
               </label>
               <Input
@@ -269,7 +249,10 @@ export default function WorkspacesPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsRenameDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleRenameWorkspace}>Rename</Button>
@@ -283,15 +266,19 @@ export default function WorkspacesPage() {
           <DialogHeader>
             <DialogTitle>Delete Workspace</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deleteWorkspaceName}"? This action cannot be undone.
+              Are you sure you want to delete "{deleteWorkspaceName}"? This
+              action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleDeleteWorkspace}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
@@ -311,7 +298,8 @@ export default function WorkspacesPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[300px] overflow-y-auto">
-            {versionWorkspaceId && getWorkspaceVersions(versionWorkspaceId).length > 0 ? (
+            {versionWorkspaceId &&
+            getWorkspaceVersions(versionWorkspaceId).length > 0 ? (
               <div className="space-y-3">
                 {getWorkspaceVersions(versionWorkspaceId)
                   .slice()
@@ -320,7 +308,10 @@ export default function WorkspacesPage() {
                     const versions = getWorkspaceVersions(versionWorkspaceId);
                     const versionNumber = versions.length - index;
                     return (
-                      <div key={version.id} className="flex items-center justify-between p-3 rounded-lg border bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div
+                        key={version.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
                         <div className="flex-1">
                           <div className="font-medium text-sm">
                             Version {versionNumber}
@@ -329,8 +320,8 @@ export default function WorkspacesPage() {
                             {version.action} • {version.timestamp}
                           </div>
                         </div>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => {
                             console.log(`Restore version ${version.id}`);
@@ -351,7 +342,10 @@ export default function WorkspacesPage() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsVersionDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsVersionDialogOpen(false)}
+            >
               Close
             </Button>
           </DialogFooter>
@@ -364,7 +358,8 @@ export default function WorkspacesPage() {
           <DialogHeader>
             <DialogTitle>Share "{shareWorkspaceName}"</DialogTitle>
             <DialogDescription>
-              Anyone with the link can access this workspace with the selected permission.
+              Anyone with the link can access this workspace with the selected
+              permission.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -379,13 +374,13 @@ export default function WorkspacesPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-32">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => setSharePermission("viewer")}
                     className="cursor-pointer"
                   >
                     Viewer
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => setSharePermission("editor")}
                     className="cursor-pointer"
                   >
@@ -424,14 +419,17 @@ export default function WorkspacesPage() {
                 </Button>
               </div>
               <p className="text-xs text-gray-500">
-                {sharePermission === "viewer" 
+                {sharePermission === "viewer"
                   ? "Viewers can only view the workspace content"
                   : "Editors can view and make changes to the workspace"}
               </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsShareDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsShareDialogOpen(false)}
+            >
               Done
             </Button>
           </DialogFooter>
