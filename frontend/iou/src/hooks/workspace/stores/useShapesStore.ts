@@ -13,6 +13,7 @@ export interface ShapesSlice {
   colorQueue: string[];
   createdShapeCount: number;
   yellowUsed: boolean;
+
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
   toggleShapeColor: (id: string) => void;

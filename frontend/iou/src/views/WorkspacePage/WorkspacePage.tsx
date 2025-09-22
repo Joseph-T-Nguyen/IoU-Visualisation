@@ -15,6 +15,7 @@ import {useEffect} from "react";
 import {AdaptiveEvents} from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import useLoadWorkspace from "@/hooks/workspace/useLoadWorkspace.ts";
+
 import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
 import IOUWidget from "@/components/widgets/workspace/context/IOUWidget.tsx";
 import * as THREE from "three";
