@@ -12,11 +12,4 @@ export default {
     Create: '/',
     Duplicate: '/:id/duplicate',
   },
-  Users: {
-    Base: '/users',
-    Get: '/all',
-    Add: '/add',
-    Update: '/update',
-    Delete: '/delete/:id',
-  },
 } as const;
