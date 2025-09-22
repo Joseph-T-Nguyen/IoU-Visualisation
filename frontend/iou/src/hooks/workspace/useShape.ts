@@ -17,13 +17,11 @@ export default function useShape(uuid: string) {
   const setVertices = useShapesStore(s => s.setVertices);
   const setShapeName = useShapesStore(s => s.setShapeName);
   const setShapeColor = useShapesStore(s => s.setShapeColor);
-  const toggleShapeColor = useShapesStore(state => state.toggleShapeColor);
 
   return {
     setVertices: (vertices: Vec3[]) => setVertices(uuid, vertices),
     setName: (name: string) => setShapeName(uuid, name),
     setColor: (color: string) => setShapeColor(uuid, color),
-    toggleColor: () => toggleShapeColor(uuid),
     ...store,
     vertices,
   }

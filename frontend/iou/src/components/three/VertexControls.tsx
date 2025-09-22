@@ -66,7 +66,7 @@ export default function VertexControls() {
     if (!pivotRef.current) {
       let pivot: THREE.Group<THREE.Object3DEventMap> | null = null;
 
-      let id = undefined as number | undefined;
+      let id = undefined as NodeJS.Timeout | undefined;
       const deferredSet = () => {
         // ts linter is wrong here. ignore it.
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

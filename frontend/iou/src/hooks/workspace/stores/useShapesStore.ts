@@ -3,7 +3,6 @@ import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/stores/createSelectionSlice.ts";
 import type {StateCreator} from "zustand/vanilla";
 import * as THREE from 'three';
-// import monkey from "@/hooks/workspace/mokey.ts";
 import * as UUID from "uuid";
 
 export type Shapes = {[key: string]: ShapeData}
@@ -14,6 +13,7 @@ export interface ShapesSlice {
 
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
+  toggleShapeVisibility: (id: string) => void;
   toggleShapeColor: (id: string) => void;
   setShapeName: (id: string, name: string) => void;
   setShapeColor: (id: string, name: string) => void;
@@ -127,8 +127,8 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
             [0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 0],
             [0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]
           ],
-          // TODO: Face generation from convex hull algorithm
           faces: [],
+          visible: true, // Set default visibility
         }
       },
 
@@ -136,6 +136,22 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
       createdShapeCount: state.createdShapeCount + 1,
     });
+  }),
+
+  toggleShapeVisibility: (id: string) => set((state) => {
+    const shape = state.shapes[id];
+    if (shape === undefined)
+      return {};
+
+    return {
+      shapes: {
+        ...state.shapes,
+        [id]: {
+          ...shape,
+          visible: !shape.visible,
+        }
+      },
+    }
   }),
 
   toggleShapeColor: (id: string) => set((state) => {

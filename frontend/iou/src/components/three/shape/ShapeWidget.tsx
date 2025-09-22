@@ -11,6 +11,7 @@ export interface ShapeWidgetProps {
   uuid: string
 }
 
+
 export default function ShapeWidget(props: ShapeWidgetProps) {
   const { vertices, color: shapeColor } = useShape(props.uuid);
 

@@ -4,11 +4,11 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 export interface EdgesRendererProps {
-  edges: [Vec3, Vec3][];
-  color?: string;
-  radius?: number;
-  depthTest?: boolean;
-  side?: THREE.Side;
+  edges: [Vec3, Vec3][],
+  color?: string,
+  radius?: number,
+  depthTest?: boolean,
+  side?: THREE.Side,
 }
 
 export default function EdgesRenderer(props: EdgesRendererProps) {
@@ -40,7 +40,8 @@ export default function EdgesRenderer(props: EdgesRendererProps) {
   }, [props.edges]);
 
   useEffect(() => {
-    if (!meshRef.current) return;
+    if (!meshRef.current)
+      return;
 
     matrices.forEach((m, i) => meshRef.current?.setMatrixAt(i, m));
     meshRef.current.instanceMatrix.needsUpdate = true;

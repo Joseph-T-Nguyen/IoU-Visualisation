@@ -94,7 +94,6 @@ function getSharpEdgesAsVec3(
   return result;
 }
 
-
 export default function IntersectionRenderer() {
   const intersection = useShapeGeometryStore(state => state.intersection);
   const vertices = [] as Vec3[];
@@ -102,7 +101,7 @@ export default function IntersectionRenderer() {
     intersection ? getSharpEdgesAsVec3(mergeVertices(intersection), 0.1) : []
   ), [intersection]);
 
-  const [dimensions, ] = useDimensions();
+  const [dimensions] = useDimensions();
 
   // Styling
   const {
@@ -111,7 +110,7 @@ export default function IntersectionRenderer() {
     secondaryBaseColor,
   } = useShapeColorVariants(intersectionColor);
 
-  return intersection !== undefined && dimensions === "3d" && (
+  return intersection !== undefined && (
     <ShapeRenderer
       vertices={vertices}
       edges={edges}
@@ -124,7 +123,8 @@ export default function IntersectionRenderer() {
       selectedIds={new Set<number>()}
       wholeShapeSelected={false}
 
-      renderOrder={999}
+      renderOrder={dimensions === "3d" ? 999 : 0}
+      position={dimensions === "3d" ? [0, 0, 0] : [0, 0, 0.5]}
     />
   );
 }

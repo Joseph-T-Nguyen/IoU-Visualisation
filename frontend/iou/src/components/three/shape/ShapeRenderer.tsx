@@ -9,7 +9,7 @@ import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import EdgesRenderer from "@/components/three/shape/EdgesRenderer.tsx";
 import * as THREE from "three";
-import Color, {type ColorInstance} from "color";
+import Color from "color";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
@@ -35,7 +35,8 @@ export interface ShapeRendererProps {
   depthTest?: boolean,
   renderOrder?: number,
 
-  captureMovement?: boolean
+  captureMovement?: boolean,
+  position?: Vec3,
 }
 
 function colToVector(color: ColorInstance | string) {
@@ -100,7 +101,7 @@ interface ShapeMaterialUniforms {
 
 export default function ShapeRenderer(props: ShapeRendererProps) {
 
-  const [dimensions, ] = useDimensions();
+  const [dimensions] = useDimensions();
   const meshRef = useRef<Mesh>(null);
 
   const allowHovering = useCameraInteraction() === undefined;
@@ -205,18 +206,18 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
       renderOrder={props.renderOrder}
+      position={props.position}
     >
       <InstancedVertexSpheres
         vertices={props.vertices}
         hoveredIds={hoveredIds}
         color={vertexColor}
         selectedIds={props.selectedIds ?? new Set<number>()}
-
         position={dimensions === "2d" ? [0, 0, 1] : [0, 0, 0]}
         depthTest={props.depthTest ?? true}
       />
       <mesh
-        geometry={props.geometry}
+        geometry={geometry}
         ref={meshRef}
         // When in 2d, push the polygon away from the edges, to help with z fighting
         position={dimensions === "2d" ? [0, 0, -1] : [0, 0, 0]}
@@ -226,7 +227,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
           renderer.clearDepth();
         }}
       >
-        { dimensions === "2d" ? (
+        {dimensions === "2d" ? (
           <meshBasicMaterial
             color={baseColor}
             toneMapped={false}
@@ -237,7 +238,9 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
             ref={materialRef}
             vertexShader={vertexShader}
             fragmentShader={fragmentShader}
-            uniforms={uniformsRef.current as unknown as {[key: string]: IUniform}}
+            uniforms={
+              uniformsRef.current as unknown as { [key: string]: IUniform }
+            }
             depthTest={props.depthTest ?? true}
             toneMapped={false}
           />
@@ -258,8 +261,6 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
           radius={0.0625 / 2}
         />
       )}
-
-
     </group>
   );
 }
