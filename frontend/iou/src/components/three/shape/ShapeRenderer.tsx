@@ -37,8 +37,6 @@ export interface ShapeRendererProps {
 
   captureMovement?: boolean,
   position?: Vec3,
-
-  stencilRef?: number,
 }
 
 function colToVector(color: ColorInstance | string) {
@@ -76,6 +74,7 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uColor;
   uniform vec3 uSecondaryColor;
   uniform vec3 uFresnelColor;
+  // uniform float uOpacity;
 
   void main() {
     float extrapolation = 1.2;
@@ -90,7 +89,6 @@ const fragmentShader = /* glsl */ `
     vec3 fresnelledColor = (uFresnelColor * vec3(fresnel)) + (color * vec3(1.0 - fresnel));
     
     gl_FragColor = vec4(fresnelledColor, 1.0);
-    // gl_FragColor = vec4(vNormal, 1.0);
   }
 `;
 
@@ -99,6 +97,7 @@ interface ShapeMaterialUniforms {
   uColor: THREE.Uniform<THREE.Vector3>,
   uSecondaryColor: THREE.Uniform<THREE.Vector3>,
   uFresnelColor: THREE.Uniform<THREE.Vector3>,
+  // uOpacity: THREE.Uniform<number>,
 }
 
 export default function ShapeRenderer(props: ShapeRendererProps) {
@@ -186,13 +185,16 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
     uSecondaryColor: new THREE.Uniform(new THREE.Vector3()),
     uFresnelColor: new THREE.Uniform(new THREE.Vector3()),
   };
-
   // Set shader uniforms when colors change
   useEffect(() => {
     uniformsRef.current.uColor.value = colToVector(shapeIsHovered ? hoverColor : baseColor);
     uniformsRef.current.uSecondaryColor.value = colToVector(shapeIsHovered ? secondaryHoverColor : secondaryBaseColor);
     uniformsRef.current.uFresnelColor.value = colToVector(shapeIsHovered ? hoverFresnelColor : fresnelColor);
   }, [baseColor, secondaryBaseColor, hoverColor, secondaryHoverColor, shapeIsHovered, fresnelColor, hoverFresnelColor]);
+
+  const renderOrder = props.renderOrder ?? 0;
+
+  const shapeIsHighlighted = props.wholeShapeSelected || shapeIsHovered;
 
   return (
     <group
@@ -201,27 +203,38 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
       onClick={onClick}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
-      renderOrder={props.renderOrder}
       position={props.position}
+
+      // This allows us to render the intersection in front of everything else
+      onBeforeRender={renderOrder < 990 ? undefined : (renderer) => {
+        renderer.clearDepth();
+      }}
     >
+      {renderOrder >= 990 && (
+        <mesh
+          renderOrder={renderOrder-1}
+          // This allows us to render the intersection in front of everything else
+          onBeforeRender={renderOrder < 990 ? undefined : (renderer) => {
+            renderer.clearDepth();
+          }}
+        />
+      )}
       <InstancedVertexSpheres
         vertices={props.vertices}
         hoveredIds={hoveredIds}
         color={vertexColor}
         selectedIds={props.selectedIds ?? new Set<number>()}
-        position={dimensions === "2d" ? [0, 0, 1] : [0, 0, 0]}
+        position={dimensions === "2d" ? [0, 0, shapeIsHighlighted ? 2 : 1] : [0, 0, 0]}
         depthTest={props.depthTest ?? true}
+
+        renderOrder={renderOrder}
       />
       <mesh
         geometry={props.geometry}
         ref={meshRef}
         // When in 2d, push the polygon away from the edges, to help with z fighting
-        position={dimensions === "2d" ? [0, 0, -1] : [0, 0, 0]}
-
-        // This allows us to render the intersection in front of everything else
-        onBeforeRender={(props.renderOrder ?? 0) <= 0 ? undefined : (renderer) => {
-          renderer.clearDepth();
-        }}
+        position={dimensions === "2d" ? [0, 0, shapeIsHighlighted ? -0.5 : -1] : [0, 0, 0]}
+        renderOrder={renderOrder + 4}
       >
         {dimensions === "2d" ? (
           <meshBasicMaterial
@@ -237,6 +250,14 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
             uniforms={
               uniformsRef.current as unknown as { [key: string]: IUniform }
             }
+
+            // Stencil write when props.stencilRef is defined
+            stencilWrite={true}
+            stencilRef={1}
+            stencilFunc={THREE.GreaterEqualStencilFunc}
+            stencilFail={THREE.KeepStencilOp}
+            stencilZPass={THREE.ReplaceStencilOp}
+
             depthTest={props.depthTest ?? true}
             toneMapped={false}
           />
@@ -247,14 +268,33 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
         edges={props.edges}
         color={edgeColor}
         depthTest={props.depthTest ?? true}
+
+        position={dimensions === "2d" && shapeIsHighlighted ? [0, 0, 1] : [0, 0, 0]}
+
+        stencilWrite={true}
+        stencilRef={1}
+        stencilFunc={THREE.GreaterEqualStencilFunc}
+        stencilZPass={THREE.ReplaceStencilOp}
+        segments={6}
+
+        renderOrder={renderOrder}
       />
-      {(shapeIsHovered || props.wholeShapeSelected) && (
+      {(shapeIsHighlighted) && (
         <EdgesRenderer
           edges={props.edges}
           color={"#00D3F2"}
           depthTest={props.depthTest ?? true}
           side={THREE.BackSide}
-          radius={0.0625 / 2}
+          radius={0.0625 * 1.5/2}
+          segments={6}
+          position={dimensions === "2d" ? [0, 0, -0.75] : [0, 0, 0]}
+
+          renderOrder={renderOrder + 5}
+          stencilWrite={true}
+          stencilRef={0}
+          stencilFunc={THREE.GreaterEqualStencilFunc}
+          stencilFail={THREE.KeepStencilOp}
+          stencilZPass={THREE.KeepStencilOp}
         />
       )}
     </group>

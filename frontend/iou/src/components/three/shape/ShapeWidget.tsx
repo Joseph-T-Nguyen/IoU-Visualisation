@@ -64,8 +64,6 @@ export default function ShapeWidget(props: ShapeWidgetProps) {
       }}
       onPointerUp={endInteraction}
       captureMovement={true}
-
-      renderOrder={0}
     />
   )
 }

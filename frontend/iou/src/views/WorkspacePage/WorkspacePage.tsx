@@ -27,6 +27,8 @@ export default function WorkspacePage() {
 
   const deselect = useShapesStore((s) => s.deselect);
 
+  console.log("Re-rendering the workspace page.")
+
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
     <div className="flex flex-col md:flex-row justify-center w-full h-full py-3 p-3 gap-3 overscroll-contain overflow-clip">
@@ -86,6 +88,7 @@ export default function WorkspacePage() {
   return (<>
     <WorkspaceActionListener />
     <FlexyCanvas
+      gl={{ stencil: true, autoClearStencil: true }}
       /* min-h-[100dv] works better on mobile devices that h-screen */
       className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
       overlay={overlay}
@@ -134,11 +137,11 @@ export default function WorkspacePage() {
 
       {/* Add 3D content here: */}
 
-      <IntersectionRenderer stencilRef={0}/>
+      <IntersectionRenderer />
       {/* Add every shape to the scene: */}
       {shapeUUIDs
-        .map((uuid: string, i: number) => (
-          <ShapeWidget uuid={uuid} key={uuid} stencilRef={i+1} />
+        .map((uuid: string) => (
+          <ShapeWidget uuid={uuid} key={uuid} />
         ))
       }
 

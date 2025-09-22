@@ -1,6 +1,7 @@
 import {memo, useEffect, useMemo, useRef} from 'react';
 import { InstancedMesh, Matrix4, BackSide } from 'three';
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
+import * as THREE from "three";
 
 export interface InstancedVertexSpheresProps {
   vertices: Vec3[],
@@ -16,7 +17,7 @@ export interface InstancedVertexSpheresProps {
   hideSelection?: boolean,
 
   depthTest?: boolean,
-  drawOrder?: number
+  drawOrder?: number,
 }
 
 
@@ -83,7 +84,16 @@ function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
       >
         {/* Base sphere geometry */}
         <sphereGeometry args={[radius, 16, 8]} />
-        <meshBasicMaterial color={color} toneMapped={false} depthTest={props.depthTest}/>
+        <meshBasicMaterial
+          color={color}
+          toneMapped={false}
+          depthTest={props.depthTest}
+
+          stencilRef={1}
+          stencilWrite
+          stencilFunc={THREE.AlwaysStencilFunc}
+          stencilZPass={THREE.ReplaceStencilOp}
+        />
       </instancedMesh>
 
       <instancedMesh
@@ -93,16 +103,36 @@ function InstancedVertexSpheresUnmemoed(props: InstancedVertexSpheresProps) {
         position={props.position}
       >
         <sphereGeometry args={[radius * 1.001, 16, 8]} />
-        <meshBasicMaterial color="white" toneMapped={false} depthTest={props.depthTest}/>
+        <meshBasicMaterial
+          color="white"
+          toneMapped={false}
+          depthTest={props.depthTest}
+
+          stencilRef={2}
+          stencilWrite
+          stencilFunc={THREE.AlwaysStencilFunc}
+          stencilZPass={THREE.ReplaceStencilOp}
+        />
       </instancedMesh>
       <instancedMesh
         ref={selectedOuterMeshRef}
         args={[undefined, undefined, hoveredMatrices.length]}
-        renderOrder={props.renderOrder}
+        renderOrder={(props.renderOrder ?? 0) + 2}
         position={props.position}
       >
         <sphereGeometry args={[radius * 1.5, 16, 8]} />
-        <meshBasicMaterial color="#00D3F2" side={BackSide} toneMapped={false} depthTest={props.depthTest}/>
+        <meshBasicMaterial
+          color="#00D3F2"
+          side={BackSide}
+          toneMapped={false}
+          depthTest={props.depthTest}
+
+          stencilRef={4}
+          stencilWrite
+          stencilFunc={THREE.AlwaysStencilFunc}
+          stencilZFail={THREE.ReplaceStencilOp}
+          stencilZPass={THREE.ReplaceStencilOp}
+        />
       </instancedMesh>
     </>
   );
