@@ -1,7 +1,7 @@
-import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import { useUndoRedoStore } from "@/hooks/workspace/stores/useUndoRedoStore.ts";
 import useOnKeyDown from "@/hooks/input/useOnKeyDown.ts";
 
 export default function useWorkspaceDeselect() {
-  const deselect = useShapesStore(state => state.deselect);
+  const deselect = useUndoRedoStore(state => state.deselect);
   useOnKeyDown("Escape", deselect, [deselect]);
 }

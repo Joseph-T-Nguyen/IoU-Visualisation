@@ -1,10 +1,10 @@
-import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import { useUndoRedoStore } from "@/hooks/workspace/stores/useUndoRedoStore.ts";
 import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import {useMemo} from "react";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 
 export default function useShape(uuid: string) {
-  const store: ShapeData = useShapesStore(s => s.shapes[uuid])!;
+  const store: ShapeData = useUndoRedoStore(s => s.shapes[uuid])!;
   const [dimensions, ] = useDimensions();
 
   const vertices = useMemo<Vec3[]>(() => {
@@ -14,10 +14,10 @@ export default function useShape(uuid: string) {
     return store.vertices;
   }, [store.vertices, dimensions]);
 
-  const setVertices = useShapesStore(s => s.setVertices);
-  const setShapeName = useShapesStore(s => s.setShapeName);
-  const setShapeColor = useShapesStore(s => s.setShapeColor);
-  const toggleShapeColor = useShapesStore(state => state.toggleShapeColor);
+  const setVertices = useUndoRedoStore(s => s.setVertices);
+  const setShapeName = useUndoRedoStore(s => s.setShapeName);
+  const setShapeColor = useUndoRedoStore(s => s.setShapeColor);
+  const toggleShapeColor = useUndoRedoStore(state => state.toggleShapeColor);
 
   return {
     setVertices: (vertices: Vec3[]) => setVertices(uuid, vertices),

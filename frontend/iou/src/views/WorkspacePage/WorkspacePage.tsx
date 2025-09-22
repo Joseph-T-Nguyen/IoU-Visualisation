@@ -14,7 +14,8 @@ import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import {useEffect} from "react";
 import {AdaptiveEvents} from "@react-three/drei";
-import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import { useUndoRedoStore } from "@/hooks/workspace/stores/useUndoRedoStore.ts";
+import useWorkspaceUndoRedo from "@/hooks/workspace/input/useWorkspaceUndoRedo.ts";
 import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
 import IOUWidget from "@/components/widgets/workspace/context/IOUWidget.tsx";
 import * as THREE from "three";
@@ -24,10 +25,13 @@ import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsSt
 export default function WorkspacePage() {
   const navigate = useNavigate();
   const [dimensions, setDimensions] = useDimensions();
+  
+  // Initialize undo/redo functionality
+  useWorkspaceUndoRedo();
 
   const shapeUUIDs = useShapeUUIDs();
 
-  const deselect = useShapesStore(s => s.deselect);
+  const deselect = useUndoRedoStore(s => s.deselect);
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (

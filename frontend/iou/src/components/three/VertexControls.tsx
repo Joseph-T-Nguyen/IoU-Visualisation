@@ -1,5 +1,5 @@
 import {PivotControls, useCursor} from "@react-three/drei";
-import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import { useUndoRedoStore, startDragOperation, endDragOperation } from "@/hooks/workspace/stores/useUndoRedoStore.ts";
 import * as THREE from "three";
 import {useEffect, useRef, useState} from "react";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
@@ -16,9 +16,9 @@ export default function VertexControls() {
   const [mouseHovering, setMouseHovering] = useState<boolean>(false);
   useCursor(mouseHovering, 'grab', 'auto', document.body);
 
-  const selections = useShapesStore(s => s.selections);
-  const shapes = useShapesStore(s => s.shapes);
-  const matrixMultiplySelection = useShapesStore(s => s.matrixMultiplySelection);
+  const selections = useUndoRedoStore(s => s.selections);
+  const shapes = useUndoRedoStore(s => s.shapes);
+  const matrixMultiplySelection = useUndoRedoStore(s => s.matrixMultiplySelection);
 
   const previousMatrix = useRef<THREE.Matrix4>(new THREE.Matrix4());
 
@@ -110,11 +110,15 @@ export default function VertexControls() {
           document.body.style.cursor = "grabbing";
           previousMatrix.current.copy(matrix);
           beginInteraction();
+          // Start drag operation for undo/redo grouping
+          startDragOperation();
         }}
         onDragEnd={() => {
           if (document.body.style.cursor === "grabbing")
             document.body.style.cursor = "auto";
           endInteraction();
+          // End drag operation for undo/redo grouping
+          endDragOperation();
         }}
         onDrag={(_, _2, w) => {
           document.body.style.cursor = "grabbing";

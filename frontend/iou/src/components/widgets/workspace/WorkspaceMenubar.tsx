@@ -6,8 +6,10 @@ import {
   MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger,
   MenubarTrigger
 } from "@/components/ui/menubar.tsx";
+import { useUndoRedo } from "@/hooks/workspace/stores/useUndoRedoStore.ts";
 
 export default function WorkspaceMenubar() {
+  const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
   return (
     <Menubar className="pointer-events-auto shadow-lg">
@@ -35,10 +37,16 @@ export default function WorkspaceMenubar() {
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">Edit</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
+          <MenubarItem 
+            onClick={undo} 
+            disabled={!canUndo}
+          >
             Undo <MenubarShortcut>⌘Z</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>
+          <MenubarItem 
+            onClick={redo} 
+            disabled={!canRedo}
+          >
             Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
