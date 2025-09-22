@@ -13,6 +13,7 @@ export interface ShapesSlice {
 
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
+  createCustomShape: (vertexData: Vec3[]) => void;
   toggleShapeVisibility: (id: string) => void;
   toggleShapeColor: (id: string) => void;
   setShapeName: (id: string, name: string) => void;
@@ -139,6 +140,23 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       createdShapeCount: state.createdShapeCount + 1,
     });
   }),
+
+  createCustomShape: (vertexData: Vec3[]) => set((state) => ({
+    shapes: {
+      ...state.shapes,
+      [UUID.v4().toString()]: {
+        name: `Custom Shape ${state.createdShapeCount + 1}`,
+        color: state.colorQueue[0],
+        vertices: vertexData,
+        faces: [],
+        visible: true,
+      },
+    },
+
+    // Pop this color in the color queue
+    colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
+    createdShapeCount: state.createdShapeCount + 1,
+  })),
 
   toggleShapeVisibility: (id: string) => set((state) => {
     const shape = state.shapes[id];
