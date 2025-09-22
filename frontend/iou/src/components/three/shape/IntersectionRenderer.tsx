@@ -94,7 +94,11 @@ function getSharpEdgesAsVec3(
   return result;
 }
 
-export default function IntersectionRenderer() {
+export interface IntersectionRendererProps {
+  stencilRef?: number
+}
+
+export default function IntersectionRenderer(props: IntersectionRendererProps) {
   const intersection = useShapeGeometryStore(state => state.intersection);
   const vertices = [] as Vec3[];
   const edges = useMemo(() => (
@@ -125,6 +129,8 @@ export default function IntersectionRenderer() {
 
       renderOrder={dimensions === "3d" ? 999 : 0}
       position={dimensions === "3d" ? [0, 0, 0] : [0, 0, 0.5]}
+
+      stencilRef={props.stencilRef}
     />
   );
 }

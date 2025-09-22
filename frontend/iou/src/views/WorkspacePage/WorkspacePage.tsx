@@ -134,11 +134,11 @@ export default function WorkspacePage() {
 
       {/* Add 3D content here: */}
 
-      <IntersectionRenderer />
+      <IntersectionRenderer stencilRef={0}/>
       {/* Add every shape to the scene: */}
       {shapeUUIDs
-        .map((uuid: string) => (
-          <ShapeWidget uuid={uuid} key={uuid} />
+        .map((uuid: string, i: number) => (
+          <ShapeWidget uuid={uuid} key={uuid} stencilRef={i+1} />
         ))
       }
 

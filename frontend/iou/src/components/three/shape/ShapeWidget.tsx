@@ -8,7 +8,8 @@ import useShapeColorVariants from "@/hooks/useShapeColorVariants.ts";
 
 
 export interface ShapeWidgetProps {
-  uuid: string
+  uuid: string,
+  stencilRef?: number,
 }
 
 

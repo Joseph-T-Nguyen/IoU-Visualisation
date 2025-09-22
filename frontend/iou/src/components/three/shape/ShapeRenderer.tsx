@@ -9,7 +9,7 @@ import useCameraInteraction from "@/hooks/workspace/useCameraInteraction.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import EdgesRenderer from "@/components/three/shape/EdgesRenderer.tsx";
 import * as THREE from "three";
-import Color from "color";
+import Color, {type ColorInstance} from "color";
 
 export interface ShapeRendererProps {
   vertices: Vec3[],
@@ -37,6 +37,8 @@ export interface ShapeRendererProps {
 
   captureMovement?: boolean,
   position?: Vec3,
+
+  stencilRef?: number,
 }
 
 function colToVector(color: ColorInstance | string) {
