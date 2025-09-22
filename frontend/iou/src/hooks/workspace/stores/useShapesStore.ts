@@ -18,6 +18,8 @@ export interface ShapesSlice {
   setShapeName: (id: string, name: string) => void;
   setShapeColor: (id: string, name: string) => void;
 
+  toggleSelectionVisibility: () => void;
+  unhideAllShapes: () => void;
   deleteSelections: () => void;
   setManyVertices: (mods: [string, Vec3[]][]) => void;
   matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
@@ -233,6 +235,45 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       selections: {},
       shapes: newShapes,
       colorQueue: [...deletedColors, ...state.colorQueue]
+    }
+  }),
+
+  toggleSelectionVisibility: () => set((state: ShapesSlice) => {
+    // Gets the current selections from the selection slice
+    const selection = get().selections;
+
+    const newShapes = Object.keys(selection)
+      .filter((selection) => selection in state.shapes)
+      .reduce((acc, selection) => {
+        return {
+          ...acc,
+          [selection]: {
+            ...acc[selection],
+            visible: !acc[selection].visible
+          }
+        } as Shapes;
+      }, state.shapes);
+
+    return {
+      selections: {},
+      shapes: newShapes
+    }
+  }),
+
+  unhideAllShapes: () => set((state) => {
+    const newShapes = Object.keys(state.shapes)
+      .reduce((acc, selection) => {
+        return {
+          ...acc,
+          [selection]: {
+            ...acc[selection],
+            visible: true
+          }
+        } as Shapes;
+      }, state.shapes);
+
+    return {
+      shapes: newShapes
     }
   }),
 
