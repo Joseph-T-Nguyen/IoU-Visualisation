@@ -2,6 +2,7 @@ import FlexyCanvas from "@/components/shared/FlexyCanvas.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { LogOut } from "lucide-react";
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
+import { useNavigate } from "react-router";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
@@ -21,6 +22,7 @@ import type { RootState } from "@react-three/fiber";
 import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
 
 export default function WorkspacePage() {
+  const navigate = useNavigate();
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
@@ -40,6 +42,7 @@ export default function WorkspacePage() {
               size="icon"
               className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg"
               asChild
+              onClick={() => navigate("/workspaces")}
             >
               <a href="../">
                 <LogOut className="transform scale-x-[-1] " />
