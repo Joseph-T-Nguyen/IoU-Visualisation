@@ -16,7 +16,7 @@ export interface ShapeData {
 
   name: string,
   color: string,
-
+  visible: boolean,
 
   // Extra data for managing workers calculating faces using the convex hull algorithm
   // isPending: boolean;

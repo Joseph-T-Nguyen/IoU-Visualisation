@@ -87,6 +87,7 @@ export default function CreateCustomShapeDialog() {
           color: defaultColors[count % defaultColors.length],
           vertices: vertexData,
           faces: [],
+          visible: true,
         },
       },
     }));

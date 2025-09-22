@@ -11,6 +11,7 @@ export interface ShapesSlice {
   colorQueue: string[];
   createdShapeCount: number;
   yellowUsed: boolean;
+  toggleShapeVisibility: (id: string) => void;
 
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
@@ -131,8 +132,8 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
             [0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 0],
             [0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]
           ],
-          // TODO: Face generation from convex hull algorithm
           faces: [],
+          visible: true, // Set default visibility
         }
       },
 
@@ -141,6 +142,22 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
       createdShapeCount: state.createdShapeCount + 1,
     });
+  }),
+
+  toggleShapeVisibility: (id: string) => set((state) => {
+    const shape = state.shapes[id];
+    if (shape === undefined)
+      return {};
+
+    return {
+      shapes: {
+        ...state.shapes,
+        [id]: {
+          ...shape,
+          visible: !shape.visible,
+        }
+      },
+    }
   }),
 
   toggleShapeColor: (id: string) => set((state) => {
