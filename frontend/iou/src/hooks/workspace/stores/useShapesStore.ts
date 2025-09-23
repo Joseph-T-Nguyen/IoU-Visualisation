@@ -229,6 +229,28 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     // Gets the current selections from the selection slice
     const selection = get().selections;
 
+    // Check for vertex deletion safety before processing
+    let blockedDeletion = false;
+    for (const key in selection) {
+      if (selection[key].children !== undefined && state.shapes[key] !== undefined) {
+        const currentVertices = state.shapes[key].vertices;
+        const verticiesToDelete = Array.from(selection[key].children!);
+        const remainingVertices = currentVertices.length - verticiesToDelete.length;
+        
+        // If deletion would result in fewer than 3 vertices, block it
+        if (remainingVertices < 3 && remainingVertices > 0) {
+          blockedDeletion = true;
+          break;
+        }
+      }
+    }
+
+    // Show alert if deletion is blocked
+    if (blockedDeletion) {
+      alert("Cannot delete vertex: A shape must have at least 3 vertices to remain valid.");
+      return {}; // Return empty state change to prevent deletion
+    }
+
     // Filter out shapes based on elements in selection
     for (const key in selection) {
       // If no specific children (vertices) are defined in the selection, delete the whole shape

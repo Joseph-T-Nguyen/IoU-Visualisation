@@ -83,6 +83,19 @@ export default function VertexInfo() {
     setVertices(shapeKey, updatedVertices);
   };
 
+  const deleteVertex = () => {
+    const currentVertices = shapes[shapeKey].vertices;
+
+    // Don't allow deletion if there are only 3 or fewer vertices (minimum for a shape)
+    if (currentVertices.length <= 3) {
+      return;
+    }
+
+    const updatedVertices = [...currentVertices];
+    updatedVertices.splice(vertexIndex, 1);
+    setVertices(shapeKey, updatedVertices);
+  };
+
   return (
     <Card className="w-full max-w-sm pointer-events-auto py-3 gap-1.5 px-0 shadow-lg">
       <CardHeader className="px-3">
@@ -130,14 +143,23 @@ export default function VertexInfo() {
             />
           </div>
         )}
-        <div className="pt-2">
+        <div className="pt-2 flex gap-2">
           <Button
             onClick={duplicateVertex}
             variant="outline"
             size="sm"
-            className="w-full h-8 text-sm"
+            className="flex-1 h-8 text-sm"
           >
-            Duplicate Vertex
+            Duplicate
+          </Button>
+          <Button
+            onClick={deleteVertex}
+            variant="destructive"
+            size="sm"
+            className="flex-1 h-8 text-sm"
+            disabled={shapes[shapeKey].vertices.length <= 3}
+          >
+            Delete
           </Button>
         </div>
       </CardContent>
