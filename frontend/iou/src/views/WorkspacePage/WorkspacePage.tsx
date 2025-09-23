@@ -26,9 +26,10 @@ export default function WorkspacePage() {
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
-  const shapes = useShapesStore((s) => s.shapes);
 
   const deselect = useShapesStore((s) => s.deselect);
+
+  console.log("Re-rendering the workspace page.")
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
@@ -77,9 +78,7 @@ export default function WorkspacePage() {
       e.preventDefault();
     };
 
-    document.body.addEventListener("touchmove", preventTouch, {
-      passive: false,
-    });
+    document.body.addEventListener("touchmove", preventTouch, {passive: false});
 
     return () => {
       document.body.removeEventListener("touchmove", preventTouch);
@@ -89,74 +88,66 @@ export default function WorkspacePage() {
   // This allows us to know what to preference in raycasting
   const getGizmos = useCameraControlsStore((s) => s.getGizmoMeshIdSet);
 
-  return (
-    <>
-      <WorkspaceActionListener />
-      <FlexyCanvas
-        /* min-h-[100dv] works better on mobile devices that h-screen */
-        className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
-        overlay={overlay}
-        onPointerMissed={() => {
-          deselect();
-        }}
-        onCreated={(state: RootState) => {
-          // set a custom event filter globally
-          state.setEvents({
-            filter: (
-              intersections: THREE.Intersection[]
-            ): THREE.Intersection[] => {
-              if (intersections.length === 0) return intersections;
+  return (<>
+    <WorkspaceActionListener />
+    <FlexyCanvas
+      gl={{ stencil: true, autoClearStencil: true }}
+      /* min-h-[100dv] works better on mobile devices that h-screen */
+      className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
+      overlay={overlay}
+      onPointerMissed={() => {
+        deselect();
+      }}
+      frameloop={"demand"}
 
-              const gizmos = getGizmos();
+      onCreated={(state: RootState) => {
+        // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
+        state.setEvents({
+          filter: (
+            intersections: THREE.Intersection[],
+          ): THREE.Intersection[] => {
+            if (intersections.length === 0)
+              return intersections;
 
-              // climb up parents to allow for child hits (GLTF children, etc.)
-              const preferredHit = intersections.find((it) => {
-                let o: THREE.Object3D | null = it.object;
+            const gizmos = getGizmos();
 
-                while (o) {
-                  if (gizmos.has(o.id)) return true;
+            // climb up parents to allow for child hits (GLTF children, etc.)
+            const preferredHit = intersections.filter((it) => {
+              let o: THREE.Object3D | null = it.object;
 
-                  o = o.parent;
-                }
+              while (o) {
+                if (gizmos.has(o.id))
+                  return true;
 
-                return false;
-              });
+                o = o.parent;
+              }
 
-              return preferredHit ? [preferredHit] : intersections;
-            },
-          });
-        }}
-      >
-        <WorkspaceGrid />
-        <AdaptiveEvents />
+              return false;
+            });
 
-        <WorkspaceCamera />
+            return preferredHit.length > 0 ? preferredHit : intersections;
+          },
+        });
+      }}
+    >
+      <WorkspaceGrid />
+      <AdaptiveEvents />
 
-        <CoordinateSystem />
+      <WorkspaceCamera />
 
-        {/*<Bvh firstHitOnly>*/}
+      <CoordinateSystem />
+      <VertexControls />
 
-        <VertexControls />
+      {/* Add 3D content here: */}
 
-        {/* Add 3D content here: */}
+      <IntersectionRenderer />
+      {/* Add every shape to the scene: */}
+      {shapeUUIDs
+        .map((uuid: string) => (
+          <ShapeWidget uuid={uuid} key={uuid} />
+        ))
+      }
 
-        <IntersectionRenderer />
-        {/* Add every shape to the scene: */}
-        {shapeUUIDs
-          .filter((uuid) => shapes[uuid]?.visible)
-          .map((uuid: string) => (
-            <ShapeWidget uuid={uuid} key={uuid} />
-          ))}
-        {/*</Bvh>*/}
-
-        <ambientLight intensity={0.25} color="#F1F5F9" />
-        <directionalLight
-          position={[1, 5, 2]}
-          intensity={2}
-          rotation={[45, 10, 0]}
-          color="white"
-        />
-      </FlexyCanvas>
-    </>
-  );
+    </FlexyCanvas>
+  </>);
 }

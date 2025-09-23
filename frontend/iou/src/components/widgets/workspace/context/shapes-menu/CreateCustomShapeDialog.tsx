@@ -35,7 +35,8 @@ export default function CreateCustomShapeDialog() {
 
   const [vertices, setVertices] = useState<VertexInput[]>(getDefaultVertices());
   const [shapeName, setShapeName] = useState("");
-  const shapes = useShapesStore((s) => s.shapes);
+
+  const createCustomShape = useShapesStore((s) => s.createCustomShape);
 
   const addVertex = () => {
     setVertices([...vertices, { id: UUID.v4(), x: "0", y: "0", z: "0" }]);
@@ -60,40 +61,7 @@ export default function CreateCustomShapeDialog() {
       parseFloat(v.z) || 0,
     ]);
 
-    const newShapeId = UUID.v4().toString();
-    const count = Object.keys(shapes).length;
-    const defaultColors = [
-      "#ef4444",
-      "#10b981",
-      "#0ea5e9",
-      "#f59e0b",
-      "#ec4899",
-      "#14b8a6",
-      "#6366f1",
-      "#eab308",
-      "#f43f5e",
-      "#f97316",
-      "#84cc16",
-      "#a855f7",
-      "#22c55e",
-    ];
-
-    useShapesStore.setState((state) => ({
-      ...state,
-      shapes: {
-        ...state.shapes,
-        [newShapeId]: {
-          name: shapeName || `Custom Shape ${count + 1}`,
-          color: defaultColors[count % defaultColors.length],
-          vertices: vertexData,
-          faces: [],
-          visible: true,
-        },
-      },
-    }));
-
-    setVertices(getDefaultVertices());
-    setShapeName("");
+    createCustomShape(vertexData);
     setOpen(false);
   };
 
