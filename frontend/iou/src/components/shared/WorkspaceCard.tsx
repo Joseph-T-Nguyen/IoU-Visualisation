@@ -41,7 +41,8 @@ export default function WorkspaceCard({
   onDuplicate,
   onOpen,
 }: WorkspaceCardProps) {
-  const handleMenuAction = (action: string) => {
+  const handleMenuAction = (action: string, event?: React.MouseEvent) => {
+    event?.stopPropagation();
     console.log(`${action} clicked for workspace: ${name}`);
     if (action === "rename" && onRename) {
       onRename();
@@ -95,35 +96,35 @@ export default function WorkspaceCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
-                onClick={() => handleMenuAction("open")}
+                onClick={(e) => handleMenuAction("open", e)}
                 className="cursor-pointer"
               >
                 <FolderOpen className="mr-2 h-4 w-4" />
                 Open workspace
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleMenuAction("rename")}
+                onClick={(e) => handleMenuAction("rename", e)}
                 className="cursor-pointer"
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Rename
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleMenuAction("duplicate")}
+                onClick={(e) => handleMenuAction("duplicate", e)}
                 className="cursor-pointer"
               >
                 <Copy className="mr-2 h-4 w-4" />
                 Duplicate
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleMenuAction("version-history")}
+                onClick={(e) => handleMenuAction("version-history", e)}
                 className="cursor-pointer"
               >
                 <History className="mr-2 h-4 w-4" />
                 Version history
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleMenuAction("share")}
+                onClick={(e) => handleMenuAction("share", e)}
                 className="cursor-pointer"
               >
                 <Share2 className="mr-2 h-4 w-4" />
@@ -131,7 +132,7 @@ export default function WorkspaceCard({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => handleMenuAction("delete")}
+                onClick={(e) => handleMenuAction("delete", e)}
                 className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
