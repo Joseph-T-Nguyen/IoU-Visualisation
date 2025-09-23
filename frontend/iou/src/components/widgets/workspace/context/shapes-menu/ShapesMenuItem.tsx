@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { Ellipsis, Eye, EyeOff } from "lucide-react";
+import { Ellipsis, Eye, EyeOff, Copy } from "lucide-react";
 import useShape from "@/hooks/workspace/useShape.ts";
 import ColorPicker from "@/components/widgets/workspace/context/shapes-menu/ColorPicker.tsx";
 import {
@@ -18,6 +18,7 @@ export interface ShapesMenuItemProps {
 export default function ShapesMenuItem(props: ShapesMenuItemProps) {
   const { name, setName, color, visible } = useShape(props.uuid);
   const toggleShapeVisibility = useShapesStore((s) => s.toggleShapeVisibility);
+  const duplicateShape = useShapesStore((s) => s.duplicateShape);
 
   return (
     <div className="flex flex-row gap-1.5 justify-center items-center">
@@ -38,6 +39,13 @@ export default function ShapesMenuItem(props: ShapesMenuItemProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onClick={() => duplicateShape(props.uuid)}
+            className="cursor-pointer"
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            <span>Duplicate Shape</span>
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => toggleShapeVisibility(props.uuid)}
             className="cursor-pointer"

@@ -15,6 +15,7 @@ export interface ShapesSlice {
 
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
+  duplicateShape: (id: string) => void;
   toggleShapeColor: (id: string) => void;
   setShapeName: (id: string, name: string) => void;
   setShapeColor: (id: string, name: string) => void;
@@ -134,6 +135,29 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
           ],
           faces: [],
           visible: true, // Set default visibility
+        }
+      },
+
+      // Pop this color in the color queue
+      yellowUsed: state.yellowUsed || state.colorQueue[0] === defaultColors[3],
+      colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
+      createdShapeCount: state.createdShapeCount + 1,
+    });
+  }),
+
+  duplicateShape: (id: string) => set((state: ShapesSlice) => {
+    const originalShape = state.shapes[id];
+    if (!originalShape) return {};
+
+    return ({
+      shapes: {
+        ...state.shapes,
+        [UUID.v4().toString()]: {
+          ...originalShape,
+          name: `${originalShape.name} Copy`,
+          color: state.colorQueue[0],
+          // Create a copy of vertices with slight offset to make it visible
+          vertices: originalShape.vertices.map(([x, y, z]) => [x + 0.5, y + 0.5, z + 0.5] as Vec3),
         }
       },
 
