@@ -5,6 +5,7 @@ import {
   CardTitle,
 } from "@/components/ui/card.tsx";
 import { Input } from "@/components/ui/input.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import type { Vec3 } from "@/hooks/workspace/workspaceTypes.ts";
@@ -64,6 +65,24 @@ export default function VertexInfo() {
     setVertices(shapeKey, updatedVertices);
   };
 
+  const duplicateVertex = () => {
+    const currentVertices = shapes[shapeKey].vertices;
+    const updatedVertices = [...currentVertices];
+
+    // Create a duplicate vertex with a small offset to make it visible
+    const [currentX, currentY, currentZ] = vertex;
+    const offset = 0.1;
+    const duplicatedVertex: Vec3 = [
+      currentX + offset,
+      currentY + offset,
+      dimensions === "3d" ? currentZ + offset : currentZ,
+    ];
+
+    // Insert the duplicated vertex right after the current vertex
+    updatedVertices.splice(vertexIndex + 1, 0, duplicatedVertex);
+    setVertices(shapeKey, updatedVertices);
+  };
+
   return (
     <Card className="w-full max-w-sm pointer-events-auto py-3 gap-1.5 px-0 shadow-lg">
       <CardHeader className="px-3">
@@ -111,6 +130,16 @@ export default function VertexInfo() {
             />
           </div>
         )}
+        <div className="pt-2">
+          <Button
+            onClick={duplicateVertex}
+            variant="outline"
+            size="sm"
+            className="w-full h-8 text-sm"
+          >
+            Duplicate Vertex
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
