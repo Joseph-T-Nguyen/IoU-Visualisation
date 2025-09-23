@@ -16,6 +16,7 @@ export interface ShapesSlice {
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
   duplicateShape: (id: string) => void;
+  centerShape: (id: string) => void;
   toggleShapeColor: (id: string) => void;
   setShapeName: (id: string, name: string) => void;
   setShapeColor: (id: string, name: string) => void;
@@ -166,6 +167,35 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
       createdShapeCount: state.createdShapeCount + 1,
     });
+  }),
+
+  centerShape: (id: string) => set((state: ShapesSlice) => {
+    const shape = state.shapes[id];
+    if (!shape) return {};
+
+    // Calculate the centroid (center point) of the shape
+    const vertices = shape.vertices;
+    const centroid: Vec3 = vertices.reduce(
+      (sum, vertex) => [sum[0] + vertex[0], sum[1] + vertex[1], sum[2] + vertex[2]],
+      [0, 0, 0] as Vec3
+    ).map(coord => coord / vertices.length) as Vec3;
+
+    // Translate all vertices so the centroid becomes the origin
+    const centeredVertices: Vec3[] = vertices.map(([x, y, z]) => [
+      x - centroid[0],
+      y - centroid[1], 
+      z - centroid[2]
+    ]);
+
+    return {
+      shapes: {
+        ...state.shapes,
+        [id]: {
+          ...shape,
+          vertices: centeredVertices
+        }
+      }
+    };
   }),
 
   toggleShapeVisibility: (id: string) => set((state) => {
