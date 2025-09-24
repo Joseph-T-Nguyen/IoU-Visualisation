@@ -12,7 +12,7 @@ import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceAct
 import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AdaptiveEvents } from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import CoordinateSystem from "@/components/three/CoordinateSystem.tsx";
@@ -24,11 +24,46 @@ import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsSt
 export default function WorkspacePage() {
   const navigate = useNavigate();
   const [dimensions, setDimensions] = useDimensions();
+  const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null);
 
   const shapeUUIDs = useShapeUUIDs();
   const shapes = useShapesStore((s) => s.shapes);
 
   const deselect = useShapesStore((s) => s.deselect);
+
+  const handleScreenshot = () => {
+    if (gl) {
+      const link = document.createElement("a");
+      link.setAttribute("download", "workspace.png");
+      link.setAttribute(
+        "href",
+        gl.domElement
+          .toDataURL("image/png")
+          .replace("image/png", "image/octet-stream")
+      );
+      link.click();
+    }
+  };
+
+  const handleDownload = () => {
+    const shapes = useShapesStore.getState().shapes;
+    const data = JSON.stringify(shapes, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "workspace.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDuplicate = () => {
+    alert("Duplicate functionality is not yet implemented.");
+  };
+
+  const handleShare = () => {
+    alert("Share functionality is not yet implemented.");
+  };
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
@@ -50,7 +85,12 @@ export default function WorkspacePage() {
             </Button>
           </div>
           <div>
-            <WorkspaceMenubar />
+            <WorkspaceMenubar
+              onDuplicate={handleDuplicate}
+              onShare={handleShare}
+              onDownload={handleDownload}
+              onScreenshot={handleScreenshot}
+            />
           </div>
           <div className="flex flex-col justify-center pointer-events-auto">
             <Button
@@ -100,6 +140,7 @@ export default function WorkspacePage() {
           deselect();
         }}
         onCreated={(state: RootState) => {
+          setGl(state.gl);
           // set a custom event filter globally
           state.setEvents({
             filter: (
@@ -126,6 +167,7 @@ export default function WorkspacePage() {
             },
           });
         }}
+        gl={{ preserveDrawingBuffer: true }}
       >
         <WorkspaceGrid />
         <AdaptiveEvents />

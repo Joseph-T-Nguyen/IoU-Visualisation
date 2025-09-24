@@ -1,35 +1,48 @@
 import {
-  Menubar, MenubarCheckboxItem,
+  Menubar,
+  MenubarCheckboxItem,
   MenubarContent,
   MenubarItem,
-  MenubarMenu, MenubarSeparator,
-  MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger,
-  MenubarTrigger
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
 } from "@/components/ui/menubar.tsx";
+import { useNavigate } from "react-router";
 
-export default function WorkspaceMenubar() {
+export interface WorkspaceMenubarProps {
+  onDuplicate: () => void;
+  onShare: () => void;
+  onDownload: () => void;
+  onScreenshot: () => void;
+}
+
+export default function WorkspaceMenubar({
+  onDuplicate,
+  onShare,
+  onDownload,
+  onScreenshot,
+}: WorkspaceMenubarProps) {
+  const navigate = useNavigate();
 
   return (
     <Menubar className="pointer-events-auto shadow-lg">
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
-            New Workspace <MenubarShortcut>⌘T</MenubarShortcut>
+          <MenubarItem onClick={() => navigate("/workspaces/new")}>
+            New Workspace <MenubarShortcut>⌘N</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={onDuplicate}>
+            Duplicate Workspace <MenubarShortcut>⇧⌘D</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarSub>
-            <MenubarSubTrigger>Share</MenubarSubTrigger>
-            <MenubarSubContent>
-              <MenubarItem>Email link</MenubarItem>
-              <MenubarItem>Messages</MenubarItem>
-              <MenubarItem>Notes</MenubarItem>
-            </MenubarSubContent>
-          </MenubarSub>
-          <MenubarSeparator />
-          <MenubarItem>
-            Print... <MenubarShortcut>⌘P</MenubarShortcut>
-          </MenubarItem>
+          <MenubarItem onClick={onShare}>Share a copy</MenubarItem>
+          <MenubarItem onClick={onDownload}>Download</MenubarItem>
+          <MenubarItem onClick={onScreenshot}>Take a screenshot</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
