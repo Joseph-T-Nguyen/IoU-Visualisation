@@ -24,13 +24,13 @@ export default function useOnKeyDown(targetKey: string | ModifiedKey, callback: 
 
     if (event.key !== modifiedKey.key)
       return;
-    if (modifiedKey.alt !== undefined && event.altKey !== modifiedKey.alt)
+    if (modifiedKey.alt !== undefined && event.altKey !== (modifiedKey.alt ?? false))
       return;
-    if (modifiedKey.ctrl !== undefined && event.ctrlKey !== modifiedKey.ctrl)
+    if (modifiedKey.ctrl !== undefined && event.ctrlKey !== (modifiedKey.ctrl ?? false))
       return;
-    if (modifiedKey.shift !== undefined && event.shiftKey !== modifiedKey.shift)
+    if (modifiedKey.shift !== undefined && event.shiftKey !== (modifiedKey.shift ?? false))
       return;
-    if (modifiedKey.meta !== undefined && event.metaKey !== modifiedKey.meta)
+    if (modifiedKey.meta !== undefined && event.metaKey !== (modifiedKey.meta ?? false))
       return;
 
     cachedCallback();

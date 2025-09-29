@@ -27,6 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "color": "^5.0.0",
+    "colorjs.io": "^0.5.2",
     "comlink": "^4.4.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.536.0",
