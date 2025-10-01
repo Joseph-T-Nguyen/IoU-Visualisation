@@ -24,6 +24,7 @@ interface WorkspaceCardProps {
   onDelete?: () => void;
   onShare?: () => void;
   onDuplicate?: () => void;
+  onOpen?: () => void;
 }
 
 export default function WorkspaceCard({
@@ -35,6 +36,7 @@ export default function WorkspaceCard({
   onDelete,
   onShare,
   onDuplicate,
+  onOpen,
 }: WorkspaceCardProps) {
   const handleMenuAction = (action: string) => {
     console.log(`${action} clicked for workspace: ${name}`);
@@ -50,10 +52,16 @@ export default function WorkspaceCard({
     if (action === "duplicate" && onDuplicate) {
       onDuplicate();
     }
+    if (action === "open" && onOpen) {
+      onOpen();
+    }
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow overflow-hidden p-0">
+    <Card 
+      className="hover:shadow-md transition-shadow overflow-hidden p-0 cursor-pointer"
+      onClick={() => onOpen?.()}
+    >
       {/* Preview Image - Increased height for more square proportions */}
       <div className="w-full h-50 bg-gray-100 flex items-center justify-center">
         {previewImage}
@@ -74,6 +82,7 @@ export default function WorkspaceCard({
               <button
                 className="text-gray-400 hover:text-gray-600 p-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
                 aria-label={`More options for ${name}`}
+                onClick={(e) => e.stopPropagation()}
               >
                 <MoreVertical className="w-4 h-4" />
               </button>

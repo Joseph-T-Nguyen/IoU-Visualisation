@@ -3,10 +3,8 @@ import {useState} from "react";
 import Color from "color";
 
 export interface ColorPickerProps {
-  color: string,
-  setColor?: (color: string) => void,
-
-  onClick?: () => void,
+  color: string
+  setColor?: (color: string) => void
 }
 
 export default function ColorPicker(props: ColorPickerProps) {
@@ -25,7 +23,6 @@ export default function ColorPicker(props: ColorPickerProps) {
       className="w-6 h-6"
       size="icon"
       style={{ background: backgroundColor }}
-      onClick={props.onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}

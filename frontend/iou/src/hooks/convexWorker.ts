@@ -1,49 +1,60 @@
-/// <reference lib="webworker" />
-
-import type { Vec3 } from "@/hooks/workspace/workspaceTypes.ts";
-import { ConvexHull } from "three/examples/jsm/math/ConvexHull";
+import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
+import {ConvexHull} from "three/examples/jsm/math/ConvexHull.js";
 import * as THREE from "three";
 
 export interface ConvexHullResult {
-  positions: number[];   // flat xyz array of unique vertices
-  normals?: number[];     // flat xyz array, per face-vertex
-  indices?: number[];     // triangle indices into positions
-  edges: [Vec3, Vec3][]; // optional for rendering edges
+  positions: number[],    // flat xyz array of unique vertices
+  normals?: number[],     // flat xyz array, per face-vertex
+  edges: [Vec3, Vec3][],  // optional for rendering edges
 }
 
 const FLAT_THRESHOLD = 1e-4; // adjust: smaller = stricter flat detection
 
-self.onmessage = (event: MessageEvent<Vec3[]>) => {
+// Worker code, runs the quick hull algorithm
+self.onmessage = async (event: MessageEvent<Vec3[]>) => {
   const vertices = event.data;
-  const vectors = vertices.map((v) => new THREE.Vector3(...v));
+  const vectors = vertices.map(v => new THREE.Vector3(...v));
 
-  if (vertices.length < 3) {
-    self.postMessage({ positions: [], normals: [], indices: [] });
+  if (vertices.length < 2) {
+    // Special case for points
+    self.postMessage({
+      positions: [],
+      normals: [],
+      edges: []
+    });
     return;
   }
-
-  // Special case: triangle
-  if (vertices.length === 3) {
-    const [a, b, c] = vectors;
-    const norm = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
-    const negNorm = new THREE.Vector3().copy(norm).negate();
-
-    return self.postMessage({
-      positions: [
-        ...a.toArray(), ...b.toArray(), ...c.toArray(),
-        ...a.toArray(), ...c.toArray(), ...b.toArray()
-      ],
-      normals: [
-        ...norm.toArray(), ...norm.toArray(), ...norm.toArray(),
-        ...negNorm.toArray(), ...negNorm.toArray(), ...negNorm.toArray()
-      ],
-      // indices: [0, 1, 2, 0, 2, 1],
-      edges: [
-        [a.toArray() as Vec3, b.toArray() as Vec3],
-        [b.toArray() as Vec3, c.toArray() as Vec3],
-        [c.toArray() as Vec3, a.toArray() as Vec3],
-      ],
+  if (vertices.length === 2) {
+    // Special case for lines and points
+    self.postMessage({
+      positions: [],
+      normals: [],
+      edges: [[vertices[0], vertices[1]]]
     });
+    return;
+  }
+  else if (vertices.length === 3) {
+    // Special case for triangles
+    // Get reverse vertices to draw a triangle on the other side of the shape
+    const reversedVertices = [...vertices].reverse();
+
+    // Get the normal vector for the front face
+    const norm = (vectors[1].clone().sub(vectors[0])).cross(vectors[2].clone().sub(vectors[0])).normalize();
+    const normals = vertices.map(() => [norm.x, norm.y, norm.z]).flat();
+    const reversedNormals = vertices.map(() => [-norm.x, -norm.y, -norm.z]).flat();
+    const edges: [Vec3, Vec3][] = [
+        [vertices[0], vertices[1]],
+        [vertices[1], vertices[2]],
+        [vertices[2], vertices[0]],
+    ];
+
+    const result = {
+      vertices: [...vertices.flat(), ...reversedVertices.flat()],
+      normals: [...normals, ...reversedNormals],
+      edges: edges
+    }
+    self.postMessage(result);
+    return;
   }
 
   // Convex hull
@@ -55,7 +66,6 @@ self.onmessage = (event: MessageEvent<Vec3[]>) => {
   const uniqueVertices: Vec3[] = [];
   const normals : number[] = [];
   const positions : number[] = [];
-  // const indices: number[] = [];
 
   const getVertexIndex = (p: THREE.Vector3): number => {
     const key = `${p.x},${p.y},${p.z}`;
@@ -101,23 +111,12 @@ self.onmessage = (event: MessageEvent<Vec3[]>) => {
       edgeMap.get(key)?.push({ faceIdx: i, v1, v2 });
     });
 
-    // faceIndices.forEach((idx) => {
-    //   if (!normalsMap.has(idx))
-    //     normalsMap.set(idx, []);
-    //
-    //   if (points.length >= 3) {
-    //     const normal = new THREE.Vector3().subVectors(points[1], points[0]).cross(new THREE.Vector3().subVectors(points[2], points[0])).normalize();
-    //     normalsMap.get(idx)!.push(normal);
-    //   }
-    // })
-
     // Triangulate the polygonal face (fan triangulation)
     for (let j = 1; j < faceIndices.length - 1; j++) {
       positions.push(...[faceIndices[0], faceIndices[j], faceIndices[j + 1]].flatMap(x => uniqueVertices[x]));
 
       const normal = face.normal.toArray();
       normals.push(...normal, ...normal, ...normal);
-      // indices.push(faceIndices[0], faceIndices[j], faceIndices[j + 1]);
     }
   }
 
@@ -148,31 +147,9 @@ self.onmessage = (event: MessageEvent<Vec3[]>) => {
     }
   }
 
-  // Flatten positions from unique vertices
-  // const positions: number[] = [];
-  // for (const v of uniqueVertices) {
-  //   positions.push(...v);
-  // }
-
-  // const allNormals = uniqueVertices
-  //   .map((_, i) => (normalsMap.has(i) ? normalsMap.get(i) : [new THREE.Vector3()]));
-  //
-  // const normals = allNormals
-  //   .map(vNormals => {
-  //     const accumulatedNormal = vNormals!.reduce((acc, current) => {
-  //       const normal = new THREE.Vector3();
-  //       normal.addVectors(acc, current);
-  //       return normal;
-  //     });
-  //     const normal = accumulatedNormal.multiplyScalar(1.0 / (vNormals?.length ?? 0));
-  //     return normal
-  //   })
-  //   .flatMap(normal => [normal.x, normal.y, normal.z]);
-
   self.postMessage({
     positions,
     normals,
-    // indices,
     edges: edgeOutput,
   } as ConvexHullResult);
 };

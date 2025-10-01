@@ -13,6 +13,7 @@ defaultGeometry.setAttribute( 'position', new Float32BufferAttribute([], 3));
 defaultGeometry.setAttribute( 'normal', new Float32BufferAttribute([], 3));
 defaultGeometry.name = "defaultGeometry";
 
+
 export default function useConvexHull(vertices: Vec3[], onEdges?: (edges?: [Vec3, Vec3][]) => void): BufferGeometry {
   const [geometry, setGeometry] = useState<BufferGeometry>(defaultGeometry);
   const [dimensions, ] = useDimensions();
@@ -26,16 +27,9 @@ export default function useConvexHull(vertices: Vec3[], onEdges?: (edges?: [Vec3
   const send = useWorker<Vec3[], ConvexHullResult>(workerUrl, (reply) => {
     // Apply result from worker
     const buffer = new BufferGeometry();
-
     // TODO: Use FloatArrays instead when transferring data between the worker and the main thread
-    buffer.setAttribute( 'position', new Float32BufferAttribute(reply.positions, 3));
-    if (reply.normals !== undefined)
-      buffer.setAttribute( 'normal', new Float32BufferAttribute(reply.normals!, 3));
-
-    if (reply.indices !== undefined)
-      buffer.setIndex(reply.indices);
-    else
-      buffer.setIndex(null);
+    buffer.setAttribute('position', new Float32BufferAttribute(reply.positions, 3));
+    buffer.setAttribute('normal', new Float32BufferAttribute(reply.normals, 3));
 
     onEdges?.(reply.edges);
 

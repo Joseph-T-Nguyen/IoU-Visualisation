@@ -3,7 +3,6 @@ import type {ShapeData, Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/stores/createSelectionSlice.ts";
 import type {StateCreator} from "zustand/vanilla";
 import * as THREE from 'three';
-// import monkey from "@/hooks/workspace/mokey.ts";
 import * as UUID from "uuid";
 
 export type Shapes = {[key: string]: ShapeData}
@@ -12,18 +11,20 @@ export interface ShapesSlice {
   setAllShapes: (shapes: Shapes) => void;
   colorQueue: string[];
   createdShapeCount: number;
-  yellowUsed: boolean;
 
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
+  createCustomShape: (vertexData: Vec3[]) => void;
+  toggleShapeVisibility: (id: string) => void;
   toggleShapeColor: (id: string) => void;
   setShapeName: (id: string, name: string) => void;
   setShapeColor: (id: string, name: string) => void;
 
+  toggleSelectionVisibility: () => void;
+  unhideAllShapes: () => void;
   deleteSelections: () => void;
   setManyVertices: (mods: [string, Vec3[]][]) => void;
   matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
-
 }
 
 // We assemble the store from multiple slices! See: https://zustand.docs.pmnd.rs/guides/typescript#slices-pattern
@@ -33,7 +34,6 @@ export const defaultColors = [
   "#ef4444",
   "#10b981",
   "#0ea5e9",
-  "#f59e0b",
   "#db2777",
   "#84cc16",
   "#14b8a6",
@@ -42,6 +42,7 @@ export const defaultColors = [
   "#16a34a",
   "#4f46e5",
 ];
+export const intersectionColor = "#f59e0b";
 
 const setVerticesAux = (id: string, vertices: Vec3[]) => (state: ShapesSlice) => ({
   shapes: {
@@ -90,10 +91,10 @@ function shuffleArray(arr: string[]) {
 }
 function getRandomDefaultColors() {
   // Keep these colors the same every time:
-  const start = defaultColors.slice(0, 4);
+  const start = defaultColors.slice(0, 3);
 
   // Vary everything else
-  const shuffled = shuffleArray(defaultColors.slice(4));
+  const shuffled = shuffleArray(defaultColors.slice(3));
   return [...start, ...shuffled];
 }
 
@@ -119,7 +120,6 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
   colorQueue: getRandomDefaultColors(),
   // Used to figure out what number to give the shape in the shape name
   createdShapeCount: 0,
-  yellowUsed: false,
 
   // TODO: Calculate shape face data using the convex hull algorithm
   setVertices: applyReducerAux(set, fixPartialShapesReducer(setVerticesAux)),
@@ -135,16 +135,48 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
             [0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 0],
             [0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]
           ],
-          // TODO: Face generation from convex hull algorithm
           faces: [],
+          visible: true, // Set default visibility
         }
       },
 
       // Pop this color in the color queue
-      yellowUsed: state.yellowUsed || state.colorQueue[0] === defaultColors[3],
       colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
       createdShapeCount: state.createdShapeCount + 1,
     });
+  }),
+
+  createCustomShape: (vertexData: Vec3[]) => set((state) => ({
+    shapes: {
+      ...state.shapes,
+      [UUID.v4().toString()]: {
+        name: `Custom Shape ${state.createdShapeCount + 1}`,
+        color: state.colorQueue[0],
+        vertices: vertexData,
+        faces: [],
+        visible: true,
+      },
+    },
+
+    // Pop this color in the color queue
+    colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
+    createdShapeCount: state.createdShapeCount + 1,
+  })),
+
+  toggleShapeVisibility: (id: string) => set((state) => {
+    const shape = state.shapes[id];
+    if (shape === undefined)
+      return {};
+
+    return {
+      shapes: {
+        ...state.shapes,
+        [id]: {
+          ...shape,
+          visible: !shape.visible,
+        }
+      },
+    }
   }),
 
   toggleShapeColor: (id: string) => set((state) => {
@@ -161,8 +193,6 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
           color: state.colorQueue[0]
         }
       },
-
-      yellowUsed: state.yellowUsed || state.colorQueue[0] === defaultColors[3],
     }
   }),
 
@@ -228,6 +258,45 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
       selections: {},
       shapes: newShapes,
       colorQueue: [...deletedColors, ...state.colorQueue]
+    }
+  }),
+
+  toggleSelectionVisibility: () => set((state: ShapesSlice) => {
+    // Gets the current selections from the selection slice
+    const selection = get().selections;
+
+    const newShapes = Object.keys(selection)
+      .filter((selection) => selection in state.shapes)
+      .reduce((acc, selection) => {
+        return {
+          ...acc,
+          [selection]: {
+            ...acc[selection],
+            visible: !acc[selection].visible
+          }
+        } as Shapes;
+      }, state.shapes);
+
+    return {
+      selections: {},
+      shapes: newShapes
+    }
+  }),
+
+  unhideAllShapes: () => set((state) => {
+    const newShapes = Object.keys(state.shapes)
+      .reduce((acc, selection) => {
+        return {
+          ...acc,
+          [selection]: {
+            ...acc[selection],
+            visible: true
+          }
+        } as Shapes;
+      }, state.shapes);
+
+    return {
+      shapes: newShapes
     }
   }),
 

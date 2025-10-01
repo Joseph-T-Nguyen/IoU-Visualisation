@@ -4,16 +4,31 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 export interface EdgesRendererProps {
-  edges: [Vec3, Vec3][];
-  color?: string;
-  radius?: number;
-  depthTest?: boolean;
+  edges: [Vec3, Vec3][],
+  color?: string,
+  radius?: number,
+  depthTest?: boolean,
+  side?: THREE.Side,
+  stencilRef?: number,
+  renderOrder?: number,
+  position?: Vec3,
+
+  stencilFunc?: THREE.StencilFunc,
+  stencilWrite?: boolean,
+  stencilZFail?: THREE.StencilOp,
+  stencilZPass?: THREE.StencilOp,
+  stencilFail?: THREE.StencilOp,
+  stencilWriteMask?: number,
+  stencilFuncMask?: number,
+  segments?: number,
 }
 
 export default function EdgesRenderer(props: EdgesRendererProps) {
   const meshRef = useRef<InstancedMesh>(null);
 
   const radius = props.radius ?? 0.0625 / 4;
+  const segments = props.segments ?? 4;
+
 
   const matrices = useMemo(() => {
     return props.edges.map(([a, b]) => {
@@ -39,7 +54,8 @@ export default function EdgesRenderer(props: EdgesRendererProps) {
   }, [props.edges]);
 
   useEffect(() => {
-    if (!meshRef.current) return;
+    if (!meshRef.current)
+      return;
 
     matrices.forEach((m, i) => meshRef.current?.setMatrixAt(i, m));
     meshRef.current.instanceMatrix.needsUpdate = true;
@@ -50,13 +66,24 @@ export default function EdgesRenderer(props: EdgesRendererProps) {
       <instancedMesh
         ref={meshRef}
         args={[undefined, undefined, matrices.length]}
+        renderOrder={props.renderOrder}
+        position={props.position}
       >
-        {/*<sphereGeometry args={[0.1, 16, 8]} />*/}
-        <cylinderGeometry args={[radius, radius, 1, 4]} />
+        <cylinderGeometry args={[radius, radius, 1, segments]} />
         <meshBasicMaterial
           color={props.color}
           toneMapped={false}
           depthTest={props.depthTest}
+          side={props.side}
+
+          stencilRef={props.stencilRef}
+          stencilFunc={props.stencilFunc}
+          stencilWrite={props.stencilWrite}
+          stencilZFail={props.stencilZFail}
+          stencilZPass={props.stencilZPass}
+          stencilFail={props.stencilFail}
+          stencilWriteMask={props.stencilWriteMask}
+          stencilFuncMask={props.stencilFuncMask}
         />
       </instancedMesh>
     </>
