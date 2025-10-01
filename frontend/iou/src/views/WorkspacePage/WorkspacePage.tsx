@@ -15,7 +15,9 @@ import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import { useEffect } from "react";
 import { AdaptiveEvents } from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import useLoadWorkspace from "@/hooks/workspace/useLoadWorkspace.ts";
 import CoordinateSystem from "@/components/three/CoordinateSystem.tsx";
+
 import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
 import * as THREE from "three";
 import type { RootState } from "@react-three/fiber";
@@ -30,6 +32,9 @@ export default function WorkspacePage() {
   const deselect = useShapesStore((s) => s.deselect);
 
   console.log("Re-rendering the workspace page.")
+
+  // Load default workspace id "1" on mount
+  useLoadWorkspace('1'); // TODO: Load workspace id from user selection thing
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (

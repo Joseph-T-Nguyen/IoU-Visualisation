@@ -8,6 +8,7 @@ import * as UUID from "uuid";
 export type Shapes = {[key: string]: ShapeData}
 export interface ShapesSlice {
   shapes: Shapes;
+  setAllShapes: (shapes: Shapes) => void;
   colorQueue: string[];
   createdShapeCount: number;
 
@@ -110,6 +111,10 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     //   color: "#ef4444",
     // }
   },
+
+  setAllShapes: (shapes: Shapes) => set(() => ({
+    shapes,
+  })),
 
   // We use this to determine what the next shape's colour should be, and what the colour of the intersection should be
   colorQueue: getRandomDefaultColors(),

@@ -46,6 +46,11 @@
     "@types/node": "^24.1.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "@typescript-eslint/project-service": "^8.41.0",
+    "@typescript-eslint/typescript-estree": "^8.41.0",
+    "@typescript-eslint/utils": "^8.41.0",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.30.1",
@@ -56,7 +61,7 @@
     "shadcn": "^2.10.0",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.35.1",
+    "typescript-eslint": "^8.41.0",
     "vite": "^7.0.4"
   }
 }
