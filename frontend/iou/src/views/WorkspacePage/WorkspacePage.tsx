@@ -1,7 +1,8 @@
 import FlexyCanvas from "@/components/shared/FlexyCanvas.tsx";
-import {Button} from "@/components/ui/button.tsx";
-import { LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button.tsx";
+import { LogOut } from "lucide-react";
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
+import { useNavigate } from "react-router";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
@@ -11,17 +12,26 @@ import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceAct
 import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
-import {useEffect} from "react";
-import {AdaptiveEvents, Bvh} from "@react-three/drei";
+import { useEffect } from "react";
+import { AdaptiveEvents } from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import useLoadWorkspace from "@/hooks/workspace/useLoadWorkspace.ts";
+import CoordinateSystem from "@/components/three/CoordinateSystem.tsx";
+
+import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
+import * as THREE from "three";
+import type { RootState } from "@react-three/fiber";
+import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
 
 export default function WorkspacePage() {
+  const navigate = useNavigate();
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
 
-  const deselect = useShapesStore(s => s.deselect);
+  const deselect = useShapesStore((s) => s.deselect);
+
+  console.log("Re-rendering the workspace page.")
 
   // Load default workspace id "1" on mount
   useLoadWorkspace('1'); // TODO: Load workspace id from user selection thing
@@ -33,7 +43,13 @@ export default function WorkspacePage() {
         <div className="grid grid-cols-[auto_auto_auto_auto] gap-3 w-fit">
           {/* Main view overlay */}
           <div>
-            <Button variant="outline" size="icon" className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg" asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg"
+              asChild
+              onClick={() => navigate("/workspaces")}
+            >
               <a href="../">
                 <LogOut className="transform scale-x-[-1] " />
               </a>
@@ -44,18 +60,20 @@ export default function WorkspacePage() {
           </div>
           <div className="flex flex-col justify-center pointer-events-auto">
             <Button
-              size="icon" variant="outline" className="shadow-lg font-light text-md cursor-pointer"
+              size="icon"
+              variant="outline"
+              className="shadow-lg font-light text-md cursor-pointer"
               onClick={() => setDimensions(dimensions === "3d" ? "2d" : "3d")}
             >
               {dimensions?.toUpperCase() ?? "ERR"}
             </Button>
           </div>
           <div className="flex flex-col justify-center items-center">
-            <WorkspaceTitle/>
+            <WorkspaceTitle />
           </div>
         </div>
       </div>
-      <ContextSidebar className="min-w-64 overflow-y-scroll"/>
+      <ContextSidebar className="min-w-64 overflow-y-scroll" />
     </div>
   );
 
@@ -65,57 +83,76 @@ export default function WorkspacePage() {
       e.preventDefault();
     };
 
-    document.body.addEventListener('touchmove', preventTouch, { passive: false });
+    document.body.addEventListener("touchmove", preventTouch, {passive: false});
 
     return () => {
-      document.body.removeEventListener('touchmove', preventTouch);
-    }
+      document.body.removeEventListener("touchmove", preventTouch);
+    };
   }, []);
+
+  // This allows us to know what to preference in raycasting
+  const getGizmos = useCameraControlsStore((s) => s.getGizmoMeshIdSet);
 
   return (<>
     <WorkspaceActionListener />
     <FlexyCanvas
+      gl={{ stencil: true, autoClearStencil: true }}
       /* min-h-[100dv] works better on mobile devices that h-screen */
       className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
       overlay={overlay}
       onPointerMissed={() => {
         deselect();
       }}
-      onCreated={({ raycaster, camera }) => {
-        // Only see layers 0 and 1
-        raycaster.layers.set(0)
-        raycaster.layers.enable(1)
-        camera.layers.set(0)
-        camera.layers.enable(0)
-        camera.layers.enable(1)
-      }}
+      frameloop={"demand"}
 
+      onCreated={(state: RootState) => {
+        // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
+        state.setEvents({
+          filter: (
+            intersections: THREE.Intersection[],
+          ): THREE.Intersection[] => {
+            if (intersections.length === 0)
+              return intersections;
+
+            const gizmos = getGizmos();
+
+            // climb up parents to allow for child hits (GLTF children, etc.)
+            const preferredHit = intersections.filter((it) => {
+              let o: THREE.Object3D | null = it.object;
+
+              while (o) {
+                if (gizmos.has(o.id))
+                  return true;
+
+                o = o.parent;
+              }
+
+              return false;
+            });
+
+            return preferredHit.length > 0 ? preferredHit : intersections;
+          },
+        });
+      }}
     >
-      <WorkspaceGrid/>
+      <WorkspaceGrid />
       <AdaptiveEvents />
 
+      <WorkspaceCamera />
 
-      <WorkspaceCamera/>
+      <CoordinateSystem />
+      <VertexControls />
 
-      <Bvh firstHitOnly>
+      {/* Add 3D content here: */}
 
-        <VertexControls/>
-
-        {/* Add 3D content here: */}
-
-        {/* Add every shape to the scene: */}
-        {shapeUUIDs.map((uuid: string) => (
-          <ShapeWidget uuid={uuid} key={uuid}/>
-        ))}
-      </Bvh>
-
-      <ambientLight intensity={0.25} color="#F1F5F9"/>
-      <directionalLight position={[1, 5, 2]} intensity={2} rotation={[45, 10, 0]} color="white" />
+      <IntersectionRenderer />
+      {/* Add every shape to the scene: */}
+      {shapeUUIDs
+        .map((uuid: string) => (
+          <ShapeWidget uuid={uuid} key={uuid} />
+        ))
+      }
 
     </FlexyCanvas>
   </>);
 }
-
-
-
-

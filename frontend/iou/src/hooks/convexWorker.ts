@@ -1,27 +1,35 @@
 import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
-import {ConvexHull} from "three/examples/jsm/math/ConvexHull";
+import {ConvexHull} from "three/examples/jsm/math/ConvexHull.js";
 import * as THREE from "three";
 
-// function sleep(ms: number) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }
-
 export interface ConvexHullResult {
-  normals: number[],
-  vertices: number[],
-  edges: [Vec3, Vec3][]
+  positions: number[],    // flat xyz array of unique vertices
+  normals?: number[],     // flat xyz array, per face-vertex
+  edges: [Vec3, Vec3][],  // optional for rendering edges
 }
+
+const FLAT_THRESHOLD = 1e-4; // adjust: smaller = stricter flat detection
 
 // Worker code, runs the quick hull algorithm
 self.onmessage = async (event: MessageEvent<Vec3[]>) => {
   const vertices = event.data;
   const vectors = vertices.map(v => new THREE.Vector3(...v));
 
-  if (vertices.length < 3) {
+  if (vertices.length < 2) {
+    // Special case for points
+    self.postMessage({
+      positions: [],
+      normals: [],
+      edges: []
+    });
+    return;
+  }
+  if (vertices.length === 2) {
     // Special case for lines and points
     self.postMessage({
-      vertices: [],
-      normals: []
+      positions: [],
+      normals: [],
+      edges: [[vertices[0], vertices[1]]]
     });
     return;
   }
@@ -31,54 +39,117 @@ self.onmessage = async (event: MessageEvent<Vec3[]>) => {
     const reversedVertices = [...vertices].reverse();
 
     // Get the normal vector for the front face
-    const norm = (vectors[1].sub(vectors[0])).cross(vectors[2].sub(vectors[0])).normalize();
+    const norm = (vectors[1].clone().sub(vectors[0])).cross(vectors[2].clone().sub(vectors[0])).normalize();
     const normals = vertices.map(() => [norm.x, norm.y, norm.z]).flat();
     const reversedNormals = vertices.map(() => [-norm.x, -norm.y, -norm.z]).flat();
+    const edges: [Vec3, Vec3][] = [
+        [vertices[0], vertices[1]],
+        [vertices[1], vertices[2]],
+        [vertices[2], vertices[0]],
+    ];
 
     const result = {
       vertices: [...vertices.flat(), ...reversedVertices.flat()],
       normals: [...normals, ...reversedNormals],
+      edges: edges
     }
     self.postMessage(result);
     return;
   }
 
-  // Otherwise use the convex hull algorithm:
-  const convexHull = new ConvexHull().setFromPoints( vectors );
+  // Convex hull
+  const convexHull = new ConvexHull().setFromPoints(vectors);
   const faces = convexHull.faces;
 
-  const outputVertices: number[] = [];
-  const outputNormals: number[] = [];
+  // Collect unique vertices
+  const vertexMap = new Map<string, number>();
+  const uniqueVertices: Vec3[] = [];
+  const normals : number[] = [];
+  const positions : number[] = [];
 
-  const edgesSet = new Set<[Vec3, Vec3]>();
+  const getVertexIndex = (p: THREE.Vector3): number => {
+    const key = `${p.x},${p.y},${p.z}`;
+    if (!vertexMap.has(key)) {
+      const idx = uniqueVertices.length;
+      vertexMap.set(key, idx);
+      uniqueVertices.push([p.x, p.y, p.z]);
+      return idx;
+    }
+    return vertexMap.get(key)!;
+  };
 
-  for (let i = 0; i < faces.length; i ++ ) {
-    const face = faces[ i ];
+  // Maps vertex ids to all normals
+  // const normalsMap = new Map<number, THREE.Vector3[]>();
+
+  type FaceEdge = { faceIdx: number; v1: number; v2: number };
+  const edgeMap = new Map<string, FaceEdge[]>();
+  const encodeEdge = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${a}`);
+
+  for (let i = 0; i < faces.length; i++) {
+    const face = faces[i];
     let edge = face.edge;
 
-    // we move along a doubly-connected edge list to access all face points (see HalfEdge docs)
+    // const points: THREE.Vector3[] = [];
+    const faceIndices: number[] = [];
+    // For every edge:
     do {
       const point = edge.head().point;
-
-      outputVertices.push( point.x, point.y, point.z );
-      outputNormals.push( face.normal.x, face.normal.y, face.normal.z );
+      // points.push(point);
+      const idx = getVertexIndex(point);
+      faceIndices.push(idx);
 
       edge = edge.next;
+    } while (edge !== face.edge);
 
-      edgesSet.add([
-        [edge.prev.vertex.point.x, edge.prev.vertex.point.y, edge.prev.vertex.point.z],
-        [edge.vertex.point.x, edge.vertex.point.y, edge.vertex.point.z]
-      ])
+    // Vertex id pairs for every edge on the face
+    const faceIdxEdges = faceIndices
+      .map((vIdx, j) => [vIdx, faceIndices[(j+1) % faceIndices.length]] as [number, number]);
 
-    } while ( edge !== face.edge );
+    faceIdxEdges.forEach(([v1, v2]) => {
+      const key = encodeEdge(v1, v2);
+      if (!edgeMap.has(key)) edgeMap.set(key, []);
+      edgeMap.get(key)?.push({ faceIdx: i, v1, v2 });
+    });
+
+    // Triangulate the polygonal face (fan triangulation)
+    for (let j = 1; j < faceIndices.length - 1; j++) {
+      positions.push(...[faceIndices[0], faceIndices[j], faceIndices[j + 1]].flatMap(x => uniqueVertices[x]));
+
+      const normal = face.normal.toArray();
+      normals.push(...normal, ...normal, ...normal);
+    }
   }
 
-  // You can test simulated lag like this:
-  // await sleep(100);
+  // Collect only sharp edges
+  const edgeOutput: [Vec3, Vec3][] = [];
+  for (const edges of edgeMap.values()) {
+    if (edges.length === 1) {
+      // Border edge → always include
+      const { v1, v2 } = edges[0];
+      edgeOutput.push([
+        uniqueVertices[v1],
+        uniqueVertices[v2]
+      ]);
+    } else if (edges.length >= 2) {
+      // Shared edge → compare normals
+      const n1 = faces[edges[0].faceIdx].normal;
+      const n2 = faces[edges[1].faceIdx].normal;
+      const dot = n1.dot(n2); // cos(theta)
+
+      if (dot < 1 - FLAT_THRESHOLD) {
+        // angle > threshold → keep edge
+        const { v1, v2 } = edges[0];
+        edgeOutput.push([
+          uniqueVertices[v1],
+          uniqueVertices[v2]
+        ]);
+      }
+    }
+  }
 
   self.postMessage({
-    vertices: outputVertices,
-    normals: outputNormals,
-    edges: [...edgesSet]
-  });
+    positions,
+    normals,
+    edges: edgeOutput,
+  } as ConvexHullResult);
 };
