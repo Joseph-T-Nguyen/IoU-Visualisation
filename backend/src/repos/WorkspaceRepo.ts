@@ -26,6 +26,7 @@ export async function findWithShapes(workspaceId: string) {
           name: true,
           color: true,
           vertices: true,
+          visible: true,
         },
       },
     },
@@ -66,6 +67,7 @@ export async function duplicateWorkspace(sourceWorkspaceId: string) {
           name: s.name,
           color: s.color,
           vertices: s.vertices,
+          visible: s.visible ?? true, // Default to true if not set
           workspaceId: created.id,
         })),
       });
@@ -89,6 +91,7 @@ export async function saveWorkspace(workspaceId: string, shapes: Record<string, 
           name: shapeData.name,
           color: shapeData.color,
           vertices: shapeData.vertices,
+          visible: shapeData.visible ?? true, // Default to true if not set
           workspaceId,
         })),
       });

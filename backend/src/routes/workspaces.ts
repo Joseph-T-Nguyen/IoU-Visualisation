@@ -28,6 +28,7 @@ export default {
           name: s.name,
           color: s.color,
           vertices: s.vertices as number[][],
+          visible: s.visible ?? true, // Default to true if not set
         };
       }
       res.set('Cache-Control', 'no-store');
