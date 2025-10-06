@@ -15,7 +15,9 @@ import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
 import { useEffect, useState } from "react";
 import { AdaptiveEvents } from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
+import useLoadWorkspace from "@/hooks/workspace/useLoadWorkspace.ts";
 import CoordinateSystem from "@/components/three/CoordinateSystem.tsx";
+
 import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
 import * as THREE from "three";
 import type { RootState } from "@react-three/fiber";
@@ -27,7 +29,6 @@ export default function WorkspacePage() {
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null);
 
   const shapeUUIDs = useShapeUUIDs();
-  const shapes = useShapesStore((s) => s.shapes);
 
   const deselect = useShapesStore((s) => s.deselect);
 
@@ -64,6 +65,11 @@ export default function WorkspacePage() {
   const handleShare = () => {
     alert("Share functionality is not yet implemented.");
   };
+
+  console.log("Re-rendering the workspace page.")
+
+  // Load default workspace id "1" on mount
+  useLoadWorkspace('1'); // TODO: Load workspace id from user selection thing
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
@@ -117,9 +123,7 @@ export default function WorkspacePage() {
       e.preventDefault();
     };
 
-    document.body.addEventListener("touchmove", preventTouch, {
-      passive: false,
-    });
+    document.body.addEventListener("touchmove", preventTouch, {passive: false});
 
     return () => {
       document.body.removeEventListener("touchmove", preventTouch);
@@ -133,72 +137,63 @@ export default function WorkspacePage() {
     <>
       <WorkspaceActionListener />
       <FlexyCanvas
+        gl={{ preserveDrawingBuffer: true, stencil: true, autoClearStencil: true }}
         /* min-h-[100dv] works better on mobile devices that h-screen */
         className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
         overlay={overlay}
         onPointerMissed={() => {
           deselect();
         }}
+        frameloop={"demand"}
         onCreated={(state: RootState) => {
           setGl(state.gl);
-          // set a custom event filter globally
-          state.setEvents({
-            filter: (
-              intersections: THREE.Intersection[]
-            ): THREE.Intersection[] => {
-              if (intersections.length === 0) return intersections;
+        // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
+        state.setEvents({
+          filter: (
+            intersections: THREE.Intersection[],
+          ): THREE.Intersection[] => {
+            if (intersections.length === 0)
+              return intersections;
 
-              const gizmos = getGizmos();
+            const gizmos = getGizmos();
 
-              // climb up parents to allow for child hits (GLTF children, etc.)
-              const preferredHit = intersections.find((it) => {
-                let o: THREE.Object3D | null = it.object;
+            // climb up parents to allow for child hits (GLTF children, etc.)
+            const preferredHit = intersections.filter((it) => {
+              let o: THREE.Object3D | null = it.object;
 
-                while (o) {
-                  if (gizmos.has(o.id)) return true;
+              while (o) {
+                if (gizmos.has(o.id))
+                  return true;
 
-                  o = o.parent;
-                }
+                o = o.parent;
+              }
 
-                return false;
-              });
+              return false;
+            });
 
-              return preferredHit ? [preferredHit] : intersections;
-            },
-          });
-        }}
-        gl={{ preserveDrawingBuffer: true }}
-      >
-        <WorkspaceGrid />
-        <AdaptiveEvents />
+            return preferredHit.length > 0 ? preferredHit : intersections;
+          },
+        });
+      }}
+    >
+      <WorkspaceGrid />
+      <AdaptiveEvents />
 
-        <WorkspaceCamera />
+      <WorkspaceCamera />
 
-        <CoordinateSystem />
+      <CoordinateSystem />
+      <VertexControls />
 
-        {/*<Bvh firstHitOnly>*/}
+      {/* Add 3D content here: */}
 
-        <VertexControls />
+      <IntersectionRenderer />
+      {/* Add every shape to the scene: */}
+      {shapeUUIDs
+        .map((uuid: string) => (
+          <ShapeWidget uuid={uuid} key={uuid} />
+        ))
+      }
 
-        {/* Add 3D content here: */}
-
-        <IntersectionRenderer />
-        {/* Add every shape to the scene: */}
-        {shapeUUIDs
-          .filter((uuid) => shapes[uuid]?.visible)
-          .map((uuid: string) => (
-            <ShapeWidget uuid={uuid} key={uuid} />
-          ))}
-        {/*</Bvh>*/}
-
-        <ambientLight intensity={0.25} color="#F1F5F9" />
-        <directionalLight
-          position={[1, 5, 2]}
-          intensity={2}
-          rotation={[45, 10, 0]}
-          color="white"
-        />
-      </FlexyCanvas>
-    </>
-  );
+    </FlexyCanvas>
+  </>);
 }

@@ -22,15 +22,15 @@ export default function useOnKeyDown(targetKey: string | ModifiedKey, callback: 
   const downHandler = useCallback((event: KeyboardEvent) => {
     const modifiedKey = typeof targetKey === "string" ? {key: targetKey} : targetKey;
 
-    if (event.key !== modifiedKey.key)
+    if (event.key.toLowerCase() !== modifiedKey.key.toLowerCase())
       return;
-    if (modifiedKey.alt !== undefined && event.altKey !== modifiedKey.alt)
+    if (modifiedKey.alt !== undefined && event.altKey !== (modifiedKey.alt ?? false))
       return;
-    if (modifiedKey.ctrl !== undefined && event.ctrlKey !== modifiedKey.ctrl)
+    if (modifiedKey.ctrl !== undefined && event.ctrlKey !== (modifiedKey.ctrl ?? false))
       return;
-    if (modifiedKey.shift !== undefined && event.shiftKey !== modifiedKey.shift)
+    if (modifiedKey.shift !== undefined && event.shiftKey !== (modifiedKey.shift ?? false))
       return;
-    if (modifiedKey.meta !== undefined && event.metaKey !== modifiedKey.meta)
+    if (modifiedKey.meta !== undefined && event.metaKey !== (modifiedKey.meta ?? false))
       return;
 
     cachedCallback();
