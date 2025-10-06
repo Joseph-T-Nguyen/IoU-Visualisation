@@ -333,7 +333,10 @@ const useShapesStore = create<ShapesSlice & SelectionSlice>()(
     (...a) => ({
       ...createSelectionSlice(...a),
       ...createShapeSlice(...a),
-    })
+    }),
+    {
+      limit: 50,
+    },
   )
 );
 
