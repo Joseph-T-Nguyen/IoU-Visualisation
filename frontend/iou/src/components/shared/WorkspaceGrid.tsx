@@ -19,7 +19,6 @@ interface WorkspaceGridProps {
 
 export default function WorkspaceGrid({
   workspaces,
-  maxVisibleCards = 8,
   onRenameWorkspace,
   onDeleteWorkspace,
   onShareWorkspace,
@@ -34,15 +33,9 @@ export default function WorkspaceGrid({
           name={workspace.name}
           lastEdited={workspace.lastEdited}
           previewImage={workspace.previewImage}
-          onMenuClick={() =>
-            console.log(`Menu clicked for ${workspace.name}`)
-          }
-          onRename={() =>
-            onRenameWorkspace?.(workspace.id, workspace.name)
-          }
-          onDelete={() =>
-            onDeleteWorkspace?.(workspace.id, workspace.name)
-          }
+          onMenuClick={() => console.log(`Menu clicked for ${workspace.name}`)}
+          onRename={() => onRenameWorkspace?.(workspace.id, workspace.name)}
+          onDelete={() => onDeleteWorkspace?.(workspace.id, workspace.name)}
           onShare={() => onShareWorkspace?.(workspace.id, workspace.name)}
           onDuplicate={() => onDuplicateWorkspace?.(workspace.id)}
           onOpen={() => onOpenWorkspace?.(workspace.id)}
