@@ -3,7 +3,7 @@ import SpinningCube from "@/components/three/SpinningCube.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {TrackballControls} from "@react-three/drei";
 import { useNavigate } from "react-router";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, googleLogout } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode"; // optional if you want to parse profile info
 
 export default function LandingPage() {
@@ -23,13 +23,30 @@ export default function LandingPage() {
       console.log("Logged in user:", user);
 
       // TODO: store user info in context/localStorage and redirect
-      navigate("/workspaces");
+      // navigate("/workspaces");
     }
   };
   
 
   const handleLoginError = () => {
     console.error("Google login failed");
+  };
+
+  const handleLogout = () => {
+    // Clear Google session
+    googleLogout();
+
+    // Prevent GIS from silently restoring session
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      window.google.accounts.id.disableAutoSelect();
+
+      // Optional: revoke consent entirely
+      // Replace with stored user email if available
+      // window.google.accounts.id.revoke(userEmail, done => console.log("Consent revoked"));
+    }
+
+    console.log("User logged out");
+    // TODO: clear app state (e.g., context/localStorage)
   };
 
   return (
@@ -43,6 +60,12 @@ export default function LandingPage() {
           />
           <Button
             variant="outline"
+            onClick={handleLogout}
+            className="shadow-lg"
+          >
+            Log Out
+          </Button>
+          <Button 
             onClick={() => navigate("/login")}
             className="shadow-lg"
           >
