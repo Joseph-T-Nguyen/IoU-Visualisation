@@ -4,6 +4,7 @@ import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/store
 import type {StateCreator} from "zustand/vanilla";
 import * as THREE from 'three';
 import * as UUID from "uuid";
+import { temporal } from 'zundo';
 
 export type Shapes = {[key: string]: ShapeData}
 export interface ShapesSlice {
@@ -327,9 +328,13 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
   }),
 }))
 
-const useShapesStore = create<ShapesSlice & SelectionSlice>()((...a) => ({
-  ...createSelectionSlice(...a),
-  ...createShapeSlice(...a),
-}));
+const useShapesStore = create<ShapesSlice & SelectionSlice>()(
+  temporal(
+    (...a) => ({
+      ...createSelectionSlice(...a),
+      ...createShapeSlice(...a),
+    })
+  )
+);
 
 export default useShapesStore;
