@@ -6,16 +6,39 @@ import {
   MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger,
   MenubarTrigger
 } from "@/components/ui/menubar.tsx";
+import { Save } from "lucide-react";
+import { useSaveWorkspace } from "@/hooks/workspace/useSaveWorkspace";
+import { useParams } from "react-router";
 
 export default function WorkspaceMenubar() {
+  const { id } = useParams<{ id: string }>();
+  const { saveWorkspace, isSaving } = useSaveWorkspace();
+
+  const handleSave = async () => {
+    if (!id) {
+      console.error('No workspace ID found');
+      return;
+    }
+    
+    try {
+      await saveWorkspace(id);
+    } catch (err) {
+      console.error('Failed to save workspace:', err);
+    }
+  };
 
   return (
     <Menubar className="pointer-events-auto shadow-lg">
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">File</MenubarTrigger>
         <MenubarContent>
+          <MenubarItem onClick={handleSave} disabled={isSaving}>
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? 'Saving...' : 'Save Workspace'} <MenubarShortcut>Cmd+S</MenubarShortcut>
+          </MenubarItem>
+          <MenubarSeparator />
           <MenubarItem>
-            New Workspace <MenubarShortcut>⌘T</MenubarShortcut>
+            New Workspace <MenubarShortcut>Cmd+T</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
           <MenubarSub>
@@ -28,7 +51,7 @@ export default function WorkspaceMenubar() {
           </MenubarSub>
           <MenubarSeparator />
           <MenubarItem>
-            Print... <MenubarShortcut>⌘P</MenubarShortcut>
+            Print... <MenubarShortcut>Cmd+P</MenubarShortcut>
           </MenubarItem>
         </MenubarContent>
       </MenubarMenu>
@@ -36,10 +59,10 @@ export default function WorkspaceMenubar() {
         <MenubarTrigger className="cursor-pointer">Edit</MenubarTrigger>
         <MenubarContent>
           <MenubarItem>
-            Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+            Undo <MenubarShortcut>Cmd+Z</MenubarShortcut>
           </MenubarItem>
           <MenubarItem>
-            Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+            Redo <MenubarShortcut>Shift+Cmd+Z</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
           <MenubarSub>
@@ -67,10 +90,10 @@ export default function WorkspaceMenubar() {
           </MenubarCheckboxItem>
           <MenubarSeparator />
           <MenubarItem inset>
-            Reload <MenubarShortcut>⌘R</MenubarShortcut>
+            Reload <MenubarShortcut>Cmd+R</MenubarShortcut>
           </MenubarItem>
           <MenubarItem disabled inset>
-            Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
+            Force Reload <MenubarShortcut>Shift+Cmd+R</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
           <MenubarItem inset>Toggle Fullscreen</MenubarItem>

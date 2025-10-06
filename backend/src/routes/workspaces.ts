@@ -72,6 +72,25 @@ export default {
       return next(err);
     }
   },
+  async save(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params as { id: string };
+      const { shapes } = req.body as { shapes: Record<string, any> };
+      if (!shapes) return res.status(400).json({ error: 'Shapes data is required' });
+      
+      const updated = await WorkspaceRepo.saveWorkspace(id, shapes);
+      if (!updated) return res.status(404).json({ error: 'Workspace not found' });
+      
+      res.set('Cache-Control', 'no-store');
+      return res.json({ 
+        id: updated.id, 
+        name: updated.name, 
+        lastEdited: `Edited ${updated.updatedAt.toLocaleDateString()}` 
+      });
+    } catch (err) {
+      return next(err);
+    }
+  },
 };
 
 

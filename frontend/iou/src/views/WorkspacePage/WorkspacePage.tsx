@@ -22,9 +22,11 @@ import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.
 import * as THREE from "three";
 import type { RootState } from "@react-three/fiber";
 import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
+import { useParams } from "react-router";
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [dimensions, setDimensions] = useDimensions();
 
   const shapeUUIDs = useShapeUUIDs();
@@ -33,8 +35,8 @@ export default function WorkspacePage() {
 
   console.log("Re-rendering the workspace page.")
 
-  // Load default workspace id "1" on mount
-  useLoadWorkspace('1'); // TODO: Load workspace id from user selection thing
+  // Load workspace from URL params
+  useLoadWorkspace(id || '1'); // Fallback to '1' if no ID provided
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
