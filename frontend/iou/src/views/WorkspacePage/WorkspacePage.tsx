@@ -138,12 +138,9 @@ export default function WorkspacePage() {
               variant="outline"
               size="icon"
               className="size-8 pointer-events-auto w-9 h-9 cursor-pointer shadow-lg"
-              asChild
               onClick={() => navigate("/workspaces")}
             >
-              <a href="../">
-                <LogOut className="transform scale-x-[-1] " />
-              </a>
+              <LogOut className="transform scale-x-[-1] " />
             </Button>
           </div>
           <div>

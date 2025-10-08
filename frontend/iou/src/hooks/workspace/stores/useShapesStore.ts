@@ -25,6 +25,7 @@ export interface ShapesSlice {
 
   toggleSelectionVisibility: () => void;
   unhideAllShapes: () => void;
+  hideAllShapes: () => void;
   deleteSelections: () => void;
   setManyVertices: (mods: [string, Vec3[]][]) => void;
   matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
@@ -367,6 +368,23 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
           [selection]: {
             ...acc[selection],
             visible: true
+          }
+        } as Shapes;
+      }, state.shapes);
+
+    return {
+      shapes: newShapes
+    }
+  }),
+
+  hideAllShapes: () => set((state) => {
+    const newShapes = Object.keys(state.shapes)
+      .reduce((acc, selection) => {
+        return {
+          ...acc,
+          [selection]: {
+            ...acc[selection],
+            visible: false
           }
         } as Shapes;
       }, state.shapes);

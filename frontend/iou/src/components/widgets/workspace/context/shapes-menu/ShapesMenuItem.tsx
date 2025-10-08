@@ -30,7 +30,7 @@ export default function ShapesMenuItem(props: ShapesMenuItemProps) {
       <div className="flex flex-row gap-1.5 justify-center items-center">
         <ColorPicker color={color} />
         <Input
-          className="h-6 px-1.5 flex-grow text-sm text-left align-middle border-none shadow-none"
+          className={`h-6 px-1.5 flex-grow text-sm text-left align-middle border-none shadow-none ${!visible ? "text-muted-foreground opacity-50" : ""}`}
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
