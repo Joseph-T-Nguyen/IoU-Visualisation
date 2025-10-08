@@ -121,12 +121,22 @@ export default function LandingPage() {
           ) : (
             <>
               <div className="flex items-center gap-2">
-                {user.picture && (
+                {user.picture ? (
                   <img 
                     src={user.picture} 
                     alt={user.name}
                     className="w-8 h-8 rounded-full"
+                    onError={(e) => {
+                      console.log('Failed to load profile picture, using fallback avatar');
+                      e.currentTarget.style.display = 'none';
+                      // Show fallback by removing the picture from state
+                      setUser(prev => prev ? { ...prev, picture: undefined } : null);
+                    }}
                   />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-sm text-white font-semibold">
+                    {user.name?.[0]?.toUpperCase() || '?'}
+                  </div>
                 )}
                 <span className="text-sm">{user.name}</span>
               </div>
