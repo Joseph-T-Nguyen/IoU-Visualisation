@@ -17,6 +17,7 @@ export interface WorkspaceMenubarProps {
   onDuplicate: () => void;
   onShare: () => void;
   onDownload: () => void;
+  onImport: () => void;
   onScreenshot: () => void;
 }
 
@@ -24,6 +25,7 @@ export default function WorkspaceMenubar({
   onDuplicate,
   onShare,
   onDownload,
+  onImport,
   onScreenshot,
 }: WorkspaceMenubarProps) {
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ export default function WorkspaceMenubar({
           </MenubarItem>
           <MenubarSeparator />
           <MenubarItem onClick={onShare}>Share a copy</MenubarItem>
+          <MenubarItem onClick={onImport}>Import</MenubarItem>
           <MenubarItem onClick={onDownload}>Download</MenubarItem>
           <MenubarItem onClick={onScreenshot}>Take a screenshot</MenubarItem>
         </MenubarContent>

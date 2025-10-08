@@ -59,6 +59,29 @@ export default function WorkspacePage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json,*/*.json";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const shapes = JSON.parse(event.target?.result as string);
+          useShapesStore.getState().setAllShapes(shapes);
+        } catch (error) {
+          alert("Failed to import workspace: Invalid JSON file");
+          console.error(error);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   const handleDuplicate = () => {
     alert("Duplicate functionality is not yet implemented.");
   };
@@ -67,10 +90,10 @@ export default function WorkspacePage() {
     alert("Share functionality is not yet implemented.");
   };
 
-  console.log("Re-rendering the workspace page.")
+  console.log("Re-rendering the workspace page.");
 
   // Load default workspace id "1" on mount
-  useLoadWorkspace('1'); // TODO: Load workspace id from user selection thing
+  useLoadWorkspace("1"); // TODO: Load workspace id from user selection thing
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
@@ -96,6 +119,7 @@ export default function WorkspacePage() {
               onDuplicate={handleDuplicate}
               onShare={handleShare}
               onDownload={handleDownload}
+              onImport={handleImport}
               onScreenshot={handleScreenshot}
             />
           </div>
@@ -124,7 +148,9 @@ export default function WorkspacePage() {
       e.preventDefault();
     };
 
-    document.body.addEventListener("touchmove", preventTouch, {passive: false});
+    document.body.addEventListener("touchmove", preventTouch, {
+      passive: false,
+    });
 
     return () => {
       document.body.removeEventListener("touchmove", preventTouch);
@@ -138,7 +164,11 @@ export default function WorkspacePage() {
     <>
       <WorkspaceActionListener />
       <FlexyCanvas
-        gl={{ preserveDrawingBuffer: true, stencil: true, autoClearStencil: true }}
+        gl={{
+          preserveDrawingBuffer: true,
+          stencil: true,
+          autoClearStencil: true,
+        }}
         /* min-h-[100dv] works better on mobile devices that h-screen */
         className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
         overlay={overlay}
@@ -148,54 +178,50 @@ export default function WorkspacePage() {
         frameloop={"demand"}
         onCreated={(state: RootState) => {
           setGl(state.gl);
-        // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
-        state.setEvents({
-          filter: (
-            intersections: THREE.Intersection[],
-          ): THREE.Intersection[] => {
-            if (intersections.length === 0)
-              return intersections;
+          // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
+          state.setEvents({
+            filter: (
+              intersections: THREE.Intersection[]
+            ): THREE.Intersection[] => {
+              if (intersections.length === 0) return intersections;
 
-            const gizmos = getGizmos();
+              const gizmos = getGizmos();
 
-            // climb up parents to allow for child hits (GLTF children, etc.)
-            const preferredHit = intersections.filter((it) => {
-              let o: THREE.Object3D | null = it.object;
+              // climb up parents to allow for child hits (GLTF children, etc.)
+              const preferredHit = intersections.filter((it) => {
+                let o: THREE.Object3D | null = it.object;
 
-              while (o) {
-                if (gizmos.has(o.id))
-                  return true;
+                while (o) {
+                  if (gizmos.has(o.id)) return true;
 
-                o = o.parent;
-              }
+                  o = o.parent;
+                }
 
-              return false;
-            });
+                return false;
+              });
 
-            return preferredHit.length > 0 ? preferredHit : intersections;
-          },
-        });
-      }}
-    >
-      <WorkspaceGrid />
-      <AdaptiveEvents />
+              return preferredHit.length > 0 ? preferredHit : intersections;
+            },
+          });
+        }}
+      >
+        <WorkspaceGrid />
+        <AdaptiveEvents />
 
-      <WorkspaceCamera />
+        <WorkspaceCamera />
 
-      <CoordinateSystem />
-      <VertexControls />
+        <CoordinateSystem />
+        <VertexControls />
 
-      {/* Add 3D content here: */}
+        {/* Add 3D content here: */}
 
-      <InvalidateOnVisibilityChange />
-      <IntersectionRenderer />
-      {/* Add every shape to the scene: */}
-      {shapeUUIDs
-        .map((uuid: string) => (
+        <InvalidateOnVisibilityChange />
+        <IntersectionRenderer />
+        {/* Add every shape to the scene: */}
+        {shapeUUIDs.map((uuid: string) => (
           <ShapeWidget uuid={uuid} key={uuid} />
-        ))
-      }
-
-    </FlexyCanvas>
-  </>);
+        ))}
+      </FlexyCanvas>
+    </>
+  );
 }
