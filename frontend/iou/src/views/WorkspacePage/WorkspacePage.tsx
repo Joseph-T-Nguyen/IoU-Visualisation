@@ -22,6 +22,7 @@ import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.
 import * as THREE from "three";
 import type { RootState } from "@react-three/fiber";
 import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
+import InvalidateOnVisibilityChange from "@/components/three/InvalidateOnVisibilityChange.tsx";
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
@@ -186,6 +187,7 @@ export default function WorkspacePage() {
 
       {/* Add 3D content here: */}
 
+      <InvalidateOnVisibilityChange />
       <IntersectionRenderer />
       {/* Add every shape to the scene: */}
       {shapeUUIDs

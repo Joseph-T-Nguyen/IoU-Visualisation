@@ -5,6 +5,8 @@ import useSelection from "@/hooks/workspace/useSelection.ts";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
 import useShapeGeometry from "@/hooks/workspace/useShapeGeometry.ts";
 import useShapeColorVariants from "@/hooks/useShapeColorVariants.ts";
+import { useThree } from "@react-three/fiber";
+import { useEffect } from "react";
 
 
 export interface ShapeWidgetProps {
