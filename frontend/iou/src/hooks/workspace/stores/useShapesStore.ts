@@ -408,7 +408,19 @@ const useShapesStore = create<ShapesSlice & SelectionSlice>()(
     (...a) => ({
       ...createSelectionSlice(...a),
       ...createShapeSlice(...a),
-    })
+    }),
+    {
+      // Only track shape data changes, not selection UI state
+      partialize: (state) => ({
+        shapes: state.shapes,
+        colorQueue: state.colorQueue,
+        createdShapeCount: state.createdShapeCount,
+      }),
+      // Use deep equality to prevent tracking identical states
+      equality: (pastState, currentState) => {
+        return JSON.stringify(pastState) === JSON.stringify(currentState);
+      },
+    }
   )
 );
 

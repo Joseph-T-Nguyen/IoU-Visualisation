@@ -18,6 +18,8 @@ export interface WorkspaceMenubarProps {
   onDownload: () => void;
   onImport: () => void;
   onScreenshot: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 export default function WorkspaceMenubar({
@@ -25,6 +27,8 @@ export default function WorkspaceMenubar({
   onDownload,
   onImport,
   onScreenshot,
+  onUndo,
+  onRedo,
 }: WorkspaceMenubarProps) {
   const navigate = useNavigate();
 
@@ -48,11 +52,11 @@ export default function WorkspaceMenubar({
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">Edit</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
-            Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+          <MenubarItem onClick={onUndo}>
+            Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>
-            Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+          <MenubarItem onClick={onRedo}>
+            Redo <MenubarShortcut>Shift+Ctrl+Z</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
           <MenubarSub>

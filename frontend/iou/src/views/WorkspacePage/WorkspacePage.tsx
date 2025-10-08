@@ -86,6 +86,16 @@ export default function WorkspacePage() {
     alert("Duplicate functionality is not yet implemented.");
   };
 
+  const handleUndo = () => {
+    const { undo } = useShapesStore.temporal.getState();
+    undo();
+  };
+
+  const handleRedo = () => {
+    const { redo } = useShapesStore.temporal.getState();
+    redo();
+  };
+
   console.log("Re-rendering the workspace page.");
 
   // Load default workspace id "1" on mount
@@ -116,6 +126,8 @@ export default function WorkspacePage() {
               onDownload={handleDownload}
               onImport={handleImport}
               onScreenshot={handleScreenshot}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
             />
           </div>
           <div className="flex flex-col justify-center pointer-events-auto">
