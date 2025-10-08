@@ -53,7 +53,7 @@ export default function LandingPage() {
       setUser(decoded);
       localStorage.setItem('user', JSON.stringify(decoded));
       
-      // Optionally redirect
+      // TODO: Navigate to user specific workspace, connect with backend!
       // navigate("/workspaces");
     }
   };
