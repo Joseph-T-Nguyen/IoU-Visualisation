@@ -6,9 +6,6 @@ import {
   MenubarMenu,
   MenubarSeparator,
   MenubarShortcut,
-  MenubarSub,
-  MenubarSubContent,
-  MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar.tsx";
 import { useNavigate } from "react-router";
@@ -58,17 +55,6 @@ export default function WorkspaceMenubar({
           <MenubarItem onClick={onRedo}>
             Redo <MenubarShortcut>Shift+Ctrl+Z</MenubarShortcut>
           </MenubarItem>
-          <MenubarSeparator />
-          <MenubarSub>
-            <MenubarSubTrigger>Find</MenubarSubTrigger>
-            <MenubarSubContent>
-              <MenubarItem>Search the web</MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem>Find...</MenubarItem>
-              <MenubarItem>Find Next</MenubarItem>
-              <MenubarItem>Find Previous</MenubarItem>
-            </MenubarSubContent>
-          </MenubarSub>
           <MenubarSeparator />
           <MenubarItem>Cut</MenubarItem>
           <MenubarItem>Copy</MenubarItem>
