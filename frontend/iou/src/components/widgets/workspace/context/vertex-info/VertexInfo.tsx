@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button.tsx";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import type { Vec3 } from "@/hooks/workspace/workspaceTypes.ts";
+import { useState, useEffect } from "react";
 
 export default function VertexInfo() {
   const [dimensions] = useDimensions();
@@ -44,16 +45,40 @@ export default function VertexInfo() {
     }
   }
 
+  const vertex = selectedVertexInfo?.vertex ?? [0, 0, 0];
+  const [x, y, z] = vertex;
+
+  // Local state for input values
+  const [inputX, setInputX] = useState(x.toFixed(1));
+  const [inputY, setInputY] = useState(y.toFixed(1));
+  const [inputZ, setInputZ] = useState(z.toFixed(1));
+
+  // Update local state when vertex changes (e.g., different vertex selected)
+  useEffect(() => {
+    setInputX(x.toFixed(1));
+    setInputY(y.toFixed(1));
+    setInputZ(z.toFixed(1));
+  }, [x, y, z]);
+
   // Only show if exactly one vertex is selected
   if (!selectedVertexInfo) {
     return null;
   }
 
-  const { shapeKey, vertexIndex, vertex } = selectedVertexInfo;
-  const [x, y, z] = vertex;
+  const { shapeKey, vertexIndex } = selectedVertexInfo;
 
-  const updateVertex = (field: "x" | "y" | "z", value: string) => {
-    const numValue = parseFloat(value) || 0;
+  const commitValue = (field: "x" | "y" | "z", value: string, original: number) => {
+    const numValue = parseFloat(value);
+
+    // If invalid or empty, revert to original
+    if (isNaN(numValue)) {
+      if (field === "x") setInputX(original.toFixed(1));
+      if (field === "y") setInputY(original.toFixed(1));
+      if (field === "z") setInputZ(original.toFixed(1));
+      return;
+    }
+
+    // Update the actual vertex
     const currentVertices = shapes[shapeKey].vertices;
     const updatedVertices = [...currentVertices];
     const [currentX, currentY, currentZ] = updatedVertices[vertexIndex];
@@ -64,6 +89,24 @@ export default function VertexInfo() {
       field === "z" ? numValue : currentZ,
     ];
     setVertices(shapeKey, updatedVertices);
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    field: "x" | "y" | "z",
+    original: number
+  ) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+      commitValue(field, e.currentTarget.value, original);
+    }
+  };
+
+  const handleInputChange = (value: string, setter: (value: string) => void) => {
+    // Allow empty string, numbers, decimal point, and minus sign
+    if (value === "" || value === "-" || value === "." || value === "-." || /^-?\d*\.?\d*$/.test(value)) {
+      setter(value);
+    }
   };
 
   const duplicateVertex = () => {
@@ -96,10 +139,11 @@ export default function VertexInfo() {
           </label>
           <Input
             id="vertex-x"
-            type="number"
-            step="0.1"
-            value={x.toFixed(1)}
-            onChange={(e) => updateVertex("x", e.target.value)}
+            type="text"
+            value={inputX}
+            onChange={(e) => handleInputChange(e.target.value, setInputX)}
+            onBlur={(e) => commitValue("x", e.target.value, x)}
+            onKeyDown={(e) => handleKeyDown(e, "x", x)}
             className="h-8 text-sm flex-1"
           />
         </div>
@@ -109,10 +153,11 @@ export default function VertexInfo() {
           </label>
           <Input
             id="vertex-y"
-            type="number"
-            step="0.1"
-            value={y.toFixed(1)}
-            onChange={(e) => updateVertex("y", e.target.value)}
+            type="text"
+            value={inputY}
+            onChange={(e) => handleInputChange(e.target.value, setInputY)}
+            onBlur={(e) => commitValue("y", e.target.value, y)}
+            onKeyDown={(e) => handleKeyDown(e, "y", y)}
             className="h-8 text-sm flex-1"
           />
         </div>
@@ -123,10 +168,11 @@ export default function VertexInfo() {
             </label>
             <Input
               id="vertex-z"
-              type="number"
-              step="0.1"
-              value={z.toFixed(1)}
-              onChange={(e) => updateVertex("z", e.target.value)}
+              type="text"
+              value={inputZ}
+              onChange={(e) => handleInputChange(e.target.value, setInputZ)}
+              onBlur={(e) => commitValue("z", e.target.value, z)}
+              onKeyDown={(e) => handleKeyDown(e, "z", z)}
               className="h-8 text-sm flex-1"
             />
           </div>

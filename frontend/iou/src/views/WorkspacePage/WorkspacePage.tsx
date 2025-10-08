@@ -96,6 +96,32 @@ export default function WorkspacePage() {
     redo();
   };
 
+  const [clipboard, setClipboard] = useState<string[]>([]);
+
+  const handleCut = () => {
+    const { deleteSelections } = useShapesStore.getState();
+    deleteSelections();
+  };
+
+  const handleCopy = () => {
+    const { selections } = useShapesStore.getState();
+    const selectedIds = Object.keys(selections).filter(id => !selections[id].children);
+
+    if (selectedIds.length === 0) return;
+
+    // Store selected shape IDs in clipboard
+    setClipboard(selectedIds);
+  };
+
+  const handlePaste = () => {
+    const { duplicateShape } = useShapesStore.getState();
+
+    if (clipboard.length === 0) return;
+
+    // Duplicate all shapes in clipboard
+    clipboard.forEach(id => duplicateShape(id));
+  };
+
   console.log("Re-rendering the workspace page.");
 
   // Load default workspace id "1" on mount
@@ -128,6 +154,9 @@ export default function WorkspacePage() {
               onScreenshot={handleScreenshot}
               onUndo={handleUndo}
               onRedo={handleRedo}
+              onCut={handleCut}
+              onCopy={handleCopy}
+              onPaste={handlePaste}
             />
           </div>
           <div className="flex flex-col justify-center pointer-events-auto">

@@ -17,6 +17,9 @@ export interface WorkspaceMenubarProps {
   onScreenshot: () => void;
   onUndo: () => void;
   onRedo: () => void;
+  onCut: () => void;
+  onCopy: () => void;
+  onPaste: () => void;
 }
 
 export default function WorkspaceMenubar({
@@ -26,6 +29,9 @@ export default function WorkspaceMenubar({
   onScreenshot,
   onUndo,
   onRedo,
+  onCut,
+  onCopy,
+  onPaste,
 }: WorkspaceMenubarProps) {
   const navigate = useNavigate();
 
@@ -56,9 +62,15 @@ export default function WorkspaceMenubar({
             Redo <MenubarShortcut>Shift+Ctrl+Z</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarItem>Cut</MenubarItem>
-          <MenubarItem>Copy</MenubarItem>
-          <MenubarItem>Paste</MenubarItem>
+          <MenubarItem onClick={onCut}>
+            Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={onCopy}>
+            Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={onPaste}>
+            Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
+          </MenubarItem>
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
