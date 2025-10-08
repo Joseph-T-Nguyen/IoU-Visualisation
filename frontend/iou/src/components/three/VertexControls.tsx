@@ -5,6 +5,7 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import useSetCameraInteraction from "@/hooks/workspace/useSetCameraInteration.ts";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
+import type {Vec3} from "@/hooks/workspace/workspaceTypes.ts";
 
 export default function VertexControls() {
   const { beginInteraction, endInteraction } = useSetCameraInteraction("vertex-controls");
@@ -18,9 +19,13 @@ export default function VertexControls() {
 
   const selections = useShapesStore(s => s.selections);
   const shapes = useShapesStore(s => s.shapes);
-  const matrixMultiplySelection = useShapesStore(s => s.matrixMultiplySelection);
+  const setManyVertices = useShapesStore(s => s.setManyVertices);
+
+  // Get temporal controls
+  const temporalStore = useShapesStore.temporal;
 
   const previousMatrix = useRef<THREE.Matrix4>(new THREE.Matrix4());
+  const initialVerticesRef = useRef<[string, Vec3[]][]>([]);
 
   const selectedVertexSets = useMemo(() => {
     const selectionKeys = Object.keys(selections);
@@ -127,12 +132,36 @@ export default function VertexControls() {
         onDragStart={() => {
           document.body.style.cursor = "grabbing";
           previousMatrix.current.copy(matrix);
+
+          // Store initial vertices state for restoration if needed
+          const selectedKeys = Object.keys(selections);
+          initialVerticesRef.current = selectedKeys
+            .filter(key => key in shapes)
+            .map(key => [key, [...shapes[key].vertices]] as [string, Vec3[]]);
+
+          // Pause history tracking during drag
+          temporalStore.getState().pause();
           beginInteraction();
         }}
         onDragEnd={() => {
           if (document.body.style.cursor === "grabbing")
             document.body.style.cursor = "auto";
           endInteraction();
+
+          // Resume history tracking
+          temporalStore.getState().resume();
+
+          // Apply final state as a single undo step by setting vertices again
+          // First restore initial state without tracking
+          temporalStore.getState().pause();
+          setManyVertices(initialVerticesRef.current);
+          temporalStore.getState().resume();
+
+          // Now apply the current visual state as one undo step
+          const currentVertices = Object.keys(selections)
+            .filter(key => key in shapes)
+            .map(key => [key, shapes[key].vertices] as [string, Vec3[]]);
+          setManyVertices(currentVertices);
         }}
         onDrag={(_, _2, w) => {
           document.body.style.cursor = "grabbing";
@@ -142,8 +171,25 @@ export default function VertexControls() {
           delta.copy(w);
           delta.multiply(previousMatrix.current)
 
-          // Move all selected vertices by delta
-          matrixMultiplySelection(delta);
+          // Apply transformation for visual feedback (not tracked in history)
+          const multiplyVec3 = (v: Vec3) => {
+            const vector3 = new THREE.Vector3(...v);
+            vector3.applyMatrix4(delta);
+            return [vector3.x, vector3.y, vector3.z] as Vec3;
+          }
+
+          const selectedKeys = Object.keys(selections);
+          const mods = selectedKeys
+            .filter(key => key in shapes)
+            .map((key) => (
+              [key, (
+                shapes[key].vertices.map((v, i) => (
+                  (selections[key]!.children?.has(i) ?? true) ? multiplyVec3(v) : v )
+              ) as Vec3[]
+              )]
+            ) as [string, Vec3[]]);
+
+          setManyVertices(mods);
           previousMatrix.current.copy(w);
         }}
         depthTest={false}
