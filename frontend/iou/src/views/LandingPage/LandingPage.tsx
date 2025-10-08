@@ -114,24 +114,10 @@ export default function LandingPage() {
         <h1 className="text-4xl font-light">IOU Calculator</h1>
         <div className="flex gap-3">
           {!user ? (
-            <>
-              <GoogleLogin
-                onSuccess={handleLoginSuccess}
-                onError={handleLoginError}
-              />
-              <Button 
-                onClick={() => navigate("/login")}
-                className="shadow-lg"
-              >
-                Log In
-              </Button>
-              <Button 
-                onClick={() => navigate("/signup")}
-                className="shadow-lg"
-              >
-                Sign Up
-              </Button>
-            </>
+            <GoogleLogin
+              onSuccess={handleLoginSuccess}
+              onError={handleLoginError}
+            />
           ) : (
             <>
               <div className="flex items-center gap-2">
