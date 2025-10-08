@@ -5,6 +5,7 @@ import { BufferGeometry, Float32BufferAttribute } from "three";
 import type { IntersectionWorkerReply as IntersectionWorkerReply3D, WorkerGeometryInput, WorkerInput as WorkerInput3D } from "@/hooks/workspace/stores/intersection.worker.ts";
 import type { IntersectionWorkerReply2D, WorkerGeometryInput2D, WorkerInput2D } from "@/hooks/workspace/stores/2d-intersection.worker.ts";
 import { useDimensionsStore } from "@/hooks/workspace/stores/useDimensionsStore.ts";
+import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 
 export type ShapeGeometries = { [shapeId: string]: THREE.BufferGeometry };
 
@@ -71,7 +72,7 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
 
   const calculateNewIntersection = (geometries: ShapeGeometries) => {
     const dimensions = useDimensionsStore.getState().dimensions;
-      
+
     if (runningRef.current) {
       pendingDataRef.current = geometries;
       return;
@@ -80,14 +81,16 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
     const worker = getOrCreateWorker(dimensions);
     runningRef.current = true;
 
-    const shapeIds = Object.keys(geometries);
+    // Filter out hidden shapes before calculating intersection
+    const shapes = useShapesStore.getState().shapes;
+    const shapeIds = Object.keys(geometries).filter(id => shapes[id]?.visible !== false);
     const meshes = shapeIds
       .map(id => geometries[id])
       .map(geo => ({
         position: geo.getAttribute("position").array as Float32Array,
         normal: geo.getAttribute("normal").array as Float32Array,
       }));
-    
+
     if (dimensions === '3d') {
       worker.postMessage({ meshes } as WorkerInput3D);
     } else {
@@ -104,6 +107,24 @@ export const createShapeGeometrySlice: StateCreator<ShapeGeometrySlice, [], [], 
   // Subscribe to dimension changes to recalculate intersection
   useDimensionsStore.subscribe(() => {
     calculateNewIntersection(get().meshes);
+  });
+
+  // Subscribe to shape visibility changes to recalculate intersection
+  useShapesStore.subscribe((state, prevState) => {
+    // Check if any shape's visibility has changed
+    const shapeIds = new Set([...Object.keys(state.shapes), ...Object.keys(prevState.shapes)]);
+    let visibilityChanged = false;
+
+    for (const id of shapeIds) {
+      if (state.shapes[id]?.visible !== prevState.shapes[id]?.visible) {
+        visibilityChanged = true;
+        break;
+      }
+    }
+
+    if (visibilityChanged) {
+      calculateNewIntersection(get().meshes);
+    }
   });
 
   return ({

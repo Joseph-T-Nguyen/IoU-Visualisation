@@ -22,7 +22,7 @@ export default function useOnKeyDown(targetKey: string | ModifiedKey, callback: 
   const downHandler = useCallback((event: KeyboardEvent) => {
     const modifiedKey = typeof targetKey === "string" ? {key: targetKey} : targetKey;
 
-    if (event.key !== modifiedKey.key)
+    if (event.key.toLowerCase() !== modifiedKey.key.toLowerCase())
       return;
     if (modifiedKey.alt !== undefined && event.altKey !== (modifiedKey.alt ?? false))
       return;
