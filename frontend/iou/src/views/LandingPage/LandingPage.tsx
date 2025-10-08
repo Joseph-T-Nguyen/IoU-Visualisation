@@ -4,49 +4,108 @@ import {Button} from "@/components/ui/button.tsx";
 import {TrackballControls} from "@react-three/drei";
 import { useNavigate } from "react-router";
 import { GoogleLogin, googleLogout } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode"; // optional if you want to parse profile info
+import { jwtDecode } from "jwt-decode";
+import { useState, useEffect } from "react";
+
+/************* Type declarations *************/
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          disableAutoSelect: () => void;
+          revoke: (hint: string, callback: () => void) => void;
+        };
+      };
+    };
+  }
+}
+
+interface GoogleCredentialResponse {
+  credential?: string;
+  select_by?: string;
+  clientId?: string;
+}
+/********************************************/
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<{ name: string; email: string; picture?: string } | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // Check for stored user on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
-  /**************************************************************************************************************************** */
-  const handleLoginSuccess = (credentialResponse: any) => {       // TODO: Very bad rn but need to figure type of response we get 
-
-  /**************************************************************************************************************************** */
-
+  const handleLoginSuccess = (credentialResponse: GoogleCredentialResponse) => {
     if (credentialResponse.credential) {
-      // Decode JWT if you want profile info
-      const user = jwtDecode<{ name: string; email: string }>(
+      // Decode JWT to get profile info
+      const decoded = jwtDecode<{ name: string; email: string; picture?: string }>(
         credentialResponse.credential
       );
-      console.log("Logged in user:", user);
-
-      // TODO: store user info in context/localStorage and redirect
+      console.log("Logged in user:", decoded);
+      
+      // Store user in state and localStorage
+      setUser(decoded);
+      localStorage.setItem('user', JSON.stringify(decoded));
+      
+      // Optionally redirect
       // navigate("/workspaces");
     }
   };
   
-
   const handleLoginError = () => {
     console.error("Google login failed");
   };
 
-  const handleLogout = () => {
-    // Clear Google session
-    googleLogout();
+  const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple logout calls
+    setIsLoggingOut(true);
 
-    // Prevent GIS from silently restoring session
-    if (window.google && window.google.accounts && window.google.accounts.id) {
-      window.google.accounts.id.disableAutoSelect();
+    try {
+      // Store email before clearing
+      const userEmail = user?.email;
 
-      // Optional: revoke consent entirely
-      // Replace with stored user email if available
-      // window.google.accounts.id.revoke(userEmail, done => console.log("Consent revoked"));
+      // Clear Google session
+      googleLogout();
+      
+      // Wait for Google SDK to be ready and revoke
+      if (userEmail && window.google?.accounts?.id) {
+        // Disable auto-select first
+        window.google.accounts.id.disableAutoSelect();
+        
+        // Revoke with promise wrapper for proper async handling
+        await new Promise<void>((resolve) => {
+          window.google!.accounts!.id!.revoke(userEmail, () => {
+            console.log('Google session revoked for', userEmail);
+            resolve();
+          });
+          
+          // Fallback timeout in case callback never fires
+          setTimeout(resolve, 1000);
+        });
+      }
+      
+      // Small delay to ensure revocation completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Clear local state and storage
+      setUser(null);
+      localStorage.removeItem('user');
+      
+      console.log("User logged out");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still clear local state even if revoke fails
+      setUser(null);
+      localStorage.removeItem('user');
+    } finally {
+      setIsLoggingOut(false);
     }
-
-    console.log("User logged out");
-    // TODO: clear app state (e.g., context/localStorage)
   };
 
   return (
@@ -54,29 +113,47 @@ export default function LandingPage() {
       <div className="flex flex-row justify-between items-center py-3 px-6">
         <h1 className="text-4xl font-light">IOU Calculator</h1>
         <div className="flex gap-3">
-          <GoogleLogin
-            onSuccess={handleLoginSuccess}
-            onError={handleLoginError}
-          />
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="shadow-lg"
-          >
-            Log Out
-          </Button>
-          <Button 
-            onClick={() => navigate("/login")}
-            className="shadow-lg"
-          >
-            Log In
-          </Button>
-          <Button 
-            onClick={() => navigate("/signup")}
-            className="shadow-lg"
-          >
-            Sign Up
-          </Button>
+          {!user ? (
+            <>
+              <GoogleLogin
+                onSuccess={handleLoginSuccess}
+                onError={handleLoginError}
+              />
+              <Button 
+                onClick={() => navigate("/login")}
+                className="shadow-lg"
+              >
+                Log In
+              </Button>
+              <Button 
+                onClick={() => navigate("/signup")}
+                className="shadow-lg"
+              >
+                Sign Up
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                {user.picture && (
+                  <img 
+                    src={user.picture} 
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full"
+                  />
+                )}
+                <span className="text-sm">{user.name}</span>
+              </div>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="shadow-lg"
+                disabled={isLoggingOut}
+              >
+                {isLoggingOut ? "Logging out..." : "Log Out"}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
