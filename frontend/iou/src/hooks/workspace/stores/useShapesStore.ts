@@ -286,7 +286,7 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
         const remainingVertices = currentVertices.length - verticiesToDelete.length;
 
         // If deletion would result in fewer than 3 vertices, block it
-        if (remainingVertices < 3 && remainingVertices > 0) {
+        if (remainingVertices <= 3 && remainingVertices > 0) {
           blockedDeletion = true;
           break;
         }

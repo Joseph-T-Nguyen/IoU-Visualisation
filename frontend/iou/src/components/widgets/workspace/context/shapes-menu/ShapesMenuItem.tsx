@@ -23,14 +23,18 @@ export default function ShapesMenuItem(props: ShapesMenuItemProps) {
   const toggleShapeVisibility = useShapesStore((s) => s.toggleShapeVisibility);
   const duplicateShape = useShapesStore((s) => s.duplicateShape);
   const centerShape = useShapesStore((s) => s.centerShape);
+  const selections = useShapesStore((s) => s.selections);
   const [showAddVertexDialog, setShowAddVertexDialog] = useState(false);
+
+  // Check if this shape is selected
+  const isSelected = props.uuid in selections;
 
   return (
     <>
-      <div className="flex flex-row gap-1.5 justify-center items-center">
+      <div className={`flex flex-row gap-1.5 justify-center items-center rounded-md px-1.5 py-1 transition-colors ${isSelected ? "bg-accent" : ""}`}>
         <ColorPicker color={color} />
         <Input
-          className={`h-6 px-1.5 flex-grow text-sm text-left align-middle border-none shadow-none ${!visible ? "text-muted-foreground opacity-50" : ""}`}
+          className={`h-6 px-1.5 flex-grow text-sm text-left align-middle border-none shadow-none ${!visible ? "text-muted-foreground opacity-50" : ""} ${isSelected ? "font-semibold" : ""}`}
           value={name}
           onChange={(event) => setName(event.target.value)}
         />

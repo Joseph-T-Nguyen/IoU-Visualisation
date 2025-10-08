@@ -70,8 +70,14 @@ export default function WorkspacePage() {
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
-          const shapes = JSON.parse(event.target?.result as string);
-          useShapesStore.getState().setAllShapes(shapes);
+          const importedShapes = JSON.parse(event.target?.result as string);
+          const { shapes } = useShapesStore.getState();
+
+          // Merge imported shapes with existing shapes
+          useShapesStore.getState().setAllShapes({
+            ...shapes,
+            ...importedShapes
+          });
         } catch (error) {
           alert("Failed to import workspace: Invalid JSON file");
           console.error(error);
