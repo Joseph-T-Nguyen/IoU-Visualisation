@@ -12,7 +12,7 @@ import WorkspaceActionListener from "@/components/widgets/workspace/WorkspaceAct
 import VertexControls from "@/components/three/VertexControls.tsx";
 import WorkspaceCamera from "@/components/three/WorkspaceCamera.tsx";
 import WorkspaceGrid from "@/components/three/WorkspaceGrid.tsx";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AdaptiveEvents } from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import useLoadWorkspace from "@/hooks/workspace/useLoadWorkspace.ts";
@@ -22,14 +22,50 @@ import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.
 import * as THREE from "three";
 import type { RootState } from "@react-three/fiber";
 import useCameraControlsStore from "@/hooks/workspace/stores/useCameraControlsStore.ts";
+import InvalidateOnVisibilityChange from "@/components/three/InvalidateOnVisibilityChange.tsx";
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
   const [dimensions, setDimensions] = useDimensions();
+  const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null);
 
   const shapeUUIDs = useShapeUUIDs();
 
   const deselect = useShapesStore((s) => s.deselect);
+
+  const handleScreenshot = () => {
+    if (gl) {
+      const link = document.createElement("a");
+      link.setAttribute("download", "workspace.png");
+      link.setAttribute(
+        "href",
+        gl.domElement
+          .toDataURL("image/png")
+          .replace("image/png", "image/octet-stream")
+      );
+      link.click();
+    }
+  };
+
+  const handleDownload = () => {
+    const shapes = useShapesStore.getState().shapes;
+    const data = JSON.stringify(shapes, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "workspace.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDuplicate = () => {
+    alert("Duplicate functionality is not yet implemented.");
+  };
+
+  const handleShare = () => {
+    alert("Share functionality is not yet implemented.");
+  };
 
   console.log("Re-rendering the workspace page.")
 
@@ -56,7 +92,12 @@ export default function WorkspacePage() {
             </Button>
           </div>
           <div>
-            <WorkspaceMenubar />
+            <WorkspaceMenubar
+              onDuplicate={handleDuplicate}
+              onShare={handleShare}
+              onDownload={handleDownload}
+              onScreenshot={handleScreenshot}
+            />
           </div>
           <div className="flex flex-col justify-center pointer-events-auto">
             <Button
@@ -93,19 +134,20 @@ export default function WorkspacePage() {
   // This allows us to know what to preference in raycasting
   const getGizmos = useCameraControlsStore((s) => s.getGizmoMeshIdSet);
 
-  return (<>
-    <WorkspaceActionListener />
-    <FlexyCanvas
-      gl={{ stencil: true, autoClearStencil: true }}
-      /* min-h-[100dv] works better on mobile devices that h-screen */
-      className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
-      overlay={overlay}
-      onPointerMissed={() => {
-        deselect();
-      }}
-      frameloop={"demand"}
-
-      onCreated={(state: RootState) => {
+  return (
+    <>
+      <WorkspaceActionListener />
+      <FlexyCanvas
+        gl={{ preserveDrawingBuffer: true, stencil: true, autoClearStencil: true }}
+        /* min-h-[100dv] works better on mobile devices that h-screen */
+        className="w-screen min-h-[100dvh] overflow-clip overscroll-contain bg-secondary"
+        overlay={overlay}
+        onPointerMissed={() => {
+          deselect();
+        }}
+        frameloop={"demand"}
+        onCreated={(state: RootState) => {
+          setGl(state.gl);
         // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
         state.setEvents({
           filter: (
@@ -145,6 +187,7 @@ export default function WorkspacePage() {
 
       {/* Add 3D content here: */}
 
+      <InvalidateOnVisibilityChange />
       <IntersectionRenderer />
       {/* Add every shape to the scene: */}
       {shapeUUIDs
