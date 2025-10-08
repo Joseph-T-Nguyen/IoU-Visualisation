@@ -86,10 +86,6 @@ export default function WorkspacePage() {
     alert("Duplicate functionality is not yet implemented.");
   };
 
-  const handleShare = () => {
-    alert("Share functionality is not yet implemented.");
-  };
-
   console.log("Re-rendering the workspace page.");
 
   // Load default workspace id "1" on mount
@@ -117,7 +113,6 @@ export default function WorkspacePage() {
           <div>
             <WorkspaceMenubar
               onDuplicate={handleDuplicate}
-              onShare={handleShare}
               onDownload={handleDownload}
               onImport={handleImport}
               onScreenshot={handleScreenshot}

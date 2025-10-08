@@ -15,7 +15,6 @@ import { useNavigate } from "react-router";
 
 export interface WorkspaceMenubarProps {
   onDuplicate: () => void;
-  onShare: () => void;
   onDownload: () => void;
   onImport: () => void;
   onScreenshot: () => void;
@@ -23,7 +22,6 @@ export interface WorkspaceMenubarProps {
 
 export default function WorkspaceMenubar({
   onDuplicate,
-  onShare,
   onDownload,
   onImport,
   onScreenshot,
@@ -42,7 +40,6 @@ export default function WorkspaceMenubar({
             Duplicate Workspace <MenubarShortcut>⇧⌘D</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarItem onClick={onShare}>Share a copy</MenubarItem>
           <MenubarItem onClick={onImport}>Import</MenubarItem>
           <MenubarItem onClick={onDownload}>Download</MenubarItem>
           <MenubarItem onClick={onScreenshot}>Take a screenshot</MenubarItem>
