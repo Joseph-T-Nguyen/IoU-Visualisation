@@ -49,7 +49,7 @@ self.onmessage = async (event: MessageEvent<Vec3[]>) => {
     ];
 
     const result = {
-      vertices: [...vertices.flat(), ...reversedVertices.flat()],
+      positions: [...vertices.flat(), ...reversedVertices.flat()],
       normals: [...normals, ...reversedNormals],
       edges: edges
     }

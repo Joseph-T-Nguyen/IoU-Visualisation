@@ -4,6 +4,7 @@ import createSelectionSlice, {type SelectionSlice} from "@/hooks/workspace/store
 import type {StateCreator} from "zustand/vanilla";
 import * as THREE from 'three';
 import * as UUID from "uuid";
+import { temporal } from 'zundo';
 
 export type Shapes = {[key: string]: ShapeData}
 export interface ShapesSlice {
@@ -14,6 +15,8 @@ export interface ShapesSlice {
 
   setVertices: (id: string, vertices: Vec3[]) => void;
   addShape: () => void;
+  duplicateShape: (id: string) => void;
+  centerShape: (id: string) => void;
   createCustomShape: (vertexData: Vec3[]) => void;
   toggleShapeVisibility: (id: string) => void;
   toggleShapeColor: (id: string) => void;
@@ -22,6 +25,7 @@ export interface ShapesSlice {
 
   toggleSelectionVisibility: () => void;
   unhideAllShapes: () => void;
+  hideAllShapes: () => void;
   deleteSelections: () => void;
   setManyVertices: (mods: [string, Vec3[]][]) => void;
   matrixMultiplySelection: (matrix: THREE.Matrix4) => void;
@@ -146,6 +150,57 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     });
   }),
 
+  duplicateShape: (id: string) => set((state: ShapesSlice) => {
+    const originalShape = state.shapes[id];
+    if (!originalShape) return {};
+
+    return ({
+      shapes: {
+        ...state.shapes,
+        [UUID.v4().toString()]: {
+          ...originalShape,
+          name: `${originalShape.name} Copy`,
+          color: state.colorQueue[0],
+          // Create a copy of vertices with slight offset to make it visible
+          vertices: originalShape.vertices.map(([x, y, z]) => [x + 0.5, y + 0.5, z + 0.5] as Vec3),
+        }
+      },
+
+      // Pop this color in the color queue
+      colorQueue: state.colorQueue.length > 1 ? [...state.colorQueue.slice(1)] : shuffleArray(defaultColors),
+      createdShapeCount: state.createdShapeCount + 1,
+    });
+  }),
+
+  centerShape: (id: string) => set((state: ShapesSlice) => {
+    const shape = state.shapes[id];
+    if (!shape) return {};
+
+    // Calculate the centroid (center point) of the shape
+    const vertices = shape.vertices;
+    const centroid: Vec3 = vertices.reduce(
+      (sum, vertex) => [sum[0] + vertex[0], sum[1] + vertex[1], sum[2] + vertex[2]],
+      [0, 0, 0] as Vec3
+    ).map(coord => coord / vertices.length) as Vec3;
+
+    // Translate all vertices so the centroid becomes the origin
+    const centeredVertices: Vec3[] = vertices.map(([x, y, z]) => [
+      x - centroid[0],
+      y - centroid[1],
+      z - centroid[2]
+    ]);
+
+    return {
+      shapes: {
+        ...state.shapes,
+        [id]: {
+          ...shape,
+          vertices: centeredVertices
+        }
+      }
+    };
+  }),
+
   createCustomShape: (vertexData: Vec3[]) => set((state) => ({
     shapes: {
       ...state.shapes,
@@ -221,6 +276,28 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
 
     // Gets the current selections from the selection slice
     const selection = get().selections;
+
+    // Check for vertex deletion safety before processing
+    let blockedDeletion = false;
+    for (const key in selection) {
+      if (selection[key].children !== undefined && state.shapes[key] !== undefined) {
+        const currentVertices = state.shapes[key].vertices;
+        const verticiesToDelete = Array.from(selection[key].children!);
+        const remainingVertices = currentVertices.length - verticiesToDelete.length;
+
+        // If deletion would result in fewer than 3 vertices, block it
+        if (remainingVertices <= 3 && remainingVertices > 0) {
+          blockedDeletion = true;
+          break;
+        }
+      }
+    }
+
+    // Show alert if deletion is blocked
+    if (blockedDeletion) {
+      alert("Cannot delete vertex: A shape must have at least 3 vertices to remain valid.");
+      return {}; // Return empty state change to prevent deletion
+    }
 
     const deletedColors: string[] = [];
 
@@ -300,6 +377,23 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
     }
   }),
 
+  hideAllShapes: () => set((state) => {
+    const newShapes = Object.keys(state.shapes)
+      .reduce((acc, selection) => {
+        return {
+          ...acc,
+          [selection]: {
+            ...acc[selection],
+            visible: false
+          }
+        } as Shapes;
+      }, state.shapes);
+
+    return {
+      shapes: newShapes
+    }
+  }),
+
   setManyVertices: applyReducerAux(set, fixPartialShapesReducer(setManyVerticesAux)),
 
   matrixMultiplySelection: (matrix: THREE.Matrix4) => set((state) => {
@@ -327,9 +421,26 @@ export const createShapeSlice: StateCreator<ShapesStore, [], [], ShapesSlice> = 
   }),
 }))
 
-const useShapesStore = create<ShapesSlice & SelectionSlice>()((...a) => ({
-  ...createSelectionSlice(...a),
-  ...createShapeSlice(...a),
-}));
+const useShapesStore = create<ShapesSlice & SelectionSlice>()(
+  temporal(
+    (...a) => ({
+      ...createSelectionSlice(...a),
+      ...createShapeSlice(...a),
+    }),
+    {
+      limit: 50,
+      // Only track shape data changes, not selection UI state
+      partialize: (state) => ({
+        shapes: state.shapes,
+        colorQueue: state.colorQueue,
+        createdShapeCount: state.createdShapeCount,
+      }),
+      // Use deep equality to prevent tracking identical states
+      equality: (pastState, currentState) => {
+        return JSON.stringify(pastState) === JSON.stringify(currentState);
+      },
+    },
+  )
+);
 
 export default useShapesStore;

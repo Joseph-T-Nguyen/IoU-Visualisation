@@ -19,7 +19,7 @@ export default function CreateNewWorkspacePage() {
   const handleCreateWorkspace = () => {
     // TODO: Add actual workspace creation logic when backend is ready
     console.log("Creating workspace...");
-    navigate("/workspaces");
+    navigate("/workspace");
   };
 
   return (

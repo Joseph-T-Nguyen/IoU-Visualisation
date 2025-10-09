@@ -22,7 +22,7 @@ export default function useOnKeyDown(targetKey: string | ModifiedKey, callback: 
   const downHandler = useCallback((event: KeyboardEvent) => {
     const modifiedKey = typeof targetKey === "string" ? {key: targetKey} : targetKey;
 
-    if (event.key !== modifiedKey.key)
+    if (event.key.toLowerCase() !== modifiedKey.key.toLowerCase())
       return;
     if (modifiedKey.alt !== undefined && event.altKey !== (modifiedKey.alt ?? false))
       return;
@@ -32,6 +32,20 @@ export default function useOnKeyDown(targetKey: string | ModifiedKey, callback: 
       return;
     if (modifiedKey.meta !== undefined && event.metaKey !== (modifiedKey.meta ?? false))
       return;
+
+    // Ignore shortcuts without modifiers when user is typing in an input field
+    // This allows Ctrl+C, Ctrl+V etc. to work, but blocks Delete, Backspace when typing
+    const target = event.target as HTMLElement;
+    const isInputField =
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.isContentEditable;
+
+    const hasModifier = event.ctrlKey || event.metaKey || event.altKey;
+
+    if (isInputField && !hasModifier) {
+      return;
+    }
 
     cachedCallback();
   }, [targetKey, cachedCallback]);

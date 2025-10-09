@@ -1,6 +1,8 @@
 import useWorkspaceDelete from "@/hooks/workspace/input/useWorkspaceDelete.ts";
 import useWorkspaceDeselect from "@/hooks/workspace/input/useWorkspaceDeselect.ts";
 import useWorkspaceHide from "@/hooks/workspace/input/useWorkspaceHide.ts";
+import useWorkspaceUndo from "@/hooks/workspace/input/useWorkspaceUndo.ts";
+import useWorkspaceClipboard from "@/hooks/workspace/input/useWorkspaceClipboard.ts";
 
 /**
  * A component that just contains all the hooks for workspace actions.
@@ -12,6 +14,8 @@ export default function WorkspaceActionListener() {
   useWorkspaceDeselect();
   useWorkspaceHide();
 
+  useWorkspaceUndo();
+  useWorkspaceClipboard();
 
   return (<></>);
 }

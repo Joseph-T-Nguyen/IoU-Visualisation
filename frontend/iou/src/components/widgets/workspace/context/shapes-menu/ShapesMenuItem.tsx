@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { Ellipsis, Eye, EyeOff } from "lucide-react";
+import { Ellipsis, Eye, EyeOff, Copy, Target, Plus } from "lucide-react";
 import useShape from "@/hooks/workspace/useShape.ts";
 import ColorPicker from "@/components/widgets/workspace/context/shapes-menu/ColorPicker.tsx";
 import {
@@ -15,42 +15,99 @@ export interface ShapesMenuItemProps {
   uuid: string;
 }
 
+import { useState } from "react";
+import AddVertexDialog from "@/components/widgets/workspace/context/shapes-menu/AddVertexDialog.tsx";
+
 export default function ShapesMenuItem(props: ShapesMenuItemProps) {
-  const { name, setName, color, visible } = useShape(props.uuid);
+  const { name, setName, color, setColor, visible } = useShape(props.uuid);
   const toggleShapeVisibility = useShapesStore((s) => s.toggleShapeVisibility);
+  const duplicateShape = useShapesStore((s) => s.duplicateShape);
+  const centerShape = useShapesStore((s) => s.centerShape);
+  const selections = useShapesStore((s) => s.selections);
+  const select = useShapesStore((s) => s.select);
+  const addSelection = useShapesStore((s) => s.addSelection);
+  const [showAddVertexDialog, setShowAddVertexDialog] = useState(false);
+
+  // Check if this shape is selected
+  const isSelected = props.uuid in selections;
+
+  const handleRowClick = (event: React.MouseEvent) => {
+    if (event.shiftKey) {
+      addSelection(props.uuid);
+    } else {
+      select(props.uuid);
+    }
+  };
 
   return (
-    <div className="flex flex-row gap-1.5 justify-center items-center">
-      <ColorPicker color={color} />
-      <Input
-        className="h-6 px-1.5 flex-grow text-sm text-left align-middle border-none shadow-none"
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-      />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 cursor-pointer data-[disabled]:cursor-default"
-          >
-            <Ellipsis />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onClick={() => toggleShapeVisibility(props.uuid)}
-            className="cursor-pointer"
-          >
-            {visible ? (
-              <EyeOff className="mr-2 h-4 w-4" />
-            ) : (
-              <Eye className="mr-2 h-4 w-4" />
-            )}
-            <span>{visible ? "Hide" : "Show"}</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <>
+      <div
+        className={`flex flex-row gap-1.5 justify-center items-center rounded-md px-1.5 py-1 transition-colors cursor-pointer ${isSelected ? "bg-accent" : ""}`}
+        onClick={handleRowClick}
+      >
+        <div onClick={(e) => e.stopPropagation()}>
+          <ColorPicker color={color} setColor={setColor} />
+        </div>
+        <Input
+          className={`h-6 px-1.5 w-28 text-sm text-left align-middle border-none shadow-none ${!visible ? "text-muted-foreground opacity-50" : ""} ${isSelected ? "font-semibold" : ""}`}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          onClick={(e) => e.stopPropagation()}
+        />
+        <div className="flex-grow" />
+        <div onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 cursor-pointer data-[disabled]:cursor-default"
+              >
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setShowAddVertexDialog(true)}
+                className="cursor-pointer"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Add Vertex</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => duplicateShape(props.uuid)}
+                className="cursor-pointer"
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                <span>Duplicate Shape</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => centerShape(props.uuid)}
+                className="cursor-pointer"
+              >
+                <Target className="mr-2 h-4 w-4" />
+                <span>Center Shape</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => toggleShapeVisibility(props.uuid)}
+                className="cursor-pointer"
+              >
+                {visible ? (
+                  <EyeOff className="mr-2 h-4 w-4" />
+                ) : (
+                  <Eye className="mr-2 h-4 w-4" />
+                )}
+                <span>{visible ? "Hide" : "Show"}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    <AddVertexDialog
+      shapeId={props.uuid}
+      open={showAddVertexDialog}
+      onOpenChange={setShowAddVertexDialog}
+    />
+  </>
   );
 }

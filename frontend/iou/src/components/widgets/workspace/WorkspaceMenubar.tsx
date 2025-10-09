@@ -1,81 +1,75 @@
 import {
-  Menubar, MenubarCheckboxItem,
+  Menubar,
   MenubarContent,
   MenubarItem,
-  MenubarMenu, MenubarSeparator,
-  MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger,
-  MenubarTrigger
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
 } from "@/components/ui/menubar.tsx";
+import { useNavigate } from "react-router";
 
-export default function WorkspaceMenubar() {
+export interface WorkspaceMenubarProps {
+  onDuplicate: () => void;
+  onDownload: () => void;
+  onImport: () => void;
+  onScreenshot: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onCut: () => void;
+  onCopy: () => void;
+  onPaste: () => void;
+}
+
+export default function WorkspaceMenubar({
+  onDuplicate,
+  onDownload,
+  onImport,
+  onScreenshot,
+  onUndo,
+  onRedo,
+  onCut,
+  onCopy,
+  onPaste,
+}: WorkspaceMenubarProps) {
+  const navigate = useNavigate();
 
   return (
     <Menubar className="pointer-events-auto shadow-lg">
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
-            New Workspace <MenubarShortcut>⌘T</MenubarShortcut>
+          <MenubarItem onClick={() => navigate("/workspaces/new")}>
+            New Workspace <MenubarShortcut>⌘N</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={onDuplicate}>
+            Duplicate Workspace <MenubarShortcut>⇧⌘D</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarSub>
-            <MenubarSubTrigger>Share</MenubarSubTrigger>
-            <MenubarSubContent>
-              <MenubarItem>Email link</MenubarItem>
-              <MenubarItem>Messages</MenubarItem>
-              <MenubarItem>Notes</MenubarItem>
-            </MenubarSubContent>
-          </MenubarSub>
-          <MenubarSeparator />
-          <MenubarItem>
-            Print... <MenubarShortcut>⌘P</MenubarShortcut>
-          </MenubarItem>
+          <MenubarItem onClick={onImport}>Import</MenubarItem>
+          <MenubarItem onClick={onDownload}>Download</MenubarItem>
+          <MenubarItem onClick={onScreenshot}>Take a screenshot</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">Edit</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
-            Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+          <MenubarItem onClick={onUndo}>
+            Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>
-            Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
-          </MenubarItem>
-          <MenubarSeparator />
-          <MenubarSub>
-            <MenubarSubTrigger>Find</MenubarSubTrigger>
-            <MenubarSubContent>
-              <MenubarItem>Search the web</MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem>Find...</MenubarItem>
-              <MenubarItem>Find Next</MenubarItem>
-              <MenubarItem>Find Previous</MenubarItem>
-            </MenubarSubContent>
-          </MenubarSub>
-          <MenubarSeparator />
-          <MenubarItem>Cut</MenubarItem>
-          <MenubarItem>Copy</MenubarItem>
-          <MenubarItem>Paste</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
-      <MenubarMenu>
-        <MenubarTrigger className="cursor-pointer">View</MenubarTrigger>
-        <MenubarContent>
-          <MenubarCheckboxItem>Always Show Bookmarks Bar</MenubarCheckboxItem>
-          <MenubarCheckboxItem checked>
-            Always Show Full URLs
-          </MenubarCheckboxItem>
-          <MenubarSeparator />
-          <MenubarItem inset>
-            Reload <MenubarShortcut>⌘R</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem disabled inset>
-            Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
+          <MenubarItem onClick={onRedo}>
+            Redo <MenubarShortcut>Shift+Ctrl+Z</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarItem inset>Toggle Fullscreen</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem inset>Hide Sidebar</MenubarItem>
+          <MenubarItem onClick={onCut}>
+            Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={onCopy}>
+            Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={onPaste}>
+            Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
+          </MenubarItem>
         </MenubarContent>
       </MenubarMenu>
     </Menubar>
