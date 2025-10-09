@@ -428,6 +428,7 @@ const useShapesStore = create<ShapesSlice & SelectionSlice>()(
       ...createShapeSlice(...a),
     }),
     {
+      limit: 50,
       // Only track shape data changes, not selection UI state
       partialize: (state) => ({
         shapes: state.shapes,
@@ -438,7 +439,7 @@ const useShapesStore = create<ShapesSlice & SelectionSlice>()(
       equality: (pastState, currentState) => {
         return JSON.stringify(pastState) === JSON.stringify(currentState);
       },
-    }
+    },
   )
 );
 
