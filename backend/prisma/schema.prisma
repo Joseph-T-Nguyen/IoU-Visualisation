@@ -13,3 +13,34 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id         String      @id @default(uuid()) @map("user_id")
+  name       String?
+  workspaces Workspace[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id        String   @id @default(uuid()) @map("workspace_id")
+  name      String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   String   @map("owner_user_id")
+  shapes    Shape[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("workspaces")
+}
+
+model Shape {
+  id          String   @id @default(uuid()) @map("shape_id")
+  name        String
+  color       String
+  vertices    Json
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String    @map("workspace_id")
+
+  @@map("shapes")
+}

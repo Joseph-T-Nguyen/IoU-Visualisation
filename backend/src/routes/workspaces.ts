@@ -1,16 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
+import * as WorkspaceRepo from '@src/repos/WorkspaceRepo';
 
 export default {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = String((req.query.userId ?? '1'));
-      const data = [
-        { id: '1', name: 'Workspace 1', lastEdited: 'Edited 8/5/2025', previewImage: 'green' },
-        { id: '2', name: 'Workspace 2', lastEdited: 'Edited 8/5/2025', previewImage: 'red' },
-        { id: '3', name: 'Workspace 3', lastEdited: 'Edited 8/5/2025' },
-      ];
-      // For now, just echo the userId back and return mock data.
-      return res.json({ userId, workspaces: data });
+      const rows = await WorkspaceRepo.findByOwner(userId);
+      const workspaces = rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        lastEdited: `Edited ${r.updatedAt.toLocaleDateString()}`,
+      }));
+      res.set('Cache-Control', 'no-store');
+      return res.json({ userId, workspaces });
     } catch (err) {
       return next(err);
     }
@@ -18,41 +20,54 @@ export default {
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params as { id: string };
-      // Static default workspace context (shapes keyed by UUID)
-      const workspace = {
-        id,
-        name: 'Default Workspace',
-        shapes: {
-          '11111111-1111-1111-1111-111111111111': {
-            name: 'Shape 1',
-            color: '#ef4444',
-            vertices: [
-              [0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 0],
-              [0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1],
-            ],
-            faces: [],
-          },
-          '22222222-2222-2222-2222-222222222222': {
-            name: 'Shape 2',
-            color: '#10b981',
-            vertices: [
-              [2, 0, 0], [2, 1, 0], [3, 0, 0], [3, 1, 0],
-              [2, 0, 1], [2, 1, 1], [3, 0, 1], [3, 1, 1],
-            ],
-            faces: [],
-          },
-          '32222222-2222-2222-2222-222222222222': {
-            name: 'Shape 3',
-            color: '#111111',
-            vertices: [
-              [3, 0, 0], [3, 2, 0], [6, 0, 0], [6, 3, 0],
-              [3, 0, 3], [3, 2, 2], [6, 0, 2], [6, 3, 6],
-            ],
-            faces: [],
-          },
-        },
-      };
-      return res.json({ workspace });
+      const ws = await WorkspaceRepo.findWithShapes(id);
+      if (!ws) return res.status(404).json({ error: 'Workspace not found' });
+      const shapesMap: Record<string, any> = {};
+      for (const s of ws.shapes) {
+        shapesMap[s.id] = {
+          name: s.name,
+          color: s.color,
+          vertices: s.vertices as number[][],
+        };
+      }
+      res.set('Cache-Control', 'no-store');
+      return res.json({ workspace: { id: ws.id, name: ws.name, shapes: shapesMap } });
+    } catch (err) {
+      return next(err);
+    }
+  },
+  async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params as { id: string };
+      const { name } = req.body as { name?: string };
+      if (!name || name.trim().length === 0) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
+      const updated = await WorkspaceRepo.updateName(id, name.trim());
+      return res.json({ id: updated.id, name: updated.name, lastEdited: `Edited ${updated.updatedAt.toLocaleDateString()}` });
+    } catch (err) {
+      return next(err);
+    }
+  },
+  async create(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { ownerId, name } = req.body as { ownerId?: string, name?: string };
+      if (!ownerId) return res.status(400).json({ error: 'ownerId is required' });
+      if (!name || name.trim().length === 0) return res.status(400).json({ error: 'name is required' });
+      const created = await WorkspaceRepo.createWorkspace(ownerId, name.trim());
+      res.set('Cache-Control', 'no-store');
+      return res.status(201).json({ id: created.id, name: created.name, lastEdited: `Edited ${created.updatedAt.toLocaleDateString()}` });
+    } catch (err) {
+      return next(err);
+    }
+  },
+  async duplicate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params as { id: string };
+      const created = await WorkspaceRepo.duplicateWorkspace(id);
+      if (!created) return res.status(404).json({ error: 'Workspace not found' });
+      res.set('Cache-Control', 'no-store');
+      return res.status(201).json({ id: created.id, name: created.name, lastEdited: `Edited ${new Date().toLocaleDateString()}` });
     } catch (err) {
       return next(err);
     }
