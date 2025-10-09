@@ -19,7 +19,7 @@ import { useState } from "react";
 import AddVertexDialog from "@/components/widgets/workspace/context/shapes-menu/AddVertexDialog.tsx";
 
 export default function ShapesMenuItem(props: ShapesMenuItemProps) {
-  const { name, setName, color, visible } = useShape(props.uuid);
+  const { name, setName, color, setColor, visible } = useShape(props.uuid);
   const toggleShapeVisibility = useShapesStore((s) => s.toggleShapeVisibility);
   const duplicateShape = useShapesStore((s) => s.duplicateShape);
   const centerShape = useShapesStore((s) => s.centerShape);
@@ -32,7 +32,7 @@ export default function ShapesMenuItem(props: ShapesMenuItemProps) {
   return (
     <>
       <div className={`flex flex-row gap-1.5 justify-center items-center rounded-md px-1.5 py-1 transition-colors ${isSelected ? "bg-accent" : ""}`}>
-        <ColorPicker color={color} />
+        <ColorPicker color={color} setColor={setColor} />
         <Input
           className={`h-6 px-1.5 flex-grow text-sm text-left align-middle border-none shadow-none ${!visible ? "text-muted-foreground opacity-50" : ""} ${isSelected ? "font-semibold" : ""}`}
           value={name}
