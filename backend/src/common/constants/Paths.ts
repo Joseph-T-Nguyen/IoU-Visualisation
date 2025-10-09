@@ -12,5 +12,6 @@ export default {
     Create: '/',
     Duplicate: '/:id/duplicate',
     Delete: '/:id',
+    UpdateShapes: '/:id/shapes',
   },
 } as const;

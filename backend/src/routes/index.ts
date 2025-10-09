@@ -17,6 +17,7 @@ const workspacesRouter = Router();
 workspacesRouter.get(Paths.Workspaces.List, WorkspaceRoutes.list);
 workspacesRouter.post(Paths.Workspaces.Create, WorkspaceRoutes.create);
 workspacesRouter.post(Paths.Workspaces.Duplicate, WorkspaceRoutes.duplicate);
+workspacesRouter.put(Paths.Workspaces.UpdateShapes, WorkspaceRoutes.updateShapes);
 workspacesRouter.get(Paths.Workspaces.GetById, WorkspaceRoutes.getById);
 workspacesRouter.put(Paths.Workspaces.Update, WorkspaceRoutes.update);
 workspacesRouter.delete(Paths.Workspaces.Delete, WorkspaceRoutes.delete);

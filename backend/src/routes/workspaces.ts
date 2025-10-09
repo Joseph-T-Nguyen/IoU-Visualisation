@@ -82,6 +82,18 @@ export default {
       return next(err);
     }
   },
+  async updateShapes(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params as { id: string };
+      const { shapes } = req.body as { shapes?: Record<string, { name: string; color: string; vertices: number[][] }> };
+      if (!shapes) return res.status(400).json({ error: 'shapes is required' });
+      await WorkspaceRepo.updateShapes(id, shapes);
+      res.set('Cache-Control', 'no-store');
+      return res.status(204).send();
+    } catch (err) {
+      return next(err);
+    }
+  },
 };
 
 

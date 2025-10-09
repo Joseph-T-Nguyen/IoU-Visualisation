@@ -87,4 +87,33 @@ export async function deleteWorkspace(workspaceId: string) {
   });
 }
 
+export async function updateShapes(workspaceId: string, shapes: Record<string, { name: string; color: string; vertices: number[][] }>) {
+  return prisma.$transaction(async (tx) => {
+    // Delete all existing shapes for this workspace
+    await tx.shape.deleteMany({
+      where: { workspaceId },
+    });
+
+    // Create new shapes
+    const shapeEntries = Object.entries(shapes);
+    if (shapeEntries.length > 0) {
+      await tx.shape.createMany({
+        data: shapeEntries.map(([id, shape]) => ({
+          id,
+          name: shape.name,
+          color: shape.color,
+          vertices: shape.vertices as any,
+          workspaceId,
+        })),
+      });
+    }
+
+    // Update the workspace's updatedAt timestamp
+    await tx.workspace.update({
+      where: { id: workspaceId },
+      data: { updatedAt: new Date() },
+    });
+  });
+}
+
 

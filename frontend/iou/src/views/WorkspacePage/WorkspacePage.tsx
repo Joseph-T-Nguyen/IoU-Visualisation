@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { AdaptiveEvents } from "@react-three/drei";
 import useShapesStore from "@/hooks/workspace/stores/useShapesStore.ts";
 import useLoadWorkspace from "@/hooks/workspace/useLoadWorkspace.ts";
+import useSaveShapes from "@/hooks/workspace/useSaveShapes.ts";
 import CoordinateSystem from "@/components/three/CoordinateSystem.tsx";
 
 import IntersectionRenderer from "@/components/three/shape/IntersectionRenderer.tsx";
@@ -133,6 +134,9 @@ export default function WorkspacePage() {
 
   // Load workspace from URL parameter
   useLoadWorkspace(id || "1");
+
+  // Auto-save shapes when they change
+  useSaveShapes(id || "1");
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (
