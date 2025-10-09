@@ -2,7 +2,7 @@ import FlexyCanvas from "@/components/shared/FlexyCanvas.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { LogOut } from "lucide-react";
 import WorkspaceMenubar from "@/components/widgets/workspace/WorkspaceMenubar.tsx";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import ContextSidebar from "@/components/widgets/workspace/ContextSidebar.tsx";
 import useDimensions from "@/hooks/workspace/useDimensions.ts";
 import useShapeUUIDs from "@/hooks/workspace/useShapeUUIDs.tsx";
@@ -26,6 +26,7 @@ import InvalidateOnVisibilityChange from "@/components/three/InvalidateOnVisibil
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [dimensions, setDimensions] = useDimensions();
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null);
 
@@ -130,8 +131,8 @@ export default function WorkspacePage() {
 
   console.log("Re-rendering the workspace page.");
 
-  // Load default workspace id "1" on mount
-  useLoadWorkspace("1"); // TODO: Load workspace id from user selection thing
+  // Load workspace from URL parameter
+  useLoadWorkspace(id || "1");
 
   // These are all the JSX elements used as an overlay on top of the 3d/2d view
   const overlay = (

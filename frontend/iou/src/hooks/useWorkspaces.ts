@@ -60,10 +60,19 @@ export function useWorkspaces() {
     }
   };
 
-  const deleteWorkspace = (id: string) => {
-    setWorkspaces(prevWorkspaces => 
-      prevWorkspaces.filter(workspace => workspace.id !== id)
-    );
+  const deleteWorkspace = async (id: string) => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    try {
+      const res = await fetch(`${apiUrl}/api/workspaces/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error(`Failed to delete: ${res.status}`);
+      setWorkspaces(prevWorkspaces =>
+        prevWorkspaces.filter(workspace => workspace.id !== id)
+      );
+    } catch (e) {
+      console.error('Delete failed', e);
+    }
   };
 
   const duplicateWorkspace = async (id: string) => {

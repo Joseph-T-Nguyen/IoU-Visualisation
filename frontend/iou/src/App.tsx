@@ -14,7 +14,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/workspace" element={<WorkspacePage />} />
+        <Route path="/workspace/:id" element={<WorkspacePage />} />
         <Route path="/workspaces" element={<WorkspacesPage />} />
         <Route path="/workspaces/new" element={<CreateNewWorkspacePage />} />
       </Routes>

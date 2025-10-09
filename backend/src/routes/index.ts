@@ -15,10 +15,11 @@ const apiRouter = Router();
 // Workspaces
 const workspacesRouter = Router();
 workspacesRouter.get(Paths.Workspaces.List, WorkspaceRoutes.list);
-workspacesRouter.get(Paths.Workspaces.GetById, WorkspaceRoutes.getById);
-workspacesRouter.put(Paths.Workspaces.Update, WorkspaceRoutes.update);
 workspacesRouter.post(Paths.Workspaces.Create, WorkspaceRoutes.create);
 workspacesRouter.post(Paths.Workspaces.Duplicate, WorkspaceRoutes.duplicate);
+workspacesRouter.get(Paths.Workspaces.GetById, WorkspaceRoutes.getById);
+workspacesRouter.put(Paths.Workspaces.Update, WorkspaceRoutes.update);
+workspacesRouter.delete(Paths.Workspaces.Delete, WorkspaceRoutes.delete);
 apiRouter.use(Paths.Workspaces.Base, workspacesRouter);
 
 

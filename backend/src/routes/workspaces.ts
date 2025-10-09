@@ -72,6 +72,16 @@ export default {
       return next(err);
     }
   },
+  async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params as { id: string };
+      await WorkspaceRepo.deleteWorkspace(id);
+      res.set('Cache-Control', 'no-store');
+      return res.status(204).send();
+    } catch (err) {
+      return next(err);
+    }
+  },
 };
 
 
