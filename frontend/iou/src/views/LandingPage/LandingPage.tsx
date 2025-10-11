@@ -41,20 +41,51 @@ export default function LandingPage() {
     }
   }, []);
 
-  const handleLoginSuccess = (credentialResponse: GoogleCredentialResponse) => {
+  const handleLoginSuccess = async (credentialResponse: GoogleCredentialResponse) => {
     if (credentialResponse.credential) {
-      // Decode JWT to get profile info
-      const decoded = jwtDecode<{ name: string; email: string; picture?: string }>(
-        credentialResponse.credential
-      );
-      console.log("Logged in user:", decoded);
-      
-      // Store user in state and localStorage
-      setUser(decoded);
-      localStorage.setItem('user', JSON.stringify(decoded));
-      
-      // TODO: Navigate to user specific workspace, connect with backend!
-      // navigate("/workspaces");
+      try {
+        // Decode JWT to get profile info
+        const decoded = jwtDecode<{ name: string; email: string; picture?: string }>(
+          credentialResponse.credential
+        );
+        console.log("Logged in user:", decoded);
+        
+        // Send JWT to backend for verification and user creation/lookup
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${apiUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            credential: credentialResponse.credential
+          })
+        });
+
+        if (response.ok) {
+          const { user: backendUser } = await response.json();
+          console.log("Backend user:", backendUser);
+          
+          // Store user info with backend user data
+          const userData = {
+            ...decoded,
+            id: backendUser.id,
+            name: backendUser.name,
+            email: backendUser.email
+          };
+          
+          setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('jwt_token', credentialResponse.credential);
+          
+          // Navigate to workspaces
+          navigate("/workspaces");
+        } else {
+          console.error("Backend authentication failed:", await response.text());
+        }
+      } catch (error) {
+        console.error("Authentication error:", error);
+      }
     }
   };
   
@@ -96,6 +127,7 @@ export default function LandingPage() {
       // Clear local state and storage
       setUser(null);
       localStorage.removeItem('user');
+      localStorage.removeItem('jwt_token');
       
       console.log("User logged out");
     } catch (error) {
@@ -103,6 +135,7 @@ export default function LandingPage() {
       // Still clear local state even if revoke fails
       setUser(null);
       localStorage.removeItem('user');
+      localStorage.removeItem('jwt_token');
     } finally {
       setIsLoggingOut(false);
     }

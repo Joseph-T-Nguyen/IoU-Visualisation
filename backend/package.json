@@ -22,6 +22,7 @@
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "google-auth-library": "^10.4.0",
     "helmet": "^8.1.0",
     "inserturlparams": "^2.0.5",
     "jet-env": "^1.1.4",
@@ -29,6 +30,7 @@
     "jet-paths": "^1.1.0",
     "jet-validators": "^1.4.3",
     "jsonfile": "^6.2.0",
+    "jsonwebtoken": "^9.0.2",
     "module-alias": "^2.2.3",
     "morgan": "^1.10.1"
   },

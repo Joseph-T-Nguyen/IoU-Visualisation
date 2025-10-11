@@ -16,8 +16,24 @@ export function useWorkspaces() {
       try {
         setLoading(true);
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        const USER_ID = import.meta.env.VITE_USER_ID || '1';
-        const res = await fetch(`${apiUrl}/api/workspaces?userId=${encodeURIComponent(USER_ID)}`);
+        const jwtToken = localStorage.getItem('jwt_token');
+        
+        if (!jwtToken) {
+          console.error('No JWT token found');
+          setWorkspaces([]);
+          return;
+        }
+
+        const res = await fetch(`${apiUrl}/api/workspaces`, {
+          headers: {
+            'Authorization': `Bearer ${jwtToken}`
+          }
+        });
+        
+        if (!res.ok) {
+          throw new Error(`Failed to fetch workspaces: ${res.status}`);
+        }
+        
         const json = await res.json();
         const ws: Workspace[] = json.workspaces || [];
         setWorkspaces(ws);
@@ -31,25 +47,52 @@ export function useWorkspaces() {
     fetchWorkspaces();
   }, []);
 
-  const createWorkspace = (name: string = "Untitled") => {
-    const now = new Date();
-    const formattedDate = `Edited ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+  const createWorkspace = async (name: string = "Untitled") => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const jwtToken = localStorage.getItem('jwt_token');
+    
+    if (!jwtToken) {
+      console.error('No JWT token found');
+      return;
+    }
 
-    const newWorkspace: Workspace = {
-      id: `new-${Date.now()}`,
-      name: name || "Untitled",
-      lastEdited: formattedDate,
-    };
-
-    setWorkspaces(prevWorkspaces => [newWorkspace, ...prevWorkspaces]);
+    try {
+      const res = await fetch(`${apiUrl}/api/workspaces`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`
+        },
+        body: JSON.stringify({ name: name || "Untitled" })
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to create workspace: ${res.status}`);
+      }
+      
+      const newWorkspace: Workspace = await res.json();
+      setWorkspaces(prevWorkspaces => [newWorkspace, ...prevWorkspaces]);
+    } catch (err) {
+      console.error('Failed to create workspace', err);
+    }
   };
 
   const renameWorkspace = async (id: string, newName: string) => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const jwtToken = localStorage.getItem('jwt_token');
+    
+    if (!jwtToken) {
+      console.error('No JWT token found');
+      return;
+    }
+
     try {
       const res = await fetch(`${apiUrl}/api/workspaces/${encodeURIComponent(id)}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`
+        },
         body: JSON.stringify({ name: newName || 'Untitled' }),
       });
       if (!res.ok) throw new Error(`Failed to update: ${res.status}`);
@@ -68,10 +111,20 @@ export function useWorkspaces() {
 
   const duplicateWorkspace = async (id: string) => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const jwtToken = localStorage.getItem('jwt_token');
+    
+    if (!jwtToken) {
+      console.error('No JWT token found');
+      return;
+    }
+
     try {
       const res = await fetch(`${apiUrl}/api/workspaces/${encodeURIComponent(id)}/duplicate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`
+        },
       });
       if (!res.ok) throw new Error(`Failed to duplicate: ${res.status}`);
       const created: Workspace = await res.json();

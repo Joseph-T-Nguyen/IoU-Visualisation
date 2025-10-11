@@ -1,10 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import * as WorkspaceRepo from '@src/repos/WorkspaceRepo';
+import { verifyAuth } from '@src/middleware/auth';
 
 export default {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = String((req.query.userId ?? '1'));
+      // Use authenticated user ID instead of query parameter
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
       const rows = await WorkspaceRepo.findByOwner(userId);
       const workspaces = rows.map(r => ({
         id: r.id,
@@ -51,9 +57,12 @@ export default {
   },
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const { ownerId, name } = req.body as { ownerId?: string, name?: string };
-      if (!ownerId) return res.status(400).json({ error: 'ownerId is required' });
+      const { name } = req.body as { name?: string };
+      const ownerId = req.user?.id;
+      
+      if (!ownerId) return res.status(401).json({ error: 'Authentication required' });
       if (!name || name.trim().length === 0) return res.status(400).json({ error: 'name is required' });
+      
       const created = await WorkspaceRepo.createWorkspace(ownerId, name.trim());
       res.set('Cache-Control', 'no-store');
       return res.status(201).json({ id: created.id, name: created.name, lastEdited: `Edited ${created.updatedAt.toLocaleDateString()}` });
