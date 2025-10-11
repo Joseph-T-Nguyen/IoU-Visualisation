@@ -7,7 +7,9 @@ import {
   MenubarShortcut,
   MenubarTrigger,
 } from "@/components/ui/menubar.tsx";
-import { useNavigate } from "react-router";
+import { Save } from "lucide-react";
+import { useSaveWorkspace } from "@/hooks/workspace/useSaveWorkspace";
+import { useParams, useNavigate } from "react-router";
 
 export interface WorkspaceMenubarProps {
   onDuplicate: () => void;
@@ -33,17 +35,37 @@ export default function WorkspaceMenubar({
   onPaste,
 }: WorkspaceMenubarProps) {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const { saveWorkspace, isSaving } = useSaveWorkspace();
+
+  const handleSave = async () => {
+    if (!id) {
+      console.error("No workspace ID found");
+      return;
+    }
+
+    try {
+      await saveWorkspace(id);
+    } catch (err) {
+      console.error("Failed to save workspace:", err);
+    }
+  };
 
   return (
     <Menubar className="pointer-events-auto shadow-lg">
       <MenubarMenu>
         <MenubarTrigger className="cursor-pointer">File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem onClick={() => navigate("/workspaces/new")}>
-            New Workspace <MenubarShortcut>⌘N</MenubarShortcut>
+          <MenubarItem onClick={handleSave} disabled={isSaving}>
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Saving..." : "Save Workspace"} <MenubarShortcut>Ctrl+S</MenubarShortcut>
+          </MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem onClick={() => navigate("/workspaces/new")}> 
+            New Workspace <MenubarShortcut>Ctrl+N</MenubarShortcut>
           </MenubarItem>
           <MenubarItem onClick={onDuplicate}>
-            Duplicate Workspace <MenubarShortcut>⇧⌘D</MenubarShortcut>
+            Duplicate Workspace <MenubarShortcut>Shift+Ctrl+D</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
           <MenubarItem onClick={onImport}>Import</MenubarItem>

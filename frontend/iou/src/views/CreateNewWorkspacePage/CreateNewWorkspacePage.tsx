@@ -8,18 +8,37 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router";
+import { useWorkspaces } from "@/hooks/useWorkspaces";
+import { useState } from "react";
 
 export default function CreateNewWorkspacePage() {
   const navigate = useNavigate();
+  const { createWorkspace } = useWorkspaces();
+  const [workspaceName, setWorkspaceName] = useState("Untitled");
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleCancel = () => {
     navigate("/workspaces");
   };
 
-  const handleCreateWorkspace = () => {
-    // TODO: Add actual workspace creation logic when backend is ready
-    console.log("Creating workspace...");
-    navigate("/workspace");
+  const handleCreateWorkspace = async () => {
+    setIsCreating(true);
+    try {
+      // Create the workspace in the database
+      const newWorkspace = await createWorkspace(workspaceName);
+      if (newWorkspace) {
+        // Navigate directly to the newly created workspace
+        navigate(`/workspace/${newWorkspace.id}`);
+      } else {
+        // If creation failed, go back to workspaces page
+        navigate("/workspaces");
+      }
+    } catch (error) {
+      console.error("Failed to create workspace:", error);
+      navigate("/workspaces");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -36,6 +55,8 @@ export default function CreateNewWorkspacePage() {
               className="flex-1"
               type="text"
               placeholder="Workspace Name"
+              value={workspaceName}
+              onChange={(e) => setWorkspaceName(e.target.value)}
             />
           </div>
 
@@ -50,8 +71,12 @@ export default function CreateNewWorkspacePage() {
           </div>
 
           <div className="flex justify-end pt-4 space-x-2 w-1/2 ml-auto">
-            <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-            <Button onClick={handleCreateWorkspace}>Create Workspace</Button>
+            <Button variant="outline" onClick={handleCancel} disabled={isCreating}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateWorkspace} disabled={isCreating}>
+              {isCreating ? "Creating..." : "Create Workspace"}
+            </Button>
           </div>
 
         </CardContent>

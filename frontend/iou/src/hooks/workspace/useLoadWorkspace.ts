@@ -13,7 +13,19 @@ export default function useLoadWorkspace(workspaceId: string) {
       const json = await res.json();
       const ws = json.workspace as { id: string; name: string; shapes: any };
       if (ws?.name) setDisplayName(ws.name);
-      if (ws?.shapes) setAllShapes(ws.shapes);
+      if (ws?.shapes) {
+        // Ensure all shapes have a visible property set to true by default
+        const shapesWithVisibility = Object.fromEntries(
+          Object.entries(ws.shapes).map(([id, shape]: [string, any]) => [
+            id,
+            {
+              ...shape,
+              visible: shape.visible ?? true, // Default to true if not set
+            }
+          ])
+        );
+        setAllShapes(shapesWithVisibility);
+      }
     };
     load().catch(console.error);
   }, [workspaceId, setAllShapes, setDisplayName]);

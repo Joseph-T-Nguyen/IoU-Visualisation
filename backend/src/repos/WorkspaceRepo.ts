@@ -26,6 +26,7 @@ export async function findWithShapes(workspaceId: string) {
           name: true,
           color: true,
           vertices: true,
+          visible: true,
         },
       },
     },
@@ -66,11 +67,42 @@ export async function duplicateWorkspace(sourceWorkspaceId: string) {
           name: s.name,
           color: s.color,
           vertices: s.vertices,
+          visible: s.visible ?? true, // Default to true if not set
           workspaceId: created.id,
         })),
       });
     }
     return created;
+  });
+}
+
+export async function saveWorkspace(workspaceId: string, shapes: Record<string, any>) {
+  return prisma.$transaction(async (tx) => {
+    // Delete existing shapes for this workspace
+    await tx.shape.deleteMany({
+      where: { workspaceId },
+    });
+
+    // Create new shapes from the provided data
+    if (Object.keys(shapes).length > 0) {
+      await tx.shape.createMany({
+        data: Object.entries(shapes).map(([shapeId, shapeData]) => ({
+          id: shapeId,
+          name: shapeData.name,
+          color: shapeData.color,
+          vertices: shapeData.vertices,
+          visible: shapeData.visible ?? true, // Default to true if not set
+          workspaceId,
+        })),
+      });
+    }
+
+    // Update the workspace's updatedAt timestamp
+    return tx.workspace.update({
+      where: { id: workspaceId },
+      data: { updatedAt: new Date() },
+      select: { id: true, name: true, updatedAt: true },
+    });
   });
 }
 

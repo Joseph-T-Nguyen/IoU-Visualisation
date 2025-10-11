@@ -39,6 +39,7 @@ model Shape {
   name        String
   color       String
   vertices    Json
+  visible     Boolean  @default(true)
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   workspaceId String    @map("workspace_id")
 
