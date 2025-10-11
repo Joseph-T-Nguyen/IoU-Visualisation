@@ -3,7 +3,7 @@ import WorkspaceGrid from "@/components/shared/WorkspaceGrid.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Plus, Copy, Check, ChevronDown } from "lucide-react";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   Dialog,
@@ -20,11 +20,40 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { googleLogout } from "@react-oauth/google";
+
+/************* Type declarations *************/
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          disableAutoSelect: () => void;
+          revoke: (hint: string, callback: () => void) => void;
+        };
+      };
+    };
+  }
+}
+/********************************************/
 
 export default function WorkspacesPage() {
   const navigate = useNavigate();
   // Use the hook to fetch workspaces data
   const { workspaces, loading, createWorkspace, renameWorkspace, deleteWorkspace, duplicateWorkspace } = useWorkspaces();
+  
+  // User state management
+  const [user, setUser] = useState<{ name: string; email: string; picture?: string } | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Load user data on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("Untitled");
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
@@ -108,10 +137,62 @@ export default function WorkspacesPage() {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple logout calls
+    setIsLoggingOut(true);
+
+    try {
+      // Store email before clearing
+      const userEmail = user?.email;
+
+      // Clear Google session
+      googleLogout();
+      
+      // Wait for Google SDK to be ready and revoke
+      if (userEmail && window.google?.accounts?.id) {
+        // Disable auto-select first
+        window.google.accounts.id.disableAutoSelect();
+        
+        // Revoke with promise wrapper for proper async handling
+        await new Promise<void>((resolve) => {
+          window.google!.accounts!.id!.revoke(userEmail, () => {
+            console.log('Google session revoked for', userEmail);
+            resolve();
+          });
+          
+          // Fallback timeout in case callback never fires
+          setTimeout(resolve, 1000);
+        });
+      }
+      
+      // Small delay to ensure revocation completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Clear local state and storage
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('jwt_token');
+      
+      // Navigate back to landing page
+      navigate("/");
+      
+      console.log("User logged out");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still clear local state even if revoke fails
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('jwt_token');
+      navigate("/");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   // Show loading state while data is being fetched
   if (loading) {
     return (
-      <AppShell>
+      <AppShell user={user} onLogout={handleLogout} isLoggingOut={isLoggingOut}>
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -141,7 +222,7 @@ export default function WorkspacesPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell user={user} onLogout={handleLogout} isLoggingOut={isLoggingOut}>
       {/* Page Header Section */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
