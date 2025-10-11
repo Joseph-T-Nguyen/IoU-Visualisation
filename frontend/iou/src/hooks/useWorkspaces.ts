@@ -47,13 +47,13 @@ export function useWorkspaces() {
     fetchWorkspaces();
   }, []);
 
-  const createWorkspace = async (name: string = "Untitled") => {
+  const createWorkspace = async (name: string = "Untitled"): Promise<Workspace | null> => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
     const jwtToken = localStorage.getItem('jwt_token');
     
     if (!jwtToken) {
       console.error('No JWT token found');
-      return;
+      return null;
     }
 
     try {
@@ -72,8 +72,10 @@ export function useWorkspaces() {
       
       const newWorkspace: Workspace = await res.json();
       setWorkspaces(prevWorkspaces => [newWorkspace, ...prevWorkspaces]);
+      return newWorkspace;
     } catch (err) {
       console.error('Failed to create workspace', err);
+      return null;
     }
   };
 

@@ -91,10 +91,8 @@ export default function WorkspacesPage() {
   };
 
   const handleOpenWorkspace = (workspaceId: string) => {
-    // For now, navigate to the same workspace page for all workspaces
-    // TODO: Pass workspaceId as parameter when individual workspace routing is implemented
     console.log(`Opening workspace: ${workspaceId}`);
-    navigate("/workspace");
+    navigate(`/workspace/${workspaceId}`);
   };
 
   const getShareUrl = () => {
