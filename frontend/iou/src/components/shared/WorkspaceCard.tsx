@@ -111,7 +111,7 @@ export default function WorkspaceCard({
                 Duplicate
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleMenuAction("share")}
+                onClick={(e) => handleMenuAction("share", e)}
                 className="cursor-pointer"
               >
                 <Share2 className="mr-2 h-4 w-4" />
