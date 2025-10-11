@@ -105,10 +105,34 @@ export function useWorkspaces() {
     }
   };
 
-  const deleteWorkspace = (id: string) => {
-    setWorkspaces(prevWorkspaces => 
-      prevWorkspaces.filter(workspace => workspace.id !== id)
-    );
+  const deleteWorkspace = async (id: string) => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const jwtToken = localStorage.getItem('jwt_token');
+    
+    if (!jwtToken) {
+      console.error('No JWT token found');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${apiUrl}/api/workspaces/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to delete workspace: ${res.status}`);
+      }
+      
+      // Remove from local state only after successful API call
+      setWorkspaces(prevWorkspaces => 
+        prevWorkspaces.filter(workspace => workspace.id !== id)
+      );
+    } catch (err) {
+      console.error('Failed to delete workspace', err);
+    }
   };
 
   const duplicateWorkspace = async (id: string) => {

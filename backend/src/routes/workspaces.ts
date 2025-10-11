@@ -101,6 +101,34 @@ export default {
       return next(err);
     }
   },
+  async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params as { id: string };
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Verify the workspace exists and belongs to the user
+      const workspace = await WorkspaceRepo.findWithShapes(id);
+      if (!workspace) {
+        return res.status(404).json({ error: 'Workspace not found' });
+      }
+
+      // Delete the workspace and all its shapes
+      const deleted = await WorkspaceRepo.deleteWorkspace(id);
+      
+      res.set('Cache-Control', 'no-store');
+      return res.json({ 
+        id: deleted.id, 
+        name: deleted.name,
+        message: 'Workspace deleted successfully'
+      });
+    } catch (err) {
+      return next(err);
+    }
+  },
 };
 
 
