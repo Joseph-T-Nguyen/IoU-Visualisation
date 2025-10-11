@@ -106,4 +106,19 @@ export async function saveWorkspace(workspaceId: string, shapes: Record<string, 
   });
 }
 
+export async function deleteWorkspace(workspaceId: string) {
+  return prisma.$transaction(async (tx) => {
+    // Delete all shapes associated with this workspace first
+    await tx.shape.deleteMany({
+      where: { workspaceId },
+    });
+
+    // Delete the workspace
+    return tx.workspace.delete({
+      where: { id: workspaceId },
+      select: { id: true, name: true },
+    });
+  });
+}
+
 

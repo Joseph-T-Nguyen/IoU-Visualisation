@@ -28,6 +28,7 @@ workspacesRouter.put(Paths.Workspaces.Update, WorkspaceRoutes.update);
 workspacesRouter.post(Paths.Workspaces.Create, verifyAuth, WorkspaceRoutes.create);
 workspacesRouter.post(Paths.Workspaces.Duplicate, WorkspaceRoutes.duplicate);
 workspacesRouter.post(Paths.Workspaces.Save, WorkspaceRoutes.save);
+workspacesRouter.delete(Paths.Workspaces.Delete, verifyAuth, WorkspaceRoutes.delete);
 apiRouter.use(Paths.Workspaces.Base, workspacesRouter);
 
 

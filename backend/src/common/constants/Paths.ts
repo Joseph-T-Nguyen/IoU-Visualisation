@@ -12,5 +12,6 @@ export default {
     Create: '/',
     Duplicate: '/:id/duplicate',
     Save: '/:id/save',
+    Delete: '/:id',
   },
 } as const;
