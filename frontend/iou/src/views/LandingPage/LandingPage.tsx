@@ -150,6 +150,9 @@ export default function LandingPage() {
             <GoogleLogin
               onSuccess={handleLoginSuccess}
               onError={handleLoginError}
+              size="large"
+              shape="pill"
+              useOneTap={false}
             />
           ) : (
             <>
@@ -176,7 +179,7 @@ export default function LandingPage() {
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="shadow-lg"
+                className="shadow-lg rounded-xl"
                 disabled={isLoggingOut}
               >
                 {isLoggingOut ? "Logging out..." : "Log Out"}
@@ -186,18 +189,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <FlexyCanvas className="flex-grow"
-        overlay={<div className="w-full flex flex-row justify-center h-full items-center">
-          <Button 
-            className="pointer-events-auto shadow-lg cursor-pointer" 
-            variant={"outline"} 
-            size="lg"
-            onClick={() => navigate("/workspaces")}
-          >
-            Open Workspace
-          </Button>
-        </div>}
-      >
+      <FlexyCanvas className="flex-grow">
         <SpinningCube></SpinningCube>
         <TrackballControls />
         <ambientLight intensity={0.1} color="blue"/>
