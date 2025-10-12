@@ -2,7 +2,6 @@ import {
   MoreVertical,
   FolderOpen,
   Edit,
-  Share2,
   Trash2,
   Copy,
 } from "lucide-react";
@@ -22,7 +21,6 @@ interface WorkspaceCardProps {
   onMenuClick?: () => void;
   onRename?: () => void;
   onDelete?: () => void;
-  onShare?: () => void;
   onDuplicate?: () => void;
   onOpen?: () => void;
 }
@@ -34,7 +32,6 @@ export default function WorkspaceCard({
   onMenuClick,
   onRename,
   onDelete,
-  onShare,
   onDuplicate,
   onOpen,
 }: WorkspaceCardProps) {
@@ -46,9 +43,6 @@ export default function WorkspaceCard({
     }
     if (action === "delete" && onDelete) {
       onDelete();
-    }
-    if (action === "share" && onShare) {
-      onShare();
     }
     if (action === "duplicate" && onDuplicate) {
       onDuplicate();
@@ -109,13 +103,6 @@ export default function WorkspaceCard({
               >
                 <Copy className="mr-2 h-4 w-4" />
                 Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => handleMenuAction("share", e)}
-                className="cursor-pointer"
-              >
-                <Share2 className="mr-2 h-4 w-4" />
-                Share
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
