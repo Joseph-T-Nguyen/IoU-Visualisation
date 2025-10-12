@@ -12,7 +12,6 @@ interface WorkspaceGridProps {
   maxVisibleCards?: number;
   onRenameWorkspace?: (id: string, currentName: string) => void;
   onDeleteWorkspace?: (id: string, name: string) => void;
-  onShareWorkspace?: (id: string, name: string) => void;
   onDuplicateWorkspace?: (id: string) => void;
   onOpenWorkspace?: (id: string) => void;
 }
@@ -21,7 +20,6 @@ export default function WorkspaceGrid({
   workspaces,
   onRenameWorkspace,
   onDeleteWorkspace,
-  onShareWorkspace,
   onDuplicateWorkspace,
   onOpenWorkspace,
 }: WorkspaceGridProps) {
@@ -36,7 +34,6 @@ export default function WorkspaceGrid({
           onMenuClick={() => console.log(`Menu clicked for ${workspace.name}`)}
           onRename={() => onRenameWorkspace?.(workspace.id, workspace.name)}
           onDelete={() => onDeleteWorkspace?.(workspace.id, workspace.name)}
-          onShare={() => onShareWorkspace?.(workspace.id, workspace.name)}
           onDuplicate={() => onDuplicateWorkspace?.(workspace.id)}
           onOpen={() => onOpenWorkspace?.(workspace.id)}
         />
