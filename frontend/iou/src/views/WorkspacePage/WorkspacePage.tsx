@@ -221,7 +221,7 @@ export default function WorkspacePage() {
           setGl(state.gl);
           state.camera.near = 0.05;
           state.camera.far = 100;
-          state.gl.sortObjects = true;
+          // state.gl.sortObjects = true;
 
           // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
           state.setEvents({
