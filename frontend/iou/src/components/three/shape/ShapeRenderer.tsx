@@ -217,6 +217,7 @@ export default function ShapeRenderer(props: ShapeRendererProps) {
           onBeforeRender={renderOrder < 990 ? undefined : (renderer) => {
             renderer.clearDepth();
           }}
+          frustumCulled={false}
         />
       )}
       <InstancedVertexSpheres

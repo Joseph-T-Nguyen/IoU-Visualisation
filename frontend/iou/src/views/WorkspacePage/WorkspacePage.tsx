@@ -219,6 +219,10 @@ export default function WorkspacePage() {
         frameloop={"demand"}
         onCreated={(state: RootState) => {
           setGl(state.gl);
+          state.camera.near = 0.05;
+          state.camera.far = 100;
+          state.gl.sortObjects = true;
+
           // Set a custom event filter globally, to make gizmos dominate all other objects in mouse events
           state.setEvents({
             filter: (
@@ -257,11 +261,12 @@ export default function WorkspacePage() {
         {/* Add 3D content here: */}
 
         <InvalidateOnVisibilityChange />
-        <IntersectionRenderer />
         {/* Add every shape to the scene: */}
         {shapeUUIDs.map((uuid: string) => (
           <ShapeWidget uuid={uuid} key={uuid} />
         ))}
+
+        <IntersectionRenderer />
       </FlexyCanvas>
     </>
   );
