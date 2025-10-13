@@ -25,6 +25,8 @@ export default function VertexControls() {
   // Get temporal controls
   const temporalStore = useShapesStore.temporal;
 
+  // const matrixMultiplySelection = useShapesStore(s => s.matrixMultiplySelection);
+
   const previousMatrix = useRef<THREE.Matrix4>(new THREE.Matrix4());
   const initialVerticesRef = useRef<[string, Vec3[]][]>([]);
 
@@ -138,6 +140,7 @@ export default function VertexControls() {
               );
 
             // Pause history tracking during drag
+            // setManyVertices(initialVerticesRef.current);
             temporalStore.getState().pause();
             beginInteraction();
           }}
@@ -147,7 +150,7 @@ export default function VertexControls() {
             endInteraction();
 
             // Resume history tracking
-            temporalStore.getState().resume();
+            // temporalStore.getState().resume();
 
             // Apply final state as a single undo step by setting vertices again
             // First restore initial state without tracking
@@ -161,7 +164,7 @@ export default function VertexControls() {
               .map((key) => [key, shapes[key].vertices] as [string, Vec3[]]);
             setManyVertices(currentVertices);
           }}
-          onDrag={(_, _2, w) => {
+          onDrag={(_, _2, w, deltaW) => {
             document.body.style.cursor = "grabbing";
             // Get difference between previous movement and current movement as delta
             previousMatrix.current.invert();
@@ -172,18 +175,17 @@ export default function VertexControls() {
             // Apply transformation for visual feedback (not tracked in history)
             const multiplyVec3 = (v: Vec3) => {
               const vector3 = new THREE.Vector3(...v);
-              vector3.applyMatrix4(delta);
+              vector3.applyMatrix4(deltaW);
               return [vector3.x, vector3.y, vector3.z] as Vec3;
             };
 
-            const selectedKeys = Object.keys(selections);
-            const mods = selectedKeys
-              .filter((key) => key in shapes)
+            // const selectedKeys = Object.keys(selections);
+            const mods = initialVerticesRef.current
               .map(
-                (key) =>
+                ([key, verts]) =>
                   [
                     key,
-                    shapes[key].vertices.map((v, i) =>
+                    verts.map((v, i) =>
                       selections[key]!.children?.has(i) ?? true
                         ? multiplyVec3(v)
                         : v
@@ -192,6 +194,7 @@ export default function VertexControls() {
               );
 
             setManyVertices(mods);
+            // matrixMultiplySelection(delta);
             previousMatrix.current.copy(w);
           }}
           depthTest={false}
