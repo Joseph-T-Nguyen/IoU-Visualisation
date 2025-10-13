@@ -66,7 +66,7 @@ export default function VertexControls() {
   const removeGizmo = useCameraControlsStore((s) => s.removeGizmo);
 
   // Whether the vertex controls should appear at all
-  const shouldRender = selectedVertexSets.length > 0;
+  const shouldRender = selectedVertexSets.length > 0 && Object.keys(shapes).length > 0;
 
   useEffect(() => {
     // If the pivotRef isn't set yet, repeatedly wait 10 ms and try setting it again
