@@ -61,13 +61,6 @@ export default function WorkspaceMenubar({
             {isSaving ? "Saving..." : "Save Workspace"} <MenubarShortcut>Ctrl+S</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarItem onClick={() => navigate("/workspaces")}> 
-            New Workspace <MenubarShortcut>Ctrl+N</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem onClick={onDuplicate}>
-            Duplicate Workspace <MenubarShortcut>Shift+Ctrl+D</MenubarShortcut>
-          </MenubarItem>
-          <MenubarSeparator />
           <MenubarItem onClick={onImport}>Import</MenubarItem>
           <MenubarItem onClick={onDownload}>Download</MenubarItem>
           <MenubarItem onClick={onScreenshot}>Take a screenshot</MenubarItem>
